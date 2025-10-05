@@ -83,7 +83,13 @@
 
             <button type="submit" class="auth-button">🚀 Complete Registration</button>
             
-           
+            <div class="form-info-box">
+                <div class="info-icon">💡</div>
+                <div class="info-content">
+                    <strong>Next Steps:</strong>
+                    <p>After registration, you'll complete your profile with additional information in a secure environment.</p>
+                </div>
+            </div>
         </form>
 
         <div class="auth-footer">
@@ -159,20 +165,6 @@
     font-size: 0.85rem;
     margin: 0;
     line-height: 1.4;
-}
-
-/* Select dropdown option colors */
-.auth-input option {
-    background: rgba(10, 14, 39, 0.95);
-    color: var(--cyber-text);
-    padding: 0.5rem;
-}
-
-.auth-input option:hover,
-.auth-input option:checked,
-.auth-input option:focus {
-    background: rgba(0, 191, 255, 0.2);
-    color: var(--cyber-accent);
 }
 </style>
 
@@ -424,4 +416,3 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 {% endblock %}
-block %}

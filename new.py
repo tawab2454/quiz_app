@@ -987,7 +987,7 @@ def index():
 @app.route('/register', methods=['GET', 'POST'])
 @csrf.exempt  # Exempt CSRF for user registration
 def register():
-    """User registration with comprehensive input validation"""
+    """Simplified user registration - only basic information (NSI ID, Name, Password)"""
     # Check system settings for registration flag
     conn_check = get_db_connection()
     try:
@@ -1006,22 +1006,13 @@ def register():
         return render_template('register.html', registration_open=False)
 
     if request.method == 'POST':
-        # Get and sanitize inputs
+        # Get and sanitize inputs (ONLY basic info)
         nsi_id = request.form.get('nsi_id', '').lower().strip()
         name = request.form.get('name', '').strip()
-        wing_name = request.form.get('wing_name', '').strip()
-        internal_type = request.form.get('internal_type', '').strip()
-        border_type = request.form.get('border_type', '').strip()
-        external_type = request.form.get('external_type', '').strip()
-        country_name = request.form.get('country_name', '').strip()
-        district_name = request.form.get('district_name', '').strip()
-        section_name = request.form.get('section_name', '').strip()
         password = request.form.get('password', '')
-        division_name = request.form.get('division_name', '').strip()
         
         # Security checks for malicious content
-        all_inputs = [nsi_id, name, wing_name, internal_type, border_type, 
-                     external_type, country_name, district_name, section_name, division_name]
+        all_inputs = [nsi_id, name]
         
         for input_value in all_inputs:
             if InputValidator.detect_sql_injection(input_value):
@@ -1052,65 +1043,10 @@ def register():
             flash(result, 'error')
             return render_template('register.html')
         
-        # Validate wing selection
-        allowed_wings = [
-            'Technical Intelligence Wing', 'Admin Wing', 'External Affairs & Liasons Wing',
-            'Political Wing', 'Research Wing', 'Special Affairs Wing', 'DG Secretariat',
-            'DG Coordination', 'Economic Security Wing', 'Internal Wing', 'Border Wing',
-            'Counter Terrorism Wing', 'Dhaka Wing', 'Media Wing', 'Training Institute Wing', 'CTcell'
-        ]
-        valid, result = InputValidator.validate_choice(wing_name, allowed_wings)
-        if not valid:
-            flash(result, 'error')
-            return render_template('register.html')
-        wing_name = result
-        
-        # Sanitize other inputs
-        internal_type = InputValidator.sanitize_string(internal_type, max_length=50)
-        border_type = InputValidator.sanitize_string(border_type, max_length=50)
-        external_type = InputValidator.sanitize_string(external_type, max_length=50)
-        country_name = InputValidator.sanitize_string(country_name, max_length=50)
-        district_name = InputValidator.sanitize_string(district_name, max_length=50)
-        section_name = InputValidator.sanitize_string(section_name, max_length=50)
-        division_name = InputValidator.sanitize_string(division_name, max_length=50)
-        
         # Basic validation
-        if not nsi_id or not name or not password or not wing_name:
+        if not nsi_id or not name or not password:
             flash('All required fields must be filled', 'error')
             return render_template('register.html')
-        
-        # Additional validation for Internal Wing
-        if wing_name == 'Internal Wing':
-            if not internal_type:
-                flash('Internal Wing Type is required for Internal Wing', 'error')
-                return render_template('register.html')
-            
-            if internal_type == 'Others':
-                if not division_name or not district_name:
-                    flash('Division and District are required for Internal Wing - Others', 'error')
-                    return render_template('register.html')
-        
-        # Additional validation for Border Wing
-        if wing_name == 'Border Wing':
-            if not border_type:
-                flash('Border Wing Type is required for Border Wing', 'error')
-                return render_template('register.html')
-            
-            if border_type == 'Others':
-                if not division_name or not district_name:
-                    flash('Division and District are required for Border Wing - Others', 'error')
-                    return render_template('register.html')
-        
-        # Additional validation for External Affairs & Liaisons Wing
-        if wing_name == 'External Affairs & Liasons Wing':
-            if not external_type:
-                flash('Office Location is required for External Affairs & Liaisons Wing', 'error')
-                return render_template('register.html')
-            
-            if external_type == 'Outside BD':
-                if not country_name:
-                    flash('Country is required for External Affairs Wing - Outside BD', 'error')
-                    return render_template('register.html')
         
         # Validate NSI ID format
         import re
@@ -1131,51 +1067,15 @@ def register():
             conn.close()
             return render_template('register.html')
         
-        # Create user
+        # Create user with basic info only, profile_completed = 0
         password_hash = hash_password(password)
         try:
-            # Handle field clearing based on wing type
-            if wing_name == 'Internal Wing':
-                border_type = None
-                external_type = None
-                country_name = None
-                if internal_type == 'HQ':
-                    # For Internal HQ users, clear division and district
-                    division_name = None
-                    district_name = None
-            elif wing_name == 'Border Wing':
-                internal_type = None
-                external_type = None
-                country_name = None
-                if border_type == 'HQ':
-                    # For Border HQ users, clear division and district
-                    division_name = None
-                    district_name = None
-            elif wing_name == 'External Affairs & Liasons Wing':
-                internal_type = None
-                border_type = None
-                division_name = None
-                district_name = None
-                if external_type == 'Inside BD':
-                    # For Inside BD users, clear country
-                    country_name = None
-                elif external_type == 'Outside BD':
-                    # For Outside BD users, clear section
-                    section_name = None
-            else:
-                # For other wings, clear all wing-specific fields
-                internal_type = None
-                border_type = None
-                external_type = None
-                country_name = None
-                division_name = None
-                district_name = None
-            
-            conn.execute('''INSERT INTO users (nsi_id, name, wing_name, internal_type, border_type, external_type, country_name, division_name, district_name, section_name, password_hash) 
-                           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
-                        (nsi_id, name, wing_name, internal_type, border_type, external_type, country_name, division_name, district_name, section_name, password_hash))
+            conn.execute('''INSERT INTO users 
+                           (nsi_id, name, password_hash, profile_completed) 
+                           VALUES (?, ?, ?, 0)''',
+                        (nsi_id, name, password_hash))
             conn.commit()
-            flash('Registration successful! You can now login.', 'success')
+            flash('Registration successful! Please login to complete your profile.', 'success')
             return redirect(url_for('login'))
         except Exception as e:
             flash('Registration failed. Please try again.', 'error')
@@ -1227,6 +1127,12 @@ def login():
             session['user_id'] = user['id']
             session['user_name'] = InputValidator.sanitize_string(user['name'])
             session['nsi_id'] = user['nsi_id']
+            
+            # Check if profile is completed
+            if user['profile_completed'] == 0:
+                flash(f'Welcome, {InputValidator.sanitize_string(user["name"])}! Please complete your profile to access the system.', 'info')
+                return redirect(url_for('complete_profile'))
+            
             flash(f'Welcome, {InputValidator.sanitize_string(user["name"])}!', 'success')
             return redirect(url_for('student_dashboard'))
         else:
@@ -1346,6 +1252,124 @@ def logout():
     return redirect(url_for('index'))
 
 
+@app.route('/complete_profile', methods=['GET', 'POST'])
+def complete_profile():
+    """Complete user profile after initial registration"""
+    if not session.get('user_logged_in'):
+        flash('Please login first', 'error')
+        return redirect(url_for('login'))
+    
+    user_id = session.get('user_id')
+    
+    # Get current user data
+    conn = get_db_connection()
+    user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+    
+    if not user:
+        conn.close()
+        flash('User not found', 'error')
+        return redirect(url_for('logout'))
+    
+    # If profile already completed, redirect to dashboard
+    if user['profile_completed'] == 1:
+        conn.close()
+        return redirect(url_for('student_dashboard'))
+    
+    if request.method == 'POST':
+        wing_name = request.form.get('wing_name', '').strip()
+        internal_type = request.form.get('internal_type', '').strip()
+        border_type = request.form.get('border_type', '').strip()
+        external_type = request.form.get('external_type', '').strip()
+        country_name = request.form.get('country_name', '').strip()
+        division_name = request.form.get('division_name', '').strip()
+        district_name = request.form.get('district_name', '').strip()
+        section_name = request.form.get('section_name', '').strip()
+        
+        # Basic validation
+        if not wing_name:
+            flash('Wing name is required', 'error')
+            conn.close()
+            return render_template('complete_profile.html', user=user)
+        
+        # Sanitize inputs
+        wing_name = InputValidator.sanitize_string(wing_name, max_length=100)
+        internal_type = InputValidator.sanitize_string(internal_type, max_length=50) if internal_type else None
+        border_type = InputValidator.sanitize_string(border_type, max_length=50) if border_type else None
+        external_type = InputValidator.sanitize_string(external_type, max_length=50) if external_type else None
+        country_name = InputValidator.sanitize_string(country_name, max_length=100) if country_name else None
+        division_name = InputValidator.sanitize_string(division_name, max_length=100) if division_name else None
+        district_name = InputValidator.sanitize_string(district_name, max_length=100) if district_name else None
+        section_name = InputValidator.sanitize_string(section_name, max_length=30) if section_name else None
+        
+        # Wing-specific validation
+        if wing_name == 'Internal Wing':
+            if not internal_type:
+                flash('Internal Wing Type is required', 'error')
+                conn.close()
+                return render_template('complete_profile.html', user=user)
+            
+            if internal_type == 'Others':
+                if not division_name or not district_name:
+                    flash('Division and District are required for Internal Wing (Others)', 'error')
+                    conn.close()
+                    return render_template('complete_profile.html', user=user)
+        
+        elif wing_name == 'Border Wing':
+            if not border_type:
+                flash('Border Wing Type is required', 'error')
+                conn.close()
+                return render_template('complete_profile.html', user=user)
+            
+            if border_type == 'Others':
+                if not division_name or not district_name:
+                    flash('Division and District are required for Border Wing (Others)', 'error')
+                    conn.close()
+                    return render_template('complete_profile.html', user=user)
+        
+        elif wing_name == 'External Affairs & Liasons Wing':
+            if not external_type:
+                flash('Office Location is required', 'error')
+                conn.close()
+                return render_template('complete_profile.html', user=user)
+            
+            if external_type == 'Outside BD':
+                if not country_name:
+                    flash('Country is required for External Affairs (Outside BD)', 'error')
+                    conn.close()
+                    return render_template('complete_profile.html', user=user)
+        
+        # Update user profile in database
+        try:
+            conn.execute('''
+                UPDATE users 
+                SET wing_name = ?, 
+                    internal_type = ?, 
+                    border_type = ?, 
+                    external_type = ?, 
+                    country_name = ?, 
+                    division_name = ?, 
+                    district_name = ?, 
+                    section_name = ?,
+                    profile_completed = 1
+                WHERE id = ?
+            ''', (wing_name, internal_type, border_type, external_type, 
+                  country_name, division_name, district_name, section_name, user_id))
+            conn.commit()
+            conn.close()
+            
+            flash('Profile completed successfully! Welcome to the exam system.', 'success')
+            return redirect(url_for('student_dashboard'))
+        
+        except Exception as e:
+            conn.close()
+            flash('An error occurred while saving your profile. Please try again.', 'error')
+            print(f"Profile completion error: {e}")
+            return render_template('complete_profile.html', user=user)
+    
+    conn.close()
+    return render_template('complete_profile.html', user=user)
+
+
 @app.route('/student/dashboard')
 def student_dashboard():
     """Student dashboard"""
@@ -1359,6 +1383,11 @@ def student_dashboard():
     
     if not user:
         return redirect(url_for('logout'))
+    
+    # Check if profile is incomplete and redirect
+    if user['profile_completed'] == 0:
+        flash('Please complete your profile to access the dashboard and exams', 'warning')
+        return redirect(url_for('complete_profile'))
     
     conn = get_db_connection()
     
@@ -1903,6 +1932,11 @@ def start_exam(exam_id):
     user = get_current_user()
     if not user:
         return redirect(url_for('logout'))
+    
+    # Check if profile is completed
+    if user['profile_completed'] == 0:
+        flash('Please complete your profile before taking exams', 'warning')
+        return redirect(url_for('complete_profile'))
     
     conn = get_db_connection()
     
