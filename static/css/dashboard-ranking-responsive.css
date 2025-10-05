@@ -27,36 +27,100 @@
    1. Mobile First (up to 768px)
    =================================== */
 @media (max-width: 768px) {
+    /* Ensure parent containers don't clip content */
+    .dashboard-container,
+    .dashboard-content,
+    .dashboard-section {
+        overflow-x: visible !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
     /* Main grid stacks to a single column */
     .rankings-performance-grid {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: minmax(0, 1fr) !important;
         gap: 1.5rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        overflow-x: visible !important;
     }
 
     .ranking-section-card,
     .leaderboard-section-card {
-        padding: 1.5rem !important;
-        min-height: auto !important; /* Let content define height */
+        padding: 0.75rem !important;
+        min-height: auto !important;
+        width: calc(100vw - 2.5rem) !important;
+        max-width: calc(100vw - 2.5rem) !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+    }
+    
+    /* Ensure all child elements respect parent width */
+    .ranking-section-card *,
+    .leaderboard-section-card * {
+        max-width: 100% !important;
+        box-sizing: border-box !important;
     }
 
+    .card-header {
+        padding: 0.5rem !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
     .card-header h3 {
-        font-size: 1.3rem !important;
+        font-size: 1.2rem !important;
+        word-wrap: break-word !important;
+        max-width: 100% !important;
     }
 
     .leaderboard-subtitle {
         font-size: 0.85rem !important;
+        word-wrap: break-word !important;
     }
 
     /* Allow vertical scroll on mobile */
     .personal-rankings-grid {
         max-height: 400px !important;
+        width: 100% !important;
+        padding: 0.5rem !important;
+        box-sizing: border-box !important;
+    }
+    
+    .ranking-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0.75rem !important;
+        margin-bottom: 0.75rem !important;
+        box-sizing: border-box !important;
     }
 
 
 
     .ranking-stats-grid {
-        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
-        gap: 0.8rem !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.5rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0.5rem !important;
+        box-sizing: border-box !important;
+    }
+    
+    .stat-item {
+        min-width: 0 !important;
+        max-width: 100% !important;
+        padding: 0.5rem !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        font-size: 0.8rem !important;
+    }
+    
+    .exam-title {
+        font-size: 0.95rem !important;
+        word-wrap: break-word !important;
+        padding: 0.5rem !important;
     }
 
     /* Podium stacks vertically */
@@ -113,6 +177,13 @@
     .ranking-section-card,
     .leaderboard-section-card {
         padding: 2rem !important;
+        max-height: none !important;
+        overflow-y: auto !important;
+    }
+    
+    .personal-rankings-grid {
+        max-height: 500px !important;
+        overflow-y: auto !important;
     }
 
     /* Keep podium stacked on tablet for better spacing */
@@ -129,15 +200,38 @@
     .rankings-performance-grid {
         grid-template-columns: 1fr 1fr !important; /* Corrected: Two columns for desktop */
         gap: 2.5rem !important;
+        align-items: start !important;
+    }
+    
+    .rankings-column,
+    .leaderboard-column {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
     }
 
     .ranking-section-card,
     .leaderboard-section-card {
         padding: 2.5rem !important;
+        max-height: none !important;
+        min-height: auto !important;
+        height: auto !important;
+        overflow: visible !important;
     }
 
+    .rankings-section .personal-rankings-grid,
     .personal-rankings-grid {
-        max-height: 500px !important;
+        max-height: none !important;
+        height: auto !important;
+        overflow: visible !important;
+        padding-right: 0.5rem !important;
+    }
+    
+    .rankings-section .ranking-section-card,
+    .ranking-section-card {
+        max-height: none !important;
+        height: auto !important;
+        overflow: visible !important;
     }
 
     .ranking-stats-grid {

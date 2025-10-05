@@ -141,17 +141,35 @@
 
                         <div class="form-group">
                             <label class="auth-label" for="password">Password *</label>
-                            <input type="password" id="password" name="password" required 
-                                   placeholder="Enter your password" maxlength="100"
-                                   class="auth-input">
+                            <div class="password-input-wrapper">
+                                <input type="password" id="password" name="password" required 
+                                       placeholder="Enter your password" minlength="6" maxlength="100"
+                                       class="auth-input">
+                                <button type="button" class="password-toggle-btn" id="togglePassword" aria-label="Toggle password visibility">
+                                    <span class="eye-icon">👁️</span>
+                                </button>
+                            </div>
+                            <div class="auth-help password-requirements">
+                                <strong style="color: #00bfff;">🔒 Password Requirements:</strong>
+                                <ul style="margin: 0.5rem 0 0 1.5rem; padding: 0; list-style: none;">
+                                    <li id="req-length" style="color: #666;">✗ Minimum 6 characters</li>
+                                    <li id="req-weak" style="color: #666;">✗ Avoid weak passwords (password, 123456, admin, qwerty, abc123)</li>
+                                    <li id="req-match" style="color: #666;">✗ Passwords must match</li>
+                                </ul>
+                            </div>
                             <div id="passwordStrength" class="auth-help"></div>
                         </div>
 
             <div class="form-group">
                 <label class="auth-label" for="confirm_password">Re-enter Password *</label>
-                <input type="password" id="confirm_password" name="confirm_password" required 
-                       placeholder="Re-enter your password" maxlength="100"
-                       class="auth-input">
+                <div class="password-input-wrapper">
+                    <input type="password" id="confirm_password" name="confirm_password" required 
+                           placeholder="Re-enter your password" maxlength="100"
+                           class="auth-input">
+                    <button type="button" class="password-toggle-btn" id="toggleConfirmPassword" aria-label="Toggle confirm password visibility">
+                        <span class="eye-icon">👁️</span>
+                    </button>
+                </div>
                 <div id="passwordMatch" class="auth-help"></div>
             </div>
 
@@ -159,8 +177,18 @@
         </form>
 
         <div class="auth-footer">
-            <p class="auth-link">Existing operative? <a href="{{ url_for('login') }}">Access portal</a></p>
-            <p class="auth-link"><a href="{{ url_for('index') }}">← Return to Command Center</a></p>
+            <div class="footer-link-container">
+                <span class="footer-text">Existing operative?</span>
+                <a href="{{ url_for('login') }}" class="footer-link footer-link-primary">
+                    <span class="link-icon">🔓</span>
+                    <span class="link-text">Access Portal</span>
+                </a>
+            </div>
+            <div class="footer-divider"></div>
+            <a href="{{ url_for('index') }}" class="footer-link footer-link-secondary">
+                <span class="link-icon">←</span>
+                <span class="link-text">Return to Command Center</span>
+            </a>
         </div>
     </div>
         {% endif %}
@@ -176,6 +204,26 @@ document.addEventListener('DOMContentLoaded', function() {
     const passwordStrength = document.getElementById('passwordStrength');
     const passwordMatch = document.getElementById('passwordMatch');
     const form = document.getElementById('registerForm');
+    
+    // Password toggle functionality
+    const togglePassword = document.getElementById('togglePassword');
+    const toggleConfirmPassword = document.getElementById('toggleConfirmPassword');
+    
+    if (togglePassword) {
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.querySelector('.eye-icon').textContent = type === 'password' ? '👁️' : '🙈';
+        });
+    }
+    
+    if (toggleConfirmPassword) {
+        toggleConfirmPassword.addEventListener('click', function() {
+            const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            confirmPasswordInput.setAttribute('type', type);
+            this.querySelector('.eye-icon').textContent = type === 'password' ? '👁️' : '🙈';
+        });
+    }
 
     // Division -> District mapping
     const allDivisionDistricts = {
@@ -538,8 +586,59 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Password requirements real-time validation
+    const reqLength = document.getElementById('req-length');
+    const reqWeak = document.getElementById('req-weak');
+    const reqMatch = document.getElementById('req-match');
+    
+    function validatePasswordRequirements() {
+        const password = passwordInput.value;
+        const confirmPassword = confirmPasswordInput.value;
+        const weakPatterns = ['password', '123456', 'admin', 'qwerty', 'abc123'];
+        
+        // Check length requirement
+        if (password.length >= 6) {
+            reqLength.style.color = '#00cc44';
+            reqLength.innerHTML = '✓ Minimum 6 characters';
+        } else {
+            reqLength.style.color = password.length > 0 ? '#ff4444' : '#666';
+            reqLength.innerHTML = '✗ Minimum 6 characters';
+        }
+        
+        // Check weak password patterns
+        const isWeak = weakPatterns.some(pattern => password.toLowerCase().includes(pattern));
+        if (password.length > 0) {
+            if (!isWeak) {
+                reqWeak.style.color = '#00cc44';
+                reqWeak.innerHTML = '✓ Not a common weak password';
+            } else {
+                reqWeak.style.color = '#ff4444';
+                reqWeak.innerHTML = '✗ Avoid weak passwords (password, 123456, admin, qwerty, abc123)';
+            }
+        } else {
+            reqWeak.style.color = '#666';
+            reqWeak.innerHTML = '✗ Avoid weak passwords (password, 123456, admin, qwerty, abc123)';
+        }
+        
+        // Check password match
+        if (confirmPassword.length > 0) {
+            if (password === confirmPassword && password.length > 0) {
+                reqMatch.style.color = '#00cc44';
+                reqMatch.innerHTML = '✓ Passwords match';
+            } else {
+                reqMatch.style.color = '#ff4444';
+                reqMatch.innerHTML = '✗ Passwords must match';
+            }
+        } else {
+            reqMatch.style.color = '#666';
+            reqMatch.innerHTML = '✗ Passwords must match';
+        }
+    }
+
     // Password strength indicator
     passwordInput.addEventListener('input', function() {
+        validatePasswordRequirements();
+        
         const password = this.value;
         let strength = 0;
         let message = '';
@@ -601,7 +700,10 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     passwordInput.addEventListener('input', checkPasswordMatch);
-    confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+    confirmPasswordInput.addEventListener('input', function() {
+        validatePasswordRequirements();
+        checkPasswordMatch();
+    });
 
     // Form validation
     form.addEventListener('submit', function(e) {
@@ -644,6 +746,24 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
 
+        // Validate password length
+        if (password.length < 6) {
+            e.preventDefault();
+            alert('Password must be at least 6 characters long!');
+            passwordInput.focus();
+            return;
+        }
+        
+        // Validate weak passwords
+        const weakPatterns = ['password', '123456', 'admin', 'qwerty', 'abc123'];
+        const isWeak = weakPatterns.some(pattern => password.toLowerCase().includes(pattern));
+        if (isWeak) {
+            e.preventDefault();
+            alert('Password is too weak! Please avoid using common passwords like "password", "123456", "admin", "qwerty", or "abc123".');
+            passwordInput.focus();
+            return;
+        }
+        
         // Validate password match
         if (password !== confirmPassword) {
             e.preventDefault();

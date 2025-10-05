@@ -312,7 +312,7 @@
                                     {% if exam_ranking %}
                                         <div class="ranking-card">
                                             <div class="ranking-badge-container">
-                                                <div class="rank-badge rank-{{ 'gold' if exam_ranking.rank <= 3 else 'silver' if exam_ranking.rank <= 10 else 'bronze' }}">
+                                                <div class="rank-badge rank-{{ 'gold' if exam_ranking.rank == 1 else 'silver' if exam_ranking.rank == 2 or exam_ranking.rank <= 10 else 'bronze' }}">
                                                     <span class="rank-number">#{{ exam_ranking.rank }}</span>
                                                     <span class="rank-medal">
                                                         {% if exam_ranking.rank == 1 %}🥇

@@ -16,7 +16,7 @@ html {
 }
 
 body {
-    overflow-x: hidden; /* Prevent horizontal scroll */
+    overflow-x: visible; /* Allow content to show fully */
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
@@ -89,15 +89,23 @@ a {
     /* Fix: prevent side clipping of cards by removing negative margins */
     .dashboard-section {
         margin: 0 !important;
-        padding-left: 1rem !important;
-        padding-right: 1rem !important;
+        padding-left: 0.5rem !important;
+        padding-right: 0.5rem !important;
         overflow: visible !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        box-sizing: border-box !important;
     }
 
     /* Also allow wrappers to show full inner borders/shadows */
     .dashboard-container,
     .dashboard-content {
         overflow-x: visible !important;
+        overflow-y: visible !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        padding: 0.5rem !important;
+        box-sizing: border-box !important;
     }
     
     .navbar {
@@ -492,11 +500,16 @@ a {
             var(--cyber-dark-alt) 100%) !important;
         border: 2px solid var(--cyber-primary) !important;
         border-radius: 12px !important;
-        padding: 1.2rem !important;
-        min-height: 200px !important;
-        max-height: 350px !important;
-        overflow-y: auto !important;
-        margin-bottom: 1.2rem !important;
+        padding: 0.75rem !important;
+        min-height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        margin-bottom: 1rem !important;
+        margin-left: 0 !important;
+        margin-right: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
         color: var(--cyber-text) !important;
         box-shadow: 
             0 6px 20px rgba(0, 191, 255, 0.15),
@@ -522,6 +535,22 @@ a {
         color: var(--cyber-primary) !important;
         text-shadow: 0 0 8px var(--cyber-primary) !important;
         margin: 0 !important;
+    }
+    
+    /* Mobile: Make "📊 Your Exam Rankings" header bright and visible */
+    .rankings-section .card-header {
+        background: linear-gradient(135deg, #00bfff 0%, #00e5ff 100%) !important;
+        border: 2px solid #00ffff !important;
+        border-radius: 10px !important;
+        padding: 0.9rem 1.1rem !important;
+        margin-bottom: 1.2rem !important;
+        box-shadow: 0 4px 12px rgba(0, 191, 255, 0.5) !important;
+    }
+    
+    .rankings-section .card-header h3 {
+        color: #000 !important;
+        font-weight: 700 !important;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.5) !important;
     }
     
     .leaderboard-subtitle {
@@ -569,12 +598,14 @@ a {
     }
     
     .performance-stats {
-        grid-template-columns: repeat(2, 1fr);
+        display: flex;
+        flex-wrap: wrap;
         gap: 0.5rem;
         margin-top: 1rem;
     }
     
     .stat-item {
+        flex: 1 1 45%; /* Allow wrapping into 2 columns */
         padding: 0.6rem !important;
         font-size: 0.85rem !important;
         background: rgba(0, 191, 255, 0.1) !important;
@@ -1185,9 +1216,11 @@ a {
 @media (max-width: 768px) {
     /* Force responsive behavior */
     body {
-        overflow-x: hidden !important;
+        overflow-x: visible !important;
         font-size: 14px !important;
         line-height: 1.5 !important;
+        width: 100vw !important;
+        max-width: 100vw !important;
     }
     
     /* Ensure main content doesn't overflow */
@@ -1644,14 +1677,16 @@ a {
     }
 }
 
-/* Prevent horizontal scroll on dashboard wrappers */
+/* Allow content to display fully on dashboard wrappers */
 @media (max-width: 768px) {
     .dashboard-container,
     .dashboard-content,
     .dashboard-section {
-        overflow-x: hidden !important;
+        overflow-x: visible !important;
+        overflow-y: visible !important;
+        max-width: 100vw !important;
+        box-sizing: border-box !important;
     }
-}
 }
 
 /* Additional mobile refinements for better UX */
@@ -1693,92 +1728,105 @@ a {
         word-break: break-word !important;
     }
 }
-    /* Critical overrides: make sure rankings headings and badges remain visible and high-contrast
-       across all theme files and viewports. Placed here near other mobile overrides for priority. */
 
-@media all {
-    /* Use very specific selectors and !important so these rules beat other theme files loaded later */
-    .dashboard-section.rankings-section .section-header h2,
-    .ranking-section-card .card-header h3,
-    .leaderboard-section-card .card-header h3,
-    .leaderboard-subtitle,
-    .dashboard-section.rankings-section h2 {
-        display: block !important;
-        color: var(--cyber-text-bright, #ffffff) !important;
-        font-weight: 700 !important;
-        text-shadow: 0 1px 8px rgba(0,0,0,0.45) !important;
-        white-space: normal !important;
-        overflow: visible !important;
-        line-height: 1.2 !important;
-        font-size: 1.15rem !important;
+/* Mobile Rankings: prevent clipping/truncation and allow wrapping */
+@media (max-width: 768px) {
+    /* Ensure the leaderboard uses flexible wrapping */
+    .leaderboard-item,
+    .ranking-item,
+    .leaderboard-grid > * {
+        display: flex !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        flex-wrap: wrap !important;
+        width: 100% !important;
     }
 
-    /* Ensure leaderboard names/scores are readable */
-    .leaderboard-name,
-    .leaderboard-organization,
-    .leaderboard-score,
-    .stat-value {
-        color: var(--cyber-text-bright, #ffffff) !important;
-        text-shadow: 0 1px 6px rgba(0,0,0,0.35) !important;
-        white-space: normal !important;
+    /* Let name and meta wrap and take remaining space */
+    .leaderboard-info,
+    .ranking-info,
+    .leaderboard-details {
+        flex: 1 1 auto !important;
+        min-width: 0 !important; /* allow shrinking */
         overflow: visible !important;
+        white-space: normal !important;
+        word-break: break-word !important;
     }
 
-    /* Badge visibility and contrast */
-    .exam-status,
-    .exam-status.active,
-    .rank-badge,
+    /* Shrink badges and rank numbers slightly to avoid overflow */
+    .rank-badge {
+        width: 40px !important;
+        height: 40px !important;
+        flex: 0 0 40px !important;
+    }
+
+    .leaderboard-rank,
     .leaderboard-rank-number {
-        color: var(--cyber-text-bright, #ffffff) !important;
-        background: var(--cyber-primary, #00bfff) !important;
-        border: 1px solid rgba(255,255,255,0.06) !important;
-        box-shadow: 0 6px 18px rgba(0,191,255,0.12) !important;
-        text-shadow: 0 1px 4px rgba(0,0,0,0.5) !important;
+        min-width: 36px !important;
+        font-size: 0.95rem !important;
     }
 
-    /* Prevent truncation on tiny screens */
-    .dashboard-section.rankings-section h2,
-    .ranking-section-card .card-header h3,
-    .leaderboard-subtitle,
-    .leaderboard-name {
-        -webkit-line-clamp: unset !important;
-        line-clamp: unset !important;
-        display: block !important;
+    /* Make score and meta align to the right or wrap under name if needed */
+    .leaderboard-stats,
+    .ranking-stats {
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 0.5rem !important;
+        align-items: center !important;
+        flex: 0 0 auto !important;
     }
 
-    /* Slightly increase stacking context so glow isn't clipped */
+    /* Ensure very long names wrap instead of forcing overflow */
+    .leaderboard-name,
+    .ranking-name {
+        overflow-wrap: anywhere !important;
+        word-break: break-word !important;
+        white-space: normal !important;
+    }
+
+    /* Prevent inner cards from clipping due to fixed min-heights */
     .ranking-section-card,
-    .leaderboard-section-card,
-    .dashboard-section.rankings-section {
-        z-index: 5 !important;
+    .leaderboard-section-card {
+        min-height: auto !important;
+        max-height: none !important;
         overflow: visible !important;
+    }
+
+    /* Reduce horizontal padding on small screens to make room */
+    .leaderboard-item,
+    .ranking-item {
+        padding-left: 0.6rem !important;
+        padding-right: 0.6rem !important;
     }
 }
-    /* Review Button */
-    .review-btn {
-        padding: 0.8rem 1.2rem;
-        font-size: 0.9rem;
-        width: 100%;
-        justify-content: center;
-    }
 
-    /* Countdown */
-    .circular-countdown {
-        margin: 1rem 0;
-    }
+/* ...existing code... */
 
-    .countdown-svg {
-        width: 100px;
-        height: 100px;
-    }
+/* Review Button */
+.review-btn {
+    padding: 0.8rem 1.2rem;
+    font-size: 0.9rem;
+    width: 100%;
+    justify-content: center;
+}
 
-    .time-text {
-        font-size: 10px;
-    }
+/* Countdown */
+.circular-countdown {
+    margin: 1rem 0;
+}
 
-    .countdown-caption {
-        font-size: 0.8rem;
-    }
+.countdown-svg {
+    width: 100px;
+    height: 100px;
+}
+
+.time-text {
+    font-size: 10px;
+}
+
+.countdown-caption {
+    font-size: 0.8rem;
 }
 
 /* Small Tablets (481px - 768px) */
@@ -1895,5 +1943,128 @@ a {
 
     .circular-countdown {
         display: none !important;
+    }
+}
+
+/* ===== FINAL MOBILE RANKING CARD FIX ===== */
+@media (max-width: 768px) {
+    /* Ultimate fix for ranking cards cutting off */
+    html {
+        overflow-x: visible !important;
+        width: 100% !important;
+    }
+    
+    body {
+        overflow-x: visible !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+    }
+    
+    .dashboard-section.rankings-section {
+        width: 100% !important;
+        max-width: 100vw !important;
+        padding: 0.5rem !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+    
+    .rankings-performance-grid {
+        display: block !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+    
+    .rankings-column,
+    .leaderboard-column {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 0 1rem 0 !important;
+        box-sizing: border-box !important;
+    }
+    
+    .ranking-section-card,
+    .leaderboard-section-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0.75rem !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+    }
+    
+    .ranking-card {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 0 0.75rem 0 !important;
+        padding: 0.75rem !important;
+        box-sizing: border-box !important;
+    }
+    
+    .ranking-content {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+    }
+    
+    .ranking-stats-grid {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        box-sizing: border-box !important;
+    }
+    
+    .stat-item {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        justify-content: flex-start !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0.5rem !important;
+        box-sizing: border-box !important;
+        text-align: left !important;
+    }
+    
+    .stat-info {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        width: 100% !important;
+        text-align: left !important;
+    }
+    
+    .stat-icon {
+        margin-right: 0.5rem !important;
+        flex-shrink: 0 !important;
+    }
+    
+    .stat-label,
+    .stat-value {
+        text-align: left !important;
+        width: 100% !important;
+    }
+    
+    .personal-rankings-grid,
+    .leaderboard-grid {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
+    }
+    
+    .leaderboard-item {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 0.75rem !important;
+        margin-bottom: 0.5rem !important;
+        box-sizing: border-box !important;
     }
 }
