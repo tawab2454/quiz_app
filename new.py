@@ -988,6 +988,23 @@ def index():
 @csrf.exempt  # Exempt CSRF for user registration
 def register():
     """User registration with comprehensive input validation"""
+    # Check system settings for registration flag
+    conn_check = get_db_connection()
+    try:
+        sys_row = conn_check.execute('SELECT registration_enabled FROM system_settings WHERE id = 1').fetchone()
+        registration_open = True if (sys_row and sys_row['registration_enabled']) else False
+    except Exception:
+        registration_open = True
+    finally:
+        conn_check.close()
+
+    # If registration is disabled, show a clear message to users
+    if not registration_open:
+        # If POST was attempted while disabled, inform the user
+        if request.method == 'POST':
+            flash('Registration is currently disabled by the administrator.', 'error')
+        return render_template('register.html', registration_open=False)
+
     if request.method == 'POST':
         # Get and sanitize inputs
         nsi_id = request.form.get('nsi_id', '').lower().strip()
@@ -1874,7 +1891,7 @@ def admin_exam_controls():
     
     conn.close()
     
-    return render_template('admin_exam_controls.html', controls=controls, settings=settings, stats=stats)
+    return render_template('admin_exam_controls.html', controls=controls, settings=settings, system_settings=system_settings, stats=stats)
 
 @app.route('/exam/<int:exam_id>/start')
 def start_exam(exam_id):

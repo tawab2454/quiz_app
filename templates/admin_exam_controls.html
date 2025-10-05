@@ -147,9 +147,9 @@
                 <p>Control whether new users can register for the system</p>
                 <div class="system-control">
                     <button id="toggle-registration" 
-                            class="btn {% if system_settings and system_settings.registration_enabled %}btn-danger{% else %}btn-success{% endif %}"
-                            data-enabled="{{ system_settings.registration_enabled if system_settings else 'true' }}">
-                        {% if system_settings and system_settings.registration_enabled %}
+                            class="btn {% if settings.registration_enabled %}btn-danger{% else %}btn-success{% endif %}"
+                            data-enabled="{{ 'true' if settings.registration_enabled else 'false' }}">
+                        {% if settings.registration_enabled %}
                             <i class="fas fa-lock-open"></i> Disable Registration
                         {% else %}
                             <i class="fas fa-lock"></i> Enable Registration

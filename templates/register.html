@@ -10,7 +10,15 @@
             <p>Initialize Security Clearance Protocol</p>
         </div>
 
-    <form method="POST" class="form" id="registerForm" action="{{ url_for('register') }}">
+        {% if registration_open is defined and not registration_open %}
+            <div class="register-disabled" style="text-align:center; padding:40px;">
+                <h3 style="color:#c0392b;">Registration Disabled by Administrator</h3>
+                <p>New user registrations are temporarily closed. Please contact your administrator or try again later.</p>
+                <p><a href="{{ url_for('index') }}" class="auth-link">← Return to Command Center</a></p>
+            </div>
+        {% else %}
+
+        <form method="POST" class="form" id="registerForm" action="{{ url_for('register') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="form-group">
                 <label class="auth-label" for="nsi_id">NSI ID *</label>
@@ -155,6 +163,7 @@
             <p class="auth-link"><a href="{{ url_for('index') }}">← Return to Command Center</a></p>
         </div>
     </div>
+        {% endif %}
 </div>
 {% endblock %}
 
