@@ -1,0 +1,162 @@
+/* Critical overrides to ensure Rankings headings and badges remain visible on all pages and viewports */
+@media all {
+    .dashboard-section.rankings-section .section-header h2,
+    .ranking-section-card .card-header h3,
+    .leaderboard-section-card .card-header h3,
+    .leaderboard-subtitle,
+    .dashboard-section.rankings-section h2 {
+        display: block !important;
+        color: var(--cyber-text-bright, #ffffff) !important;
+        font-weight: 700 !important;
+        text-shadow: 0 1px 8px rgba(0,0,0,0.45) !important;
+        white-space: normal !important;
+        overflow: visible !important;
+        line-height: 1.2 !important;
+        font-size: 1.15rem !important;
+    }
+
+    .leaderboard-name,
+    .leaderboard-organization,
+    .leaderboard-score,
+    .stat-value {
+        color: #ffffff !important; /* bright on dark backgrounds */
+        text-shadow: 0 1px 5px rgba(0,0,0,0.45) !important;
+        white-space: normal !important;
+        overflow: visible !important;
+    }
+
+    /* Standard badge colors with accessible contrast */
+    .exam-status.passed { background: #0ea5a4 !important; color: #ffffff !important; }
+    .exam-status.failed { background: #ef4444 !important; color: #ffffff !important; }
+    .exam-status.active { background: #06b6d4 !important; color: #032b40 !important; font-weight:700 !important; }
+
+    /* Rank badge color palette */
+    .rank-badge.rank-gold { background: linear-gradient(135deg,#d4af37,#f8d86a) !important; color: #111 !important; }
+    .rank-badge.rank-silver { background: linear-gradient(135deg,#c0c0c0,#e6e6e6) !important; color: #111 !important; }
+    .rank-badge.rank-bronze { background: linear-gradient(135deg,#cd7f32,#e0a070) !important; color: #111 !important; }
+    .rank-badge { border: 1px solid rgba(0,0,0,0.08) !important; box-shadow: 0 6px 14px rgba(0,0,0,0.18) !important; }
+
+    /* More specific overrides targeting the rankings-section to beat .rankings-section rules */
+    .rankings-section .rank-badge.rank-gold { background: linear-gradient(135deg,#ffd700,#ffcf4d) !important; color: #111 !important; }
+    .rankings-section .rank-badge.rank-silver { background: linear-gradient(135deg,#e9eef6,#bfc9df) !important; color: #111 !important; }
+    .rankings-section .rank-badge.rank-bronze { background: linear-gradient(135deg,#d9904a,#e3b081) !important; color: #111 !important; }
+    .rankings-section .rank-badge { box-shadow: inset 0 -3px 8px rgba(0,0,0,0.12), 0 8px 22px rgba(0,0,0,0.18) !important; }
+
+    /* Heading and subtitle aesthetic adjustments */
+    .rankings-section .section-header h2,
+    .rankings-section .card-header h3,
+    .ranking-section-card .card-header h3 {
+        color: #e8ffff !important; /* bright, readable on dark header */
+        text-shadow: 0 2px 12px rgba(0,0,0,0.7) !important;
+        letter-spacing: 0.6px !important;
+    }
+
+
+    /* Prevent the rank number & medal from being clipped */
+    .rank-badge,
+    .rankings-section .rank-badge {
+        min-width: 64px !important;
+        min-height: 64px !important;
+        width: auto !important;
+        height: auto !important;
+        padding: 8px 10px !important;
+        display: inline-flex !important;
+        flex-direction: column !important;
+        align-items: center !important;
+        justify-content: center !important;
+        box-sizing: border-box !important;
+    }
+
+    .rank-number,
+    .rankings-section .rank-number {
+        font-size: 1rem !important;
+        line-height: 1 !important;
+        display: inline-block !important;
+        white-space: nowrap !important;
+        margin: 0 !important;
+    }
+
+    .rank-medal,
+    .rankings-section .rank-medal {
+        font-size: 1rem !important;
+        display: inline-block !important;
+        margin-top: 2px !important;
+    }
+
+    /* Mobile-specific scaling to keep badges readable */
+    @media (max-width: 480px) {
+        .rank-badge { min-width: 56px !important; min-height: 56px !important; padding: 6px 8px !important; }
+        .rank-number { font-size: 0.95rem !important; }
+        .rank-medal { font-size: 0.95rem !important; }
+    }
+    .rankings-section .section-subtitle,
+    .rankings-section .leaderboard-subtitle {
+        color: #cfefff !important;
+        font-size: 0.95rem !important;
+    }
+
+    /* Make leaderboard subtitle even lighter for better contrast on dark cards */
+    .leaderboard-subtitle,
+    .rankings-section .leaderboard-subtitle {
+        color: #f4fbff !important;
+    }
+
+    /* Exact-match override for page-specific selector that uses !important */
+    .rankings-section .card-header .leaderboard-subtitle {
+        color: #f4fbff !important;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.35) !important;
+    }
+
+    /* Make card headers fully opaque and distinct for reliable readability */
+    .rankings-section .card-header,
+    .ranking-section-card .card-header,
+    .leaderboard-section-card .card-header {
+        background: rgba(1,10,18,0.92) !important; /* near-opaque for max contrast */
+        padding: 0.75rem 1rem !important;
+        border-radius: 10px !important;
+        display: block !important;
+        border: 1px solid rgba(255,255,255,0.04) !important;
+    }
+
+    .rankings-section .card-header h3,
+    .ranking-section-card .card-header h3,
+    .leaderboard-section-card .card-header h3 {
+        color: #ffffff !important; /* pure white for maximum contrast */
+        margin: 0 !important;
+        font-size: 1.05rem !important;
+        text-align: left !important;
+        letter-spacing: 0.4px !important;
+        text-transform: none !important;
+    }
+
+    /* Scores and stat values — accent color that's readable on dark backgrounds */
+    .rankings-section .leaderboard-score,
+    .rankings-section .stat-value,
+    .leaderboard-score,
+    .stat-value {
+        color: #ffd166 !important; /* warm accent */
+        font-weight: 700 !important;
+        text-shadow: 0 1px 6px rgba(0,0,0,0.5) !important;
+    }
+
+    /* Ensure exam-status variants inside rankings-section are specific */
+    .rankings-section .exam-status.passed { background: #10b981 !important; color: #fff !important; }
+    .rankings-section .exam-status.failed { background: #ef4444 !important; color: #fff !important; }
+    .rankings-section .exam-status.active { background: #06b6d4 !important; color: #032b40 !important; }
+
+    .dashboard-section.rankings-section h2,
+    .ranking-section-card .card-header h3,
+    .leaderboard-subtitle,
+    .leaderboard-name {
+        -webkit-line-clamp: unset !important;
+        line-clamp: unset !important;
+        display: block !important;
+    }
+
+    .ranking-section-card,
+    .leaderboard-section-card,
+    .dashboard-section.rankings-section {
+        z-index: 5 !important;
+        overflow: visible !important;
+    }
+}

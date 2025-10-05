@@ -152,8 +152,9 @@ body {
 
 .exam-status.active {
     background: linear-gradient(45deg, #00ff00, #00cc00);
-    color: var(--cyber-dark);
-    box-shadow: 0 0 10px #00ff00;
+    color: var(--cyber-text-bright); /* white for better contrast */
+    text-shadow: 0 0 6px rgba(0, 255, 0, 0.25);
+    box-shadow: 0 0 12px rgba(0, 255, 0, 0.8);
 }
 
 .exam-status.passed {
@@ -443,6 +444,124 @@ body {
     flex-direction: column;
     align-items: center;
     gap: 1rem;
+}
+
+/* Strong override: ensure active/passed status badges remain readable across theme CSS files */
+.active-exam .exam-status.active,
+.exam-card .exam-status.active,
+.active-exam .status-badge.active,
+.status-badge.passed,
+.exam-status.passed {
+    background: linear-gradient(45deg, #00ff00, #00cc00) !important;
+    color: var(--cyber-text-bright) !important; /* force white text */
+    text-shadow: 0 0 6px rgba(0, 255, 0, 0.25) !important;
+    box-shadow: 0 0 14px rgba(0, 255, 0, 0.9) !important;
+}
+
+/* Ensure failed/inactive badges remain readable too */
+.exam-status.failed,
+.status-badge.failed,
+.status-badge.inactive {
+    color: white !important;
+    box-shadow: 0 0 12px rgba(255, 0, 64, 0.45) !important;
+}
+
+/* Rankings & Performance: high-contrast improvements */
+.rankings-section,
+.rankings-performance-grid,
+.ranking-section-card,
+.personal-rankings-grid,
+.leaderboard-item,
+.leaderboard-name,
+.leaderboard-score,
+.stat-value,
+.rank-badge,
+.metric-card .metric-value {
+    color: var(--cyber-text-bright) !important; /* primary readable text */
+}
+
+.rankings-section h2,
+.ranking-section-card h3 {
+    color: var(--cyber-primary) !important;
+    text-shadow: var(--neon-text-shadow) !important;
+}
+
+.leaderboard-item {
+    background: rgba(0, 19, 38, 0.6) !important; /* slightly darker to separate from page bg */
+    border-left: 3px solid var(--cyber-primary) !important;
+    box-shadow: 0 4px 18px rgba(0, 191, 255, 0.06) !important;
+}
+
+.leaderboard-name {
+    color: var(--cyber-text-bright) !important;
+    font-weight: 700 !important;
+}
+
+.leaderboard-score {
+    color: var(--cyber-text-dim) !important;
+    font-weight: 700 !important;
+}
+
+.personal-rankings-grid .info-item,
+.rankings-performance-grid .info-item {
+    background: rgba(0, 191, 255, 0.06) !important;
+    color: var(--cyber-text-bright) !important;
+}
+
+/* Mobile: slightly larger text for readability */
+@media (max-width: 768px) {
+    .leaderboard-name { font-size: 1.05rem !important; }
+    .leaderboard-score { font-size: 1rem !important; }
+    .stat-value { font-size: 1.05rem !important; }
+}
+
+/* Explicit overrides for Rankings headings (student dashboard) */
+.dashboard-section.rankings-section .section-header h2,
+.dashboard-section.rankings-section .section-header .section-subtitle,
+.ranking-section-card .card-header h3,
+.leaderboard-section-card .card-header h3,
+.ranking-section-card .card-header .leaderboard-subtitle,
+.leaderboard-section-card .card-header .leaderboard-subtitle {
+    color: var(--cyber-text-bright) !important; /* bright white for maximum contrast */
+    text-shadow: 0 0 8px var(--cyber-primary) !important;
+}
+
+/* Make subtitle slightly dimmer but still readable */
+.dashboard-section.rankings-section .section-header .section-subtitle,
+.ranking-section-card .card-header .leaderboard-subtitle {
+    color: var(--cyber-text-dim) !important;
+    font-weight: 600 !important;
+}
+
+/* Increase heading size modestly on mobile for readability */
+@media (max-width: 768px) {
+    .dashboard-section.rankings-section .section-header h2 { font-size: 1.4rem !important; }
+    .ranking-section-card .card-header h3, .leaderboard-section-card .card-header h3 { font-size: 1.05rem !important; }
+}
+
+/* Extra mobile visibility tweaks for rankings headings/subtitles */
+@media (max-width: 480px) {
+    .dashboard-section.rankings-section .section-header h2,
+    .ranking-section-card .card-header h3,
+    .leaderboard-section-card .card-header h3 {
+        display: block !important;
+        font-size: 1.25rem !important;
+        line-height: 1.2 !important;
+        color: var(--cyber-text-bright) !important;
+        text-shadow: 0 0 6px var(--cyber-primary) !important;
+        margin-bottom: 0.25rem !important;
+        padding-right: 0.5rem !important;
+        white-space: normal !important;
+        overflow: visible !important;
+    }
+
+    .dashboard-section.rankings-section .section-header .section-subtitle,
+    .ranking-section-card .card-header .leaderboard-subtitle {
+        display: block !important;
+        color: var(--cyber-text-dim) !important;
+        font-size: 0.95rem !important;
+        margin-bottom: 0.5rem !important;
+    }
 }
 
 .countdown-svg {

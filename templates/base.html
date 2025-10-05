@@ -44,6 +44,9 @@
     
     {% block extra_css %}{% endblock %}
 
+    <!-- Critical overrides should be loaded after any page-specific CSS so they take precedence -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/critical-overrides.css') }}">
+
     <!-- Critical mobile CSS inline to prevent FOUC -->
     <style>
         @media (max-width: 768px) {

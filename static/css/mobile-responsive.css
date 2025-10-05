@@ -1693,6 +1693,67 @@ a {
         word-break: break-word !important;
     }
 }
+    /* Critical overrides: make sure rankings headings and badges remain visible and high-contrast
+       across all theme files and viewports. Placed here near other mobile overrides for priority. */
+
+@media all {
+    /* Use very specific selectors and !important so these rules beat other theme files loaded later */
+    .dashboard-section.rankings-section .section-header h2,
+    .ranking-section-card .card-header h3,
+    .leaderboard-section-card .card-header h3,
+    .leaderboard-subtitle,
+    .dashboard-section.rankings-section h2 {
+        display: block !important;
+        color: var(--cyber-text-bright, #ffffff) !important;
+        font-weight: 700 !important;
+        text-shadow: 0 1px 8px rgba(0,0,0,0.45) !important;
+        white-space: normal !important;
+        overflow: visible !important;
+        line-height: 1.2 !important;
+        font-size: 1.15rem !important;
+    }
+
+    /* Ensure leaderboard names/scores are readable */
+    .leaderboard-name,
+    .leaderboard-organization,
+    .leaderboard-score,
+    .stat-value {
+        color: var(--cyber-text-bright, #ffffff) !important;
+        text-shadow: 0 1px 6px rgba(0,0,0,0.35) !important;
+        white-space: normal !important;
+        overflow: visible !important;
+    }
+
+    /* Badge visibility and contrast */
+    .exam-status,
+    .exam-status.active,
+    .rank-badge,
+    .leaderboard-rank-number {
+        color: var(--cyber-text-bright, #ffffff) !important;
+        background: var(--cyber-primary, #00bfff) !important;
+        border: 1px solid rgba(255,255,255,0.06) !important;
+        box-shadow: 0 6px 18px rgba(0,191,255,0.12) !important;
+        text-shadow: 0 1px 4px rgba(0,0,0,0.5) !important;
+    }
+
+    /* Prevent truncation on tiny screens */
+    .dashboard-section.rankings-section h2,
+    .ranking-section-card .card-header h3,
+    .leaderboard-subtitle,
+    .leaderboard-name {
+        -webkit-line-clamp: unset !important;
+        line-clamp: unset !important;
+        display: block !important;
+    }
+
+    /* Slightly increase stacking context so glow isn't clipped */
+    .ranking-section-card,
+    .leaderboard-section-card,
+    .dashboard-section.rankings-section {
+        z-index: 5 !important;
+        overflow: visible !important;
+    }
+}
     /* Review Button */
     .review-btn {
         padding: 0.8rem 1.2rem;
