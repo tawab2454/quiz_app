@@ -1,0 +1,437 @@
+{% extends "base.html" %}
+
+{% block title %}Create Exam - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="exam-form-container">
+    <div class="exam-form-card">
+        <div class="exam-form-header">
+            <h2>📝 Create New Exam</h2>
+            <p>Set up a new examination with category-based questions</p>
+        </div>
+
+        <form method="POST" class="exam-form" id="createExamForm">
+            <div class="form-group">
+                <label for="title">Exam Title *</label>
+                <input type="text" id="title" name="title" required 
+                       placeholder="e.g., Programming Knowledge Test"
+                       maxlength="100">
+                <div class="form-help">Choose a clear, descriptive title for your exam</div>
+            </div>
+
+            <div class="form-group">
+                <label for="description">Description</label>
+                <textarea id="description" name="description" rows="3" 
+                          placeholder="Brief description of the exam content and objectives"
+                          maxlength="500"></textarea>
+                <div class="form-help">Optional: Provide additional context about the exam</div>
+            </div>
+
+            <div class="form-row">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="scheduled_start">Exam Start Time</label>
+                    <input type="datetime-local" id="scheduled_start" name="scheduled_start">
+                    <div class="form-help">Set when the exam will become available to employees</div>
+                </div>
+                <div class="form-group">
+                    <label for="scheduled_end">Exam End Time</label>
+                    <input type="datetime-local" id="scheduled_end" name="scheduled_end">
+                    <div class="form-help">Set when the exam will close for submissions</div>
+                </div>
+            </div>
+                <div class="form-group">
+                    <label for="duration">Duration (minutes) *</label>
+                    <input type="number" id="duration" name="duration" 
+                           required min="5" max="300" value="30" 
+                           oninput="this.value = Math.max(5, Math.min(300, parseInt(this.value) || 5))">
+                    <div class="form-help">Recommended: 2-3 minutes per question</div>
+                </div>
+
+                <div class="form-group">
+                    <label>📚 Question Categories</label>
+                    <div class="categories-grid">
+                        <div class="category-card easy-category">
+                            <div class="category-header">
+                                <span class="category-icon">🟢</span>
+                                <h4>Easy Questions</h4>
+                            </div>
+                            <input type="number" id="easy_questions" name="easy_questions" 
+                                   min="0" max="{{ category_counts.easy or 0 }}" value="0" 
+                                   oninput="updateTotalQuestions()">
+                            <span class="available-count">Available: {{ category_counts.easy or 0 }}</span>
+                        </div>
+                        
+                        <div class="category-card medium-category">
+                            <div class="category-header">
+                                <span class="category-icon">🟡</span>
+                                <h4>Medium Questions</h4>
+                            </div>
+                            <input type="number" id="medium_questions" name="medium_questions" 
+                                   min="0" max="{{ category_counts.medium or 0 }}" value="0"
+                                   oninput="updateTotalQuestions()">
+                            <span class="available-count">Available: {{ category_counts.medium or 0 }}</span>
+                        </div>
+                        
+                        <div class="category-card hard-category">
+                            <div class="category-header">
+                                <span class="category-icon">🔴</span>
+                                <h4>Hard Questions</h4>
+                            </div>
+                            <input type="number" id="hard_questions" name="hard_questions" 
+                                   min="0" max="{{ category_counts.hard or 0 }}" value="0"
+                                   oninput="updateTotalQuestions()">
+                            <span class="available-count">Available: {{ category_counts.hard or 0 }}</span>
+                        </div>
+                        
+                        <div class="category-card image-category">
+                            <div class="category-header">
+                                <span class="category-icon">🖼️</span>
+                                <h4>Image Questions</h4>
+                            </div>
+                            <input type="number" id="image_questions" name="image_questions" 
+                                   min="0" max="{{ category_counts.image or 0 }}" value="0"
+                                   oninput="updateTotalQuestions()">
+                            <span class="available-count">Available: {{ category_counts.image or 0 }}</span>
+                        </div>
+                        
+                        <div class="category-card video-category">
+                            <div class="category-header">
+                                <span class="category-icon">🎥</span>
+                                <h4>Video Questions</h4>
+                            </div>
+                            <input type="number" id="video_questions" name="video_questions" 
+                                   min="0" max="{{ category_counts.video or 0 }}" value="0"
+                                   oninput="updateTotalQuestions()">
+                            <span class="available-count">Available: {{ category_counts.video or 0 }}</span>
+                        </div>
+                    </div>
+                    <div class="total-questions-display">
+                        <strong>Total Questions Selected: <span id="total_questions">0</span></strong>
+                        <p class="form-help">💡 Mix different types of questions for a comprehensive assessment</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="passing_score">Passing Score (%) *</label>
+                    <input type="number" id="passing_score" name="passing_score" 
+                           required min="0" max="100" value="60">
+                    <div class="form-help">Minimum score required to pass</div>
+                </div>
+
+                <div class="form-group">
+                    <label for="max_attempts">Maximum Attempts *</label>
+                    <input type="number" id="max_attempts" name="max_attempts" 
+                           required min="1" max="10" value="1">
+                    <div class="form-help">How many times employees can take this exam</div>
+                </div>
+            </div>
+
+            <!-- Security and result toggles removed. These are now managed from the admin dashboard. -->
+                <h3>📋 Exam Settings</h3>
+                
+                <div class="settings-grid">
+                    <div class="setting-item">
+                        <div class="setting-icon">⏱️</div>
+                        <div class="setting-content">
+                            <h4>Timer Settings</h4>
+                            <p>Exam will have a countdown timer. Employees must complete within the time limit.</p>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-icon">🔀</div>
+                        <div class="setting-content">
+                            <h4>Question Randomization</h4>
+                            <p>Questions will be randomly selected from the question bank for each employee.</p>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-icon">💾</div>
+                        <div class="setting-content">
+                            <h4>Auto-Save</h4>
+                            <p>Employee answers will be automatically saved as they progress through the exam.</p>
+                        </div>
+                    </div>
+
+                    <div class="setting-item">
+                        <div class="setting-icon">🔒</div>
+                        <div class="setting-content">
+                            <h4>Security Features</h4>
+                            <p>Copy protection and tab switching detection will be enabled.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="exam-preview">
+                <h3>📊 Exam Summary</h3>
+                <div class="preview-card">
+                    <div class="preview-item">
+                        <span class="preview-label">Title:</span>
+                        <span class="preview-value" id="previewTitle">Enter exam title</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="preview-label">Duration:</span>
+                        <span class="preview-value" id="previewDuration">30 minutes</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="preview-label">Questions:</span>
+                        <span class="preview-value" id="previewQuestions">10 questions</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="preview-label">Passing Score:</span>
+                        <span class="preview-value" id="previewPassingScore">60%</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="preview-label">Max Attempts:</span>
+                        <span class="preview-value" id="previewMaxAttempts">1 attempt</span>
+                    </div>
+                    <div class="preview-item">
+                        <span class="preview-label">Estimated Time per Question:</span>
+                        <span class="preview-value" id="previewTimePerQuestion">3.0 minutes</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" onclick="window.history.back()" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary">💾 Create Exam</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<style>
+/* Enhanced Category Grid Styles */
+.categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.category-card {
+    background: linear-gradient(135deg, #fff 0%, #f8f9fa 100%);
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.category-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    border-color: #007bff;
+}
+
+.category-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    gap: 10px;
+}
+
+.category-icon {
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.8);
+}
+
+.category-header h4 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #333;
+}
+
+.category-card input[type="number"] {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 18px;
+    font-weight: 600;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.category-card input[type="number"]:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+    outline: none;
+}
+
+.available-count {
+    display: block;
+    text-align: center;
+    margin-top: 8px;
+    font-size: 12px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+/* Category-specific colors */
+.easy-category {
+    border-left: 4px solid #28a745;
+}
+.easy-category:hover {
+    border-color: #28a745;
+}
+
+.medium-category {
+    border-left: 4px solid #ffc107;
+}
+.medium-category:hover {
+    border-color: #ffc107;
+}
+
+.hard-category {
+    border-left: 4px solid #dc3545;
+}
+.hard-category:hover {
+    border-color: #dc3545;
+}
+
+.image-category {
+    border-left: 4px solid #6f42c1;
+}
+.image-category:hover {
+    border-color: #6f42c1;
+}
+
+.video-category {
+    border-left: 4px solid #fd7e14;
+}
+.video-category:hover {
+    border-color: #fd7e14;
+}
+
+.total-questions-display {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    color: white;
+    padding: 20px;
+    border-radius: 12px;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.total-questions-display strong {
+    font-size: 18px;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.total-questions-display .form-help {
+    color: rgba(255,255,255,0.9);
+    margin: 0;
+    font-size: 14px;
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+    .categories-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .category-card {
+        padding: 15px;
+    }
+    
+    .category-header h4 {
+        font-size: 14px;
+    }
+    
+    .category-icon {
+        font-size: 20px;
+        width: 35px;
+        height: 35px;
+    }
+}
+</style>
+
+<script>
+function updateTotalQuestions() {
+    const categories = ['easy', 'medium', 'hard', 'image', 'video'];
+    let total = 0;
+    
+    categories.forEach(category => {
+        const input = document.getElementById(category + '_questions');
+        if (input) {
+            const value = parseInt(input.value) || 0;
+            total += value;
+        }
+    });
+    
+    document.getElementById('total_questions').textContent = total;
+    
+    // Update preview
+    document.getElementById('previewQuestions').textContent = total + ' questions';
+    
+    // Update time per question
+    const duration = parseInt(document.getElementById('duration').value) || 30;
+    if (total > 0) {
+        const timePerQuestion = (duration / total).toFixed(1);
+        document.getElementById('previewTimePerQuestion').textContent = timePerQuestion + ' minutes';
+    }
+}
+
+// Update preview elements
+document.addEventListener('DOMContentLoaded', function() {
+    // Update title preview
+    document.getElementById('title').addEventListener('input', function() {
+        const title = this.value || 'Enter exam title';
+        document.getElementById('previewTitle').textContent = title;
+    });
+    
+    // Update duration preview
+    document.getElementById('duration').addEventListener('input', function() {
+        const duration = this.value || '30';
+        document.getElementById('previewDuration').textContent = duration + ' minutes';
+        updateTotalQuestions();
+    });
+    
+    // Update passing score preview
+    document.getElementById('passing_score').addEventListener('input', function() {
+        const score = this.value || '60';
+        document.getElementById('previewPassingScore').textContent = score + '%';
+    });
+    
+    // Update max attempts preview
+    document.getElementById('max_attempts').addEventListener('input', function() {
+        const attempts = this.value || '1';
+        const text = attempts == '1' ? '1 attempt' : attempts + ' attempts';
+        document.getElementById('previewMaxAttempts').textContent = text;
+    });
+    
+    // Form validation
+    document.getElementById('createExamForm').addEventListener('submit', function(e) {
+        const total = parseInt(document.getElementById('total_questions').textContent) || 0;
+        if (total === 0) {
+            e.preventDefault();
+            alert('⚠️ Please select at least one question from any category!');
+            return false;
+        }
+        
+        if (total > 50) {
+            e.preventDefault();
+            alert('⚠️ Maximum 50 questions allowed per exam. You selected ' + total + ' questions.');
+            return false;
+        }
+    });
+});
+</script>
+{% endblock %}

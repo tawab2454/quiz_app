@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Access Denied - Quiz Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .error-container {
+            max-width: 600px;
+            margin: 100px auto;
+            text-align: center;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+        }
+        
+        .error-icon {
+            font-size: 72px;
+            color: #dc3545;
+            margin-bottom: 20px;
+        }
+        
+        .error-title {
+            color: #333;
+            margin-bottom: 15px;
+        }
+        
+        .error-message {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .btn {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin: 0 10px;
+        }
+        
+        .btn:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-container">
+        <div class="error-icon">🚫</div>
+        <h1 class="error-title">Access Denied</h1>
+        <p class="error-message">
+            You don't have permission to access this resource. 
+            Please contact your administrator if you believe this is an error.
+        </p>
+        <div>
+            <a href="{{ url_for('index') }}" class="btn">🏠 Home</a>
+            <a href="{{ url_for('login') }}" class="btn">🔐 Login</a>
+        </div>
+    </div>
+</body>
+</html>

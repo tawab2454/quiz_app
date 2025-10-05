@@ -1,0 +1,221 @@
+/* Cyber Grid and Scanner Effects */
+.cyber-grid {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px) 0 0,
+        linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px) 0 0;
+    background-size: 20px 20px;
+    transform: perspective(500px) rotateX(60deg);
+    animation: grid-move 20s linear infinite;
+}
+
+.scanner-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        to bottom,
+        transparent,
+        rgba(0, 255, 0, 0.1) 50%,
+        transparent
+    );
+    animation: scan 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+/* Enhanced Glitch Effect */
+.cyber-glitch {
+    position: relative;
+    color: var(--cyber-primary);
+    font-size: 3.5rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-shadow: 
+        0 0 5px var(--cyber-primary),
+        0 0 10px var(--cyber-primary),
+        0 0 15px var(--cyber-primary);
+    margin-bottom: 2rem;
+}
+
+.cyber-glitch::before,
+.cyber-glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0.8;
+}
+
+.cyber-glitch::before {
+    animation: glitch-1 0.8s infinite;
+    color: #ff0000;
+    clip-path: polygon(0 0, 100% 0, 100% 45%, 0 45%);
+}
+
+.cyber-glitch::after {
+    animation: glitch-2 1.2s infinite;
+    color: #0000ff;
+    clip-path: polygon(0 55%, 100% 55%, 100% 100%, 0 100%);
+}
+
+/* Cyber Lines */
+.cyber-lines {
+    position: relative;
+    width: 100%;
+    height: 2px;
+    background: var(--cyber-primary);
+    margin: 2rem 0;
+    overflow: hidden;
+}
+
+.cyber-lines::before,
+.cyber-lines::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background: var(--cyber-primary);
+    animation: line-scan 2s linear infinite;
+}
+
+/* Typing Text Effect */
+.typing-text {
+    border-right: 2px solid var(--cyber-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+}
+
+.highlight {
+    color: var(--cyber-accent);
+    text-shadow: 0 0 5px var(--cyber-accent);
+}
+
+/* Cyber Button */
+.cyber-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.8rem 1.5rem;
+    background: transparent;
+    color: var(--cyber-primary);
+    border: 2px solid var(--cyber-primary);
+    font-family: 'Share Tech Mono', monospace;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.cyber-button::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(0, 255, 0, 0.2),
+        transparent
+    );
+    transition: 0.5s;
+}
+
+.cyber-button:hover {
+    background: rgba(0, 255, 0, 0.1);
+    box-shadow: 0 0 10px var(--cyber-primary);
+    transform: translateY(-2px);
+}
+
+.cyber-button:hover::before {
+    left: 100%;
+}
+
+.cyber-button.admin {
+    border-color: #ff3366;
+    color: #ff3366;
+}
+
+.cyber-button.admin:hover {
+    background: rgba(255, 51, 102, 0.1);
+    box-shadow: 0 0 10px #ff3366;
+}
+
+/* Feature Header Background */
+.header-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, 
+        rgba(0, 255, 0, 0.1),
+        rgba(0, 255, 0, 0.05) 50%,
+        transparent
+    );
+    z-index: -1;
+}
+
+/* Animations */
+@keyframes grid-move {
+    from {
+        background-position: 0 0;
+    }
+    to {
+        background-position: 20px 20px;
+    }
+}
+
+@keyframes scan {
+    0%, 100% {
+        transform: translateY(-100%);
+    }
+    50% {
+        transform: translateY(100%);
+    }
+}
+
+@keyframes glitch-1 {
+    0% { transform: translate(0); }
+    20% { transform: translate(-2px, 2px); }
+    40% { transform: translate(-2px, -2px); }
+    60% { transform: translate(2px, 2px); }
+    80% { transform: translate(2px, -2px); }
+    100% { transform: translate(0); }
+}
+
+@keyframes glitch-2 {
+    0% { transform: translate(0); }
+    20% { transform: translate(2px, -2px); }
+    40% { transform: translate(2px, 2px); }
+    60% { transform: translate(-2px, -2px); }
+    80% { transform: translate(-2px, 2px); }
+    100% { transform: translate(0); }
+}
+
+@keyframes line-scan {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+@keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
+@keyframes blink-caret {
+    from, to { border-color: transparent; }
+    50% { border-color: var(--cyber-primary); }
+}

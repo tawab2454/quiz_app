@@ -1,0 +1,397 @@
+{% extends "base.html" %}
+{% from "pagination_component.html" import render_pagination %}
+
+{% block title %}Manage Questions - Admin Panel{% endblock %}
+
+{% block styles %}
+<style>
+.difficulty-unseen { background-color: #6f42c1; color: white; }
+.difficulty-image { background-color: #17a2b8; color: white; }
+.difficulty-video { background-color: #dc3545; color: white; }
+
+/* Video Container Styles */
+.video-container {
+    position: relative;
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 10px;
+    border: 2px solid #e9ecef;
+}
+
+.video-container iframe {
+    border-radius: 6px;
+    width: 100%;
+    max-width: 280px;
+}
+
+/* Video Question Card Enhancement */
+.question-card:has(.video-container) {
+    border-left: 4px solid #dc3545;
+    background: linear-gradient(145deg, #fff 0%, #fef7f7 100%);
+}
+
+.question-card:has(.video-container) .question-header {
+    background: #fff5f5;
+}
+
+/* Loading State for Videos */
+.video-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 157px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+.video-loading::before {
+    content: "🎥";
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+/* Responsive Video */
+@media (max-width: 768px) {
+    .video-container iframe {
+        width: 100%;
+        height: 120px;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-content">
+    <div class="content-header">
+        <h1>📚 Question Management</h1>
+        <div class="header-actions">
+            <a href="{{ url_for('add_question') }}" class="btn btn-primary">➕ Add New Question</a>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="content-body">
+        <div class="filter-section">
+            <div class="filter-group">
+                <label for="categoryFilter">Filter by Category:</label>
+                <select id="categoryFilter" class="form-control">
+                    <option value="">All Categories</option>
+                    <option value="easy">Easy</option>
+                    <option value="medium">Medium</option>
+                    <option value="hard">Hard</option>
+                    <option value="unseen">Unseen</option>
+                    <option value="image">Image Questions</option>
+                    <option value="video">Video Questions</option>
+                </select>
+            </div>
+            <div class="filter-group">
+                <button onclick="clearFilters()" class="btn btn-secondary">Clear Filters</button>
+            </div>
+        </div>
+        {% if questions %}
+            <div class="questions-stats">
+                <div class="stat-item">
+                    <span class="stat-value">{{ questions|length }}</span>
+                    <span class="stat-label">Total Questions</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ questions|selectattr('category', 'equalto', 'easy')|list|length }}</span>
+                    <span class="stat-label">Easy</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ questions|selectattr('category', 'equalto', 'medium')|list|length }}</span>
+                    <span class="stat-label">Medium</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ questions|selectattr('category', 'equalto', 'hard')|list|length }}</span>
+                    <span class="stat-label">Hard</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ questions|selectattr('category', 'equalto', 'unseen')|list|length }}</span>
+                    <span class="stat-label">Unseen</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ questions|selectattr('difficulty', 'equalto', 'image')|list|length }}</span>
+                    <span class="stat-label">Image</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-value">{{ questions|selectattr('difficulty', 'equalto', 'video')|list|length }}</span>
+                    <span class="stat-label">Video</span>
+                </div>
+            </div>
+
+            <div class="questions-container">
+                {% for question in questions %}
+                    <div class="question-card" data-question-id="{{ question.id }}" data-category="{{ question.category }}">
+                        <div class="question-header">
+                            <div class="question-meta">
+                                <span class="question-id">#{{ question.id }}</span>
+                                <span class="difficulty-badge difficulty-{{ question.difficulty }}">
+                                    {{ question.difficulty.title() }}
+                                </span>
+                                {% if question.subject %}
+                                    <span class="subject-badge">{{ question.subject }}</span>
+                                {% endif %}
+                            </div>
+                            <div class="question-actions">
+                                <button onclick="editQuestion({{ question.id }})" class="btn btn-small btn-secondary">✏️ Edit</button>
+                                <button onclick="deleteQuestion({{ question.id }})" class="btn btn-small btn-danger">🗑️ Delete</button>
+                            </div>
+                        </div>
+
+                        <div class="question-content">
+                            <div class="question-text">
+                                {% if question.question_image %}
+                                    <img src="{{ question.question_image }}" alt="Question Image" style="max-width:150px;max-height:100px;display:block;margin-bottom:5px;">
+                                {% endif %}
+                                {% if question.question_youtube %}
+                                    <div class="video-container" style="margin-bottom:10px;">
+                                        {% set video_id = question.question_youtube %}
+                                        {% if 'youtube.com/watch?v=' in video_id %}
+                                            {% set video_id = video_id.split('v=')[1].split('&')[0] %}
+                                        {% elif 'youtu.be/' in video_id %}
+                                            {% set video_id = video_id.split('youtu.be/')[1].split('?')[0] %}
+                                        {% elif 'youtube.com/embed/' in video_id %}
+                                            {% set video_id = video_id.split('embed/')[1].split('?')[0] %}
+                                        {% endif %}
+                                        <iframe 
+                                            width="280" 
+                                            height="157" 
+                                            src="https://www.youtube.com/embed/{{ video_id }}?rel=0&showinfo=0&modestbranding=1" 
+                                            frameborder="0" 
+                                            allowfullscreen 
+                                            loading="lazy"
+                                            style="display:block;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.1);">
+                                        </iframe>
+                                        <small style="color:#666;font-size:11px;margin-top:5px;display:block;">🎥 Video Question</small>
+                                    </div>
+                                {% endif %}
+                                <strong>Q:</strong> {{ question.question_text }}
+                            </div>
+
+                            <div class="question-options">
+                                {% for i in range(1, 7) %}
+                                    {% set option = question['option_' + i|string] %}
+                                    {% if option %}
+                                        <div class="option-item {% if 'ABCDEF'[i-1] == question.correct_option %}correct-option{% endif %}">
+                                            <span class="option-letter">{{ 'ABCDEF'[i-1] }}</span>
+                                            <span class="option-text">{{ option }}</span>
+                                            {% set opt_img = question['option_' + 'abcdef'[i-1] + '_image'] %}
+                                            {% if opt_img %}
+                                                <img src="{{ opt_img }}" alt="Option Image" style="max-width:100px;max-height:80px;display:block;margin-top:5px;">
+                                            {% endif %}
+                                            {% if 'ABCDEF'[i-1] == question.correct_option %}
+                                                <span class="correct-indicator">✅</span>
+                                            {% endif %}
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="question-footer">
+                            <small class="question-date">Created: {{ question.created_at }}</small>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-questions">
+                <div class="no-questions-icon">📝</div>
+                <h3>No Questions Available</h3>
+                <p>You haven't created any questions yet. Start by adding your first question.</p>
+                <a href="{{ url_for('add_question') }}" class="btn btn-primary">➕ Add First Question</a>
+            </div>
+        {% endif %}
+
+        {# Render pagination if there are pages #}
+        {% if pagination and pagination.pages > 1 %}
+            {{ render_pagination(pagination, 'admin_questions', query_params=request.args) }}
+        {% endif %}
+    </div>
+</div>
+
+<!-- Edit Question Modal -->
+<div class="modal" id="editModal" style="display: none;">
+    <div class="modal-content large">
+        <div class="modal-header">
+            <h3>✏️ Edit Question</h3>
+            <button onclick="closeEditModal()" class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editQuestionForm" enctype="multipart/form-data">
+                <input type="hidden" id="editQuestionId">
+                
+                <div class="form-group">
+                    <label for="editQuestionText">Question Text *</label>
+                    <textarea id="editQuestionText" name="question_text" rows="3" required></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editQuestionImage">Question Image</label>
+                        <input type="file" id="editQuestionImage" name="question_image" accept="image/*" onchange="previewImage(this, 'editQuestionImagePreview')">
+                        <div id="editQuestionImagePreview" class="image-preview"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="editQuestionYouTube">Question YouTube Link</label>
+                        <input type="url" id="editQuestionYouTube" name="question_youtube" placeholder="Paste YouTube link (optional)" onchange="handleYouTubeLink(this, 'editQuestionYouTubePreview')">
+                        <div id="editQuestionYouTubePreview" class="youtube-preview"></div>
+                    </div>
+                </div>
+
+                <div class="options-grid">
+                    {% for i in range(1, 7) %}
+                        <div class="form-group">
+                            <div class="option-container">
+                                <label for="editOption{{ i }}">Option {{ 'ABCDEF'[i-1] }} {% if i <= 4 %}*{% endif %}</label>
+                                <input type="text" id="editOption{{ i }}" name="option_{{ i }}" {% if i <= 4 %}required{% endif %}>
+                                <input type="file" id="editOption{{ i }}Image" name="option_{{ i }}_image" accept="image/*" onchange="previewImage(this, 'editOption{{ i }}Preview')">
+                                <div id="editOption{{ i }}Preview" class="image-preview"></div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editCorrectOption">Correct Option *</label>
+                        <select id="editCorrectOption" name="correct_option" required>
+                            <option value="1">A</option>
+                            <option value="2">B</option>
+                            <option value="3">C</option>
+                            <option value="4">D</option>
+                            <option value="5">E</option>
+                            <option value="6">F</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editDifficulty">Difficulty Level</label>
+                        <select id="editDifficulty" name="difficulty_level">
+                            <option value="easy">Easy</option>
+                            <option value="medium">Medium</option>
+                            <option value="hard">Hard</option>
+                            <option value="unseen">Unseen</option>
+                            <option value="image">Image</option>
+                            <option value="video">Video</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editSubject">Subject</label>
+                        <input type="text" id="editSubject" name="subject" placeholder="e.g., Mathematics">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeEditModal()" class="btn btn-secondary">Cancel</button>
+            <button onclick="saveQuestion()" class="btn btn-primary">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// Video handling and enhancement
+document.addEventListener('DOMContentLoaded', function() {
+    // Add loading states for videos
+    const videoContainers = document.querySelectorAll('.video-container');
+    videoContainers.forEach(container => {
+        const iframe = container.querySelector('iframe');
+        if (iframe) {
+            // Add loading indicator
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'video-loading';
+            loadingDiv.textContent = 'Loading video...';
+            loadingDiv.style.display = 'flex';
+            
+            // Hide iframe initially
+            iframe.style.display = 'none';
+            container.insertBefore(loadingDiv, iframe);
+            
+            // Show iframe when loaded
+            iframe.onload = function() {
+                loadingDiv.style.display = 'none';
+                iframe.style.display = 'block';
+            };
+            
+            // Handle error
+            iframe.onerror = function() {
+                loadingDiv.innerHTML = '❌ Failed to load video';
+                loadingDiv.style.color = '#dc3545';
+            };
+        }
+    });
+    
+    // Filter functionality
+    const categoryFilter = document.getElementById('categoryFilter');
+    if (categoryFilter) {
+        categoryFilter.addEventListener('change', function() {
+            filterQuestions(this.value);
+        });
+    }
+});
+
+function filterQuestions(category) {
+    const questions = document.querySelectorAll('.question-card');
+    questions.forEach(question => {
+        if (category === '') {
+            question.style.display = 'block';
+        } else if (category === 'video') {
+            // Show only video questions
+            const hasVideo = question.querySelector('.video-container');
+            question.style.display = hasVideo ? 'block' : 'none';
+        } else if (category === 'image') {
+            // Show only image questions
+            const hasImage = question.querySelector('img[alt="Question Image"]');
+            const hasVideo = question.querySelector('.video-container');
+            question.style.display = (hasImage && !hasVideo) ? 'block' : 'none';
+        } else {
+            // Filter by difficulty
+            const difficultyBadge = question.querySelector('.difficulty-badge');
+            if (difficultyBadge && difficultyBadge.textContent.toLowerCase().includes(category)) {
+                question.style.display = 'block';
+            } else {
+                question.style.display = 'none';
+            }
+        }
+    });
+    
+    // Update stats after filtering
+    updateFilterStats();
+}
+
+function clearFilters() {
+    document.getElementById('categoryFilter').value = '';
+    filterQuestions('');
+}
+
+function updateFilterStats() {
+    const visibleQuestions = document.querySelectorAll('.question-card[style*="block"], .question-card:not([style*="none"])');
+    const totalVisible = visibleQuestions.length;
+    
+    // Update the stats display
+    const statsSection = document.querySelector('.questions-stats');
+    if (statsSection) {
+        const totalStat = statsSection.querySelector('.stat-item .stat-value');
+        if (totalStat) {
+            totalStat.textContent = totalVisible;
+        }
+    }
+}
+
+// Enhanced edit/delete functions
+function editQuestion(id) {
+    // Enhanced edit functionality for video questions
+    console.log('Editing question ID:', id);
+    // Add your edit logic here
+}
+
+function deleteQuestion(id) {
+    if (confirm('Are you sure you want to delete this question? This action cannot be undone.')) {
+        // Add your delete logic here
+        console.log('Deleting question ID:', id);
+    }
+}
+</script>
+{% endblock %}

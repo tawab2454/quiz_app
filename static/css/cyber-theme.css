@@ -1,0 +1,214 @@
+/* Matrix Background Animation */
+.matrix-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        rgba(0, 255, 0, 0.05) 1px,
+        transparent 1px
+    ) 0 0 / 30px 30px,
+    linear-gradient(90deg, rgba(0, 255, 0, 0.05) 1px, transparent 1px) 0 0 / 30px 30px;
+    animation: matrix 20s linear infinite;
+}
+
+@keyframes matrix {
+    from {
+        transform: translateY(0);
+    }
+    to {
+        transform: translateY(1000px);
+    }
+}
+
+/* Glitch Effect */
+.glitch-container {
+    position: relative;
+    display: inline-block;
+}
+
+.glitch {
+    position: relative;
+    animation: glitch-skew 1s infinite linear alternate-reverse;
+}
+
+.glitch::before,
+.glitch::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.glitch::before {
+    left: 2px;
+    text-shadow: -2px 0 #ff0000;
+    clip: rect(44px, 450px, 56px, 0);
+    animation: glitch-anim 5s infinite linear alternate-reverse;
+}
+
+.glitch::after {
+    left: -2px;
+    text-shadow: -2px 0 #00ff00, 2px 2px #ff0000;
+    animation: glitch-anim2 1s infinite linear alternate-reverse;
+}
+
+/* Cyber Icon Styles */
+.cyber-icon {
+    display: inline-block;
+    margin-right: 0.5rem;
+    filter: drop-shadow(0 0 2px var(--cyber-primary));
+}
+
+/* Cyber List Styles */
+.cyber-list {
+    list-style: none;
+    padding: 0;
+}
+
+.cyber-list li {
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: start;
+    line-height: 1.4;
+}
+
+.cyber-bullet {
+    color: var(--cyber-primary);
+    margin-right: 0.5rem;
+    font-family: monospace;
+    display: inline-block;
+    transform: scale(0.8);
+}
+
+/* Feature Header Styles */
+.feature-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--cyber-primary);
+    padding-bottom: 0.5rem;
+}
+
+.feature-header .feature-icon {
+    font-size: 2rem;
+    margin-right: 1rem;
+    color: var(--cyber-primary);
+}
+
+.feature-header h3 {
+    margin: 0;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 2px;
+}
+
+/* Pulse Animation for Icons */
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+        opacity: 1;
+    }
+    50% {
+        transform: scale(1.1);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.feature-icon {
+    animation: pulse 2s infinite;
+}
+
+/* Enhanced Button Styles */
+.btn {
+    border: 2px solid var(--cyber-primary);
+    background: transparent;
+    color: var(--cyber-primary);
+    padding: 1rem 2rem;
+    font-family: 'Courier New', monospace;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    z-index: 1;
+}
+
+.btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        120deg,
+        transparent,
+        rgba(0, 255, 0, 0.2),
+        transparent
+    );
+    transition: all 0.5s ease;
+    z-index: -1;
+}
+
+.btn:hover::before {
+    left: 100%;
+}
+
+.btn:hover {
+    color: #fff;
+    border-color: #fff;
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+}
+
+/* Scanner Animation */
+@keyframes scan {
+    0% {
+        background-position: 0 -100vh;
+    }
+    100% {
+        background-position: 0 100vh;
+    }
+}
+
+.hero-section::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        to bottom,
+        transparent 50%,
+        rgba(0, 255, 0, 0.1) 50%
+    );
+    background-size: 100% 4px;
+    animation: scan 4s linear infinite;
+    pointer-events: none;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--cyber-dark);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--cyber-primary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--cyber-accent);
+}

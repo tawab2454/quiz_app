@@ -1,0 +1,199 @@
+{# Pagination Component for Admin Pages #}
+{# Usage: {{ render_pagination(pagination, endpoint, query_params=request.args) }} #}
+
+{%- macro render_pagination(pagination, endpoint, query_params=None) -%}
+    {%- if pagination and pagination.pages > 1 -%}
+        <div class="pagination-container">
+            <nav class="pagination" aria-label="Page navigation">
+                <ul class="pagination-list">
+                    {# Previous page #}
+                    {%- if pagination.has_prev -%}
+                        <li class="pagination-item">
+                            <a href="{{ url_for(endpoint, page=pagination.prev_num, **query_params) if query_params else url_for(endpoint, page=pagination.prev_num) }}" 
+                               class="pagination-link" aria-label="Previous page">
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </a>
+                        </li>
+                    {%- else -%}
+                        <li class="pagination-item disabled">
+                            <span class="pagination-link" aria-label="Previous page (disabled)">
+                                <i class="fas fa-chevron-left"></i> Previous
+                            </span>
+                        </li>
+                    {%- endif -%}
+
+                    {# First page #}
+                    {%- if pagination.page > 3 -%}
+                        <li class="pagination-item">
+                            <a href="{{ url_for(endpoint, page=1, **query_params) if query_params else url_for(endpoint, page=1) }}" 
+                               class="pagination-link">1</a>
+                        </li>
+                        {%- if pagination.page > 4 -%}
+                            <li class="pagination-item disabled">
+                                <span class="pagination-link">...</span>
+                            </li>
+                        {%- endif -%}
+                    {%- endif -%}
+
+                    {# Page numbers around current page #}
+                    {%- for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) -%}
+                        {%- if page_num -%}
+                            {%- if page_num != pagination.page -%}
+                                <li class="pagination-item">
+                                    <a href="{{ url_for(endpoint, page=page_num, **query_params) if query_params else url_for(endpoint, page=page_num) }}" 
+                                       class="pagination-link">{{ page_num }}</a>
+                                </li>
+                            {%- else -%}
+                                <li class="pagination-item active">
+                                    <span class="pagination-link current" aria-current="page">{{ page_num }}</span>
+                                </li>
+                            {%- endif -%}
+                        {%- else -%}
+                            <li class="pagination-item disabled">
+                                <span class="pagination-link">...</span>
+                            </li>
+                        {%- endif -%}
+                    {%- endfor -%}
+
+                    {# Last page #}
+                    {%- if pagination.page < pagination.pages - 2 -%}
+                        {%- if pagination.page < pagination.pages - 3 -%}
+                            <li class="pagination-item disabled">
+                                <span class="pagination-link">...</span>
+                            </li>
+                        {%- endif -%}
+                        <li class="pagination-item">
+                            <a href="{{ url_for(endpoint, page=pagination.pages, **query_params) if query_params else url_for(endpoint, page=pagination.pages) }}" 
+                               class="pagination-link">{{ pagination.pages }}</a>
+                        </li>
+                    {%- endif -%}
+
+                    {# Next page #}
+                    {%- if pagination.has_next -%}
+                        <li class="pagination-item">
+                            <a href="{{ url_for(endpoint, page=pagination.next_num, **query_params) if query_params else url_for(endpoint, page=pagination.next_num) }}" 
+                               class="pagination-link" aria-label="Next page">
+                                Next <i class="fas fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    {%- else -%}
+                        <li class="pagination-item disabled">
+                            <span class="pagination-link" aria-label="Next page (disabled)">
+                                Next <i class="fas fa-chevron-right"></i>
+                            </span>
+                        </li>
+                    {%- endif -%}
+                </ul>
+            </nav>
+
+            {# Page info #}
+            <div class="pagination-info">
+                <span class="pagination-stats">
+                    Showing {{ pagination.per_page * (pagination.page - 1) + 1 }} to 
+                    {{ pagination.per_page * pagination.page if pagination.page < pagination.pages else pagination.total }} 
+                    of {{ pagination.total }} entries
+                </span>
+            </div>
+        </div>
+
+        {# CSS Styles for pagination #}
+        <style>
+        .pagination-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .pagination {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+        }
+
+        .pagination-list {
+            display: flex;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+            gap: 5px;
+            align-items: center;
+        }
+
+        .pagination-item {
+            border-radius: 4px;
+        }
+
+        .pagination-link {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            text-decoration: none;
+            border: 1px solid #ddd;
+            background-color: #fff;
+            color: #333;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+            font-size: 14px;
+            min-width: 40px;
+            justify-content: center;
+        }
+
+        .pagination-link:hover:not(.current) {
+            background-color: #f5f5f5;
+            border-color: #999;
+            color: #000;
+        }
+
+        .pagination-item.active .pagination-link.current {
+            background-color: #007bff;
+            border-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+
+        .pagination-item.disabled .pagination-link {
+            color: #999;
+            cursor: not-allowed;
+            background-color: #f8f9fa;
+            border-color: #e9ecef;
+        }
+
+        .pagination-info {
+            color: #666;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+
+        .pagination-stats {
+            font-style: italic;
+        }
+
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .pagination-container {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .pagination-list {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .pagination-link {
+                padding: 6px 10px;
+                font-size: 12px;
+                min-width: 35px;
+            }
+            
+            .pagination-info {
+                order: -1;
+                margin-bottom: 10px;
+            }
+        }
+        </style>
+    {%- endif -%}
+{%- endmacro -%}

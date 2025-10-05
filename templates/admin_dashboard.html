@@ -1,0 +1,471 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - Online Examination System{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin-dashboard-enhanced.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-dashboard">
+    <!-- Enhanced Dashboard Header -->
+    <div class="dashboard-header">
+        <h1>🎯 Admin Dashboard</h1>
+        <p>Welcome, {{ session.admin_username }}! Advanced system monitoring and management center.</p>
+    </div>
+
+    <!-- Enhanced Statistics Cards with Progress Bars -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon">👥</div>
+            <div class="stat-content">
+                <h3 id="total-users">{{ stats.total_users }}</h3>
+                <p>Registered Users</p>
+            </div>
+            <div class="stat-progress">
+                <div class="stat-bar" style="width: {{ (stats.total_users / 1000 * 100) if stats.total_users < 1000 else 100 }}%"></div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">❓</div>
+            <div class="stat-content">
+                <h3 id="total-questions">{{ stats.total_questions }}</h3>
+                <p>Question Bank</p>
+            </div>
+            <div class="stat-progress">
+                <div class="stat-bar" style="width: {{ (stats.total_questions / 500 * 100) if stats.total_questions < 500 else 100 }}%"></div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📝</div>
+            <div class="stat-content">
+                <h3 id="total-exams">{{ stats.total_exams }}</h3>
+                <p>Total Exams</p>
+            </div>
+            <div class="stat-progress">
+                <div class="stat-bar" style="width: {{ (stats.total_exams / 50 * 100) if stats.total_exams < 50 else 100 }}%"></div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🎯</div>
+            <div class="stat-content">
+                <h3 id="active-exams">{{ stats.active_exams }}</h3>
+                <p>Active Exams</p>
+            </div>
+            <div class="stat-progress">
+                <div class="stat-bar" style="width: {{ (stats.active_exams / 10 * 100) if stats.active_exams < 10 else 100 }}%"></div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-content">
+                <h3 id="completed-sessions">{{ stats.completed_sessions }}</h3>
+                <p>Completed Sessions</p>
+            </div>
+            <div class="stat-progress">
+                <div class="stat-bar" style="width: {{ (stats.completed_sessions / 1000 * 100) if stats.completed_sessions < 1000 else 100 }}%"></div>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-content">
+                <h3 id="average-score">{{ stats.average_score }}%</h3>
+                <p>Average Score</p>
+            </div>
+            <div class="stat-progress">
+                <div class="stat-bar" style="width: {{ stats.average_score }}%"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dashboard Columns Layout -->
+    <div class="dashboard-columns">
+        <!-- Left Column: Top Performers -->
+        <div class="dashboard-section">
+            <h2>🏆 Top Performers</h2>
+            {% if top_performers %}
+                <div class="top-performers">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 60px;">Rank</th>
+                                <th>Name</th>
+                                <th>NSI ID</th>
+                                <th>Wing</th>
+                                <th style="width: 100px;">Avg. Score</th>
+                                <th style="width: 70px;">Attempts</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for performer in top_performers %}
+                            <tr>
+                                <td class="rank-cell">
+                                    <div class="rank-badge {% if loop.index == 1 %}gold{% elif loop.index == 2 %}silver{% elif loop.index == 3 %}bronze{% endif %}">
+                                        {{ loop.index }}
+                                    </div>
+                                </td>
+                                <td><strong>{{ performer.name }}</strong></td>
+                                <td><a href="{{ url_for('admin_users', edit=performer.nsi_id) }}" class="nsi-link">{{ performer.nsi_id|upper }}</a></td>
+                                <td>{{ performer.wing_name or '-' }}</td>
+                                <td>
+                                    {% if performer.average_score > 0 %}
+                                        <strong class="score-positive">{{ performer.average_score }}%</strong>
+                                    {% else %}
+                                        <span class="score-pending">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td><span class="attempt-count">{{ performer.exams_taken }}</span></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% if top_performers and top_performers[0].average_score == 0 %}
+                    <div class="info-note">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Note:</strong> All users currently have pending scores. This may be due to ongoing exams or scoring issues.
+                    </div>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="no-data">
+                    <div class="no-data-icon">📊</div>
+                    <h4>No Performance Data Yet</h4>
+                    <p>Top performers will appear here once users complete exams.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column: System Information -->
+        <div class="dashboard-section system-info">
+            <h2>🖥️ System Information</h2>
+            <div class="info-grid">
+                <div class="info-card">
+                    <h4>� Database</h4>
+                    <div class="info-details">
+                        <p>Size: <strong>{{ system_stats.db_size }}</strong></p>
+                        <p>Tables: <strong>{{ system_stats.table_count }}</strong></p>
+                        <p>Last Backup: <strong>{{ system_stats.last_backup }}</strong></p>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <h4>🌐 System URL</h4>
+                    <div class="url-display">
+                        <input type="text" value="{{ request.url_root }}" readonly onclick="this.select()">
+                        <button onclick="copyToClipboard('{{ request.url_root }}')" class="btn-copy">📋</button>
+                    </div>
+                </div>
+                
+                <div class="info-card">
+                    <h4>📈 System Health</h4>
+                    <div class="health-indicators">
+                        <div class="status-indicator">
+                            <span class="status-dot status-good"></span>
+                            <span>Database: Online</span>
+                        </div>
+                        <div class="status-indicator">
+                            <span class="status-dot status-good"></span>
+                            <span>Server: Running</span>
+                        </div>
+                        <div class="status-indicator">
+                            <span class="status-dot {{ 'status-good' if system_settings.registration_enabled else 'status-warning' }}"></span>
+                            <span>Registration: {{ 'Open' if system_settings.registration_enabled else 'Closed' }}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Grid -->
+    <div class="dashboard-section">
+        <h2>🚀 Quick Actions</h2>
+        <div class="action-grid">
+            <a href="{{ url_for('add_question') }}" class="action-card">
+                <div class="action-icon">➕</div>
+                <h3>Add Question</h3>
+            </a>
+            <a href="{{ url_for('add_exam') }}" class="action-card">
+                <div class="action-icon">📝</div>
+                <h3>Create Exam</h3>
+            </a>
+            <a href="{{ url_for('admin_questions') }}" class="action-card">
+                <div class="action-icon">�</div>
+                <h3>Manage Questions</h3>
+            </a>
+            <a href="{{ url_for('admin_results') }}" class="action-card">
+                <div class="action-icon">📊</div>
+                <h3>View Results</h3>
+            </a>
+            <a href="{{ url_for('admin_users') }}" class="action-card">
+                <div class="action-icon">�</div>
+                <h3>Manage Users</h3>
+            </a>
+            <a href="{{ url_for('admin_exam_controls') }}" class="action-card">
+                <div class="action-icon">🔒</div>
+                <h3>Exam Controls</h3>
+            </a>
+        </div>
+    </div>
+
+    <!-- Active Exam Status -->
+    <div class="dashboard-section">
+        <h2>📝 Current Exam Status</h2>
+        {% if active_exam %}
+            <div class="active-exam-card">
+                <div class="exam-info">
+                    <h3>{{ active_exam.title }}</h3>
+                    <p>{{ active_exam.description or 'No description' }}</p>
+                    <div class="exam-details">
+                        <span class="detail-item">⏱️ {{ active_exam.duration_minutes }} minutes</span>
+                        <span class="detail-item">❓ {{ active_exam.num_questions }} questions</span>
+                        <span class="detail-item">📊 {{ active_exam.passing_score }}% passing</span>
+                    </div>
+                </div>
+                <div class="exam-actions" style="display: flex; flex-direction: column; gap: 0.75rem; min-width: 160px;">
+                    <button type="button" class="btn btn-warning" onclick="deactivateExam({{ active_exam.id }})" 
+                            style="background: linear-gradient(135deg, #f39c12, #e67e22); color: white; padding: 0.6rem 1rem; border: none; border-radius: 6px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <i class="fas fa-pause"></i> Deactivate Exam
+                    </button>
+                    <a href="{{ url_for('admin_exams') }}" class="btn btn-secondary"
+                       style="background: rgba(52, 73, 94, 0.8); color: white; padding: 0.6rem 1rem; border: 1px solid rgba(149, 165, 166, 0.3); border-radius: 6px; text-decoration: none; display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                        <i class="fas fa-cog"></i> Manage Exams
+                    </a>
+                </div>
+            </div>
+        {% else %}
+            <div class="no-active-exam">
+                <div class="no-exam-icon">📭</div>
+                <h3>No Active Exam</h3>
+                <p>Select an exam to activate from your available exams:</p>
+                
+                {% if available_exams %}
+                <div class="quick-activate-section">
+                    <h4>🚀 Quick Activate</h4>
+                    <div class="available-exams-list">
+                        {% for exam in available_exams %}
+                        <div class="exam-item">
+                            <div class="exam-info">
+                                <strong>{{ exam.title }}</strong>
+                                <span class="exam-meta">{{ exam.num_questions }} questions • {{ exam.duration_minutes }} min</span>
+                            </div>
+                            <button type="button" class="btn btn-primary btn-sm" onclick="activateExam({{ exam.id }})">
+                                <i class="fas fa-play"></i> Activate
+                            </button>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                <div class="exam-management-link">
+                    <a href="{{ url_for('admin_exams') }}" class="btn btn-secondary">
+                        <i class="fas fa-cog"></i> Manage All Exams
+                    </a>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+function copyToClipboard(url) {
+    navigator.clipboard.writeText(url).then(function() {
+        showNotification('URL copied to clipboard!', 'success');
+    }, function(err) {
+        console.error('Could not copy text: ', err);
+        showNotification('Failed to copy URL', 'error');
+    });
+}
+
+// Notification system
+function showNotification(message, type = 'info') {
+    // Create notification element if it doesn't exist
+    let notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'error' ? 'danger' : type} notification-popup`;
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1000;
+        padding: 1rem;
+        border-radius: 4px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        animation: slideIn 0.3s ease;
+    `;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.3s ease';
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// Auto-refresh dashboard stats every 30 seconds
+setInterval(function() {
+    updateDashboardStats();
+}, 30000);
+
+function updateDashboardStats() {
+    fetch('/admin/dashboard?refresh=true', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success && data.stats) {
+            // Update stat cards
+            document.getElementById('total-users').textContent = data.stats.total_users;
+            document.getElementById('total-questions').textContent = data.stats.total_questions;
+            document.getElementById('total-exams').textContent = data.stats.total_exams;
+            document.getElementById('active-exams').textContent = data.stats.active_exams;
+            document.getElementById('completed-sessions').textContent = data.stats.completed_sessions;
+            document.getElementById('average-score').textContent = data.stats.average_score + '%';
+            
+            // Update progress bars
+            const progressBars = document.querySelectorAll('.stat-bar');
+            if (progressBars.length >= 6) {
+                progressBars[0].style.width = Math.min((data.stats.total_users / 1000) * 100, 100) + '%';
+                progressBars[1].style.width = Math.min((data.stats.total_questions / 500) * 100, 100) + '%';
+                progressBars[2].style.width = Math.min((data.stats.total_exams / 50) * 100, 100) + '%';
+                progressBars[3].style.width = Math.min((data.stats.active_exams / 10) * 100, 100) + '%';
+                progressBars[4].style.width = Math.min((data.stats.completed_sessions / 1000) * 100, 100) + '%';
+                progressBars[5].style.width = data.stats.average_score + '%';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error refreshing stats:', error);
+    });
+}
+
+// Exam activation/deactivation functions
+function activateExam(examId) {
+    if (confirm('Are you sure you want to activate this exam? This will make it available to all users.')) {
+        fetch('/admin/activate-exam', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({exam_id: examId})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Exam activated successfully!', 'success');
+                // Refresh the page after a short delay
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                showNotification(data.message || 'Failed to activate exam', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to activate exam', 'error');
+        });
+    }
+}
+
+function deactivateExam(examId) {
+    if (confirm('Are you sure you want to deactivate this exam? Students will no longer be able to take it.')) {
+        fetch('/admin/deactivate-exam', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({exam_id: examId})
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                showNotification('Exam deactivated successfully!', 'success');
+                // Refresh the page after a short delay
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            } else {
+                showNotification(data.message || 'Failed to deactivate exam', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showNotification('Failed to deactivate exam', 'error');
+        });
+    }
+}
+
+// Add CSS animations
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+    .notification-popup {
+        animation: slideIn 0.3s ease;
+    }
+    .quick-activate-section {
+        margin-top: 20px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .quick-activate-section h4 {
+        margin: 0 0 15px 0;
+        color: #fff;
+        font-size: 16px;
+    }
+    .available-exams-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    .exam-item {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .exam-item .exam-info {
+        flex: 1;
+    }
+    .exam-item .exam-info strong {
+        display: block;
+        color: #fff;
+        margin-bottom: 4px;
+    }
+    .exam-item .exam-meta {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.7);
+    }
+    .exam-management-link {
+        margin-top: 20px;
+        text-align: center;
+    }
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+`;
+document.head.appendChild(style);
+</script>
+{% endblock %}

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Embed Test</title>
+</head>
+<body>
+    <h1>🎥 YouTube Embed Test</h1>
+    
+    <h3>Test Video 1 (from database):</h3>
+    <iframe width="280" height="157" 
+            src="https://www.youtube.com/embed/xKyiddqgbxg?rel=0&showinfo=0&modestbranding=1" 
+            frameborder="0" 
+            allowfullscreen 
+            loading="lazy">
+    </iframe>
+    
+    <h3>Test Video 2 (from database):</h3>
+    <iframe width="280" height="157" 
+            src="https://www.youtube.com/embed/LDucfZJe51I?rel=0&showinfo=0&modestbranding=1" 
+            frameborder="0" 
+            allowfullscreen 
+            loading="lazy">
+    </iframe>
+    
+    <script>
+        console.log('🧪 YouTube Embed Test Page Loaded');
+        
+        // Check for CSP errors
+        window.addEventListener('error', function(e) {
+            console.error('❌ Error detected:', e);
+        });
+        
+        // Check if iframes load successfully
+        const iframes = document.querySelectorAll('iframe');
+        iframes.forEach((iframe, index) => {
+            iframe.onload = function() {
+                console.log(`✅ Iframe ${index + 1} loaded successfully`);
+            };
+            
+            iframe.onerror = function() {
+                console.error(`❌ Iframe ${index + 1} failed to load`);
+            };
+        });
+    </script>
+</body>
+</html>

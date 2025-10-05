@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+env/
+venv/
+.venv/
+.Python
+
+# Byte-compiled / optimized / DLL files
+*.pyc
+*.pyo
+*.pyd
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# Databases and backups
+exam_system.db
+exam_system copy.db
+backups/
+QUIZ-05-10-2025_up.zip
+
+# Secrets
+secret_key.txt
+.env
+
+# IDEs
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Static uploads (optional - remove if you want to keep images in repo)
+# static/uploads/

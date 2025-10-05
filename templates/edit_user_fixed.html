@@ -1,0 +1,404 @@
+{% extends "base.html" %}
+
+{% block title %}Edit User - Admin Panel{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_users.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cyber-forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-content">
+    <div class="content-header">
+        <h1>✏️ Edit User Profile</h1>
+        <div class="header-actions">
+            <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">← Back to Users</a>
+        </div>
+    </div>
+
+    <div class="content-body">
+        <div class="cyber-form-container">
+            <form method="POST" action="{{ url_for('edit_user', nsi_id=user.nsi_id) }}" class="cyber-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                
+                <!-- NSI ID - FULLY EDITABLE -->
+                <div class="form-group">
+                    <label for="nsi_id">NSI ID *</label>
+                    <input type="text" id="nsi_id" name="nsi_id" value="{{ user.nsi_id }}" required maxlength="6" placeholder="e.g., A-0561" class="auth-input">
+                    <small class="form-help">✅ Admin can modify NSI ID</small>
+                </div>
+                
+                <!-- FULL NAME - EDITABLE -->
+                <div class="form-group">
+                    <label for="name">Full Name *</label>
+                    <input type="text" id="name" name="name" value="{{ user.name }}" required maxlength="100" class="auth-input">
+                    <small class="form-help">✅ Admin can modify Full Name</small>
+                </div>
+                
+                <!-- WING SELECTION - COMPLETE REGISTRATION FORM OPTIONS -->
+                <div class="form-group">
+                    <label for="wing_name">Wing Name *</label>
+                    <select id="wing_name" name="wing_name" required class="auth-input">
+                        <option value="">Select Wing</option>
+                        <option value="Technical Intelligence Wing" {% if user.wing_name == 'Technical Intelligence Wing' %}selected{% endif %}>Technical Intelligence Wing</option>
+                        <option value="Admin Wing" {% if user.wing_name == 'Admin Wing' %}selected{% endif %}>Admin Wing</option>
+                        <option value="External Affairs & Liasons Wing" {% if user.wing_name == 'External Affairs & Liasons Wing' %}selected{% endif %}>External Affairs & Liasons Wing</option>
+                        <option value="Political Wing" {% if user.wing_name == 'Political Wing' %}selected{% endif %}>Political Wing</option>
+                        <option value="Research Wing" {% if user.wing_name == 'Research Wing' %}selected{% endif %}>Research Wing</option>
+                        <option value="Special Affairs Wing" {% if user.wing_name == 'Special Affairs Wing' %}selected{% endif %}>Special Affairs Wing</option>
+                        <option value="DG Secretariat" {% if user.wing_name == 'DG Secretariat' %}selected{% endif %}>DG Secretariat</option>
+                        <option value="DG Coordination" {% if user.wing_name == 'DG Coordination' %}selected{% endif %}>DG Coordination</option>
+                        <option value="Economica Security Wing" {% if user.wing_name == 'Economica Security Wing' %}selected{% endif %}>Economica Security Wing</option>
+                        <option value="Internal Wing" {% if user.wing_name == 'Internal Wing' %}selected{% endif %}>Internal Wing</option>
+                        <option value="Border Wing" {% if user.wing_name == 'Border Wing' %}selected{% endif %}>Border Wing</option>
+                        <option value="Counter Terrorism Wing" {% if user.wing_name == 'Counter Terrorism Wing' %}selected{% endif %}>Counter Terrorism Wing</option>
+                        <option value="CityCell" {% if user.wing_name == 'CityCell' %}selected{% endif %}>CityCell</option>
+                    </select>
+                    <small class="form-help">✅ All wing options from registration form</small>
+                </div>
+
+                <!-- INTERNAL WING TYPE - CONDITIONAL -->
+                <div class="form-group" id="internal_type_group" style="display: {% if user.wing_name == 'Internal Wing' %}block{% else %}none{% endif %};">
+                    <label for="internal_type">Internal Wing Type *</label>
+                    <select id="internal_type" name="internal_type" class="auth-input">
+                        <option value="">Select Type</option>
+                        <option value="HQ" {% if user.internal_type == 'HQ' %}selected{% endif %}>HQ</option>
+                        <option value="Others" {% if user.internal_type == 'Others' %}selected{% endif %}>Others</option>
+                    </select>
+                </div>
+
+                <!-- BORDER WING TYPE - CONDITIONAL -->
+                <div class="form-group" id="border_type_group" style="display: {% if user.wing_name == 'Border Wing' %}block{% else %}none{% endif %};">
+                    <label for="border_type">Border Wing Type *</label>
+                    <select id="border_type" name="border_type" class="auth-input">
+                        <option value="">Select Type</option>
+                        <option value="HQ" {% if user.border_type == 'HQ' %}selected{% endif %}>HQ</option>
+                        <option value="Others" {% if user.border_type == 'Others' %}selected{% endif %}>Others</option>
+                    </select>
+                </div>
+
+                <!-- EXTERNAL AFFAIRS WING TYPE - CONDITIONAL -->
+                <div class="form-group" id="external_type_group" style="display: {% if user.wing_name == 'External Affairs & Liasons Wing' %}block{% else %}none{% endif %};">
+                    <label for="external_type">Office Location *</label>
+                    <select id="external_type" name="external_type" class="auth-input">
+                        <option value="">Select Location</option>
+                        <option value="Inside BD" {% if user.external_type == 'Inside BD' %}selected{% endif %}>Inside BD</option>
+                        <option value="Outside BD" {% if user.external_type == 'Outside BD' %}selected{% endif %}>Outside BD</option>
+                    </select>
+                </div>
+
+                <!-- COUNTRY FIELD - FOR EXTERNAL AFFAIRS OUTSIDE BD -->
+                <div class="form-group" id="country_group" style="display: {% if user.wing_name == 'External Affairs & Liasons Wing' and user.external_type == 'Outside BD' %}block{% else %}none{% endif %};">
+                    <label for="country_name">Country *</label>
+                    <select id="country_name" name="country_name" class="auth-input">
+                        <option value="">Select Country</option>
+                        <option value="India" {% if user.country_name == 'India' %}selected{% endif %}>India</option>
+                        <option value="UAE" {% if user.country_name == 'UAE' %}selected{% endif %}>UAE</option>
+                        <option value="UK" {% if user.country_name == 'UK' %}selected{% endif %}>UK</option>
+                        <option value="USA" {% if user.country_name == 'USA' %}selected{% endif %}>USA</option>
+                        <option value="Pakistan" {% if user.country_name == 'Pakistan' %}selected{% endif %}>Pakistan</option>
+                        <option value="Nepal" {% if user.country_name == 'Nepal' %}selected{% endif %}>Nepal</option>
+                        <option value="Malaysia" {% if user.country_name == 'Malaysia' %}selected{% endif %}>Malaysia</option>
+                        <option value="KSA" {% if user.country_name == 'KSA' %}selected{% endif %}>KSA</option>
+                        <option value="Myanmar" {% if user.country_name == 'Myanmar' %}selected{% endif %}>Myanmar</option>
+                    </select>
+                </div>
+
+                <!-- SECTION NAME - CONDITIONAL -->
+                <div class="form-group" id="section_group">
+                    <label for="section_name">Section Name</label>
+                    <input type="text" id="section_name" name="section_name" value="{{ user.section_name or '' }}" maxlength="30" placeholder="Enter section name" class="auth-input">
+                </div>
+
+                <!-- DIVISION NAME - CONDITIONAL -->
+                <div class="form-group" id="division_group" style="display: none;">
+                    <label for="division_name">Division Name *</label>
+                    <select id="division_name" name="division_name" class="auth-input">
+                        <option value="">Select Division</option>
+                        <option value="Dhaka" {% if user.division_name == 'Dhaka' %}selected{% endif %}>Dhaka</option>
+                        <option value="Chattogram" {% if user.division_name == 'Chattogram' %}selected{% endif %}>Chattogram</option>
+                        <option value="Rajshahi" {% if user.division_name == 'Rajshahi' %}selected{% endif %}>Rajshahi</option>
+                        <option value="Khulna" {% if user.division_name == 'Khulna' %}selected{% endif %}>Khulna</option>
+                        <option value="Barishal" {% if user.division_name == 'Barishal' %}selected{% endif %}>Barishal</option>
+                        <option value="Mymensingh" {% if user.division_name == 'Mymensingh' %}selected{% endif %}>Mymensingh</option>
+                        <option value="Rangpur" {% if user.division_name == 'Rangpur' %}selected{% endif %}>Rangpur</option>
+                        <option value="Sylhet" {% if user.division_name == 'Sylhet' %}selected{% endif %}>Sylhet</option>
+                        <option value="Faridpur" {% if user.division_name == 'Faridpur' %}selected{% endif %}>Faridpur (proposed)</option>
+                        <option value="Chittagong Hill Tracts (Parbatya Chattagram)" {% if user.division_name == 'Chittagong Hill Tracts (Parbatya Chattagram)' %}selected{% endif %}>Chittagong Hill Tracts (Parbatya Chattagram)</option>
+                    </select>
+                </div>
+
+                <!-- DISTRICT NAME - CONDITIONAL -->
+                <div class="form-group" id="district_group" style="display: none;">
+                    <label for="district_name">District Name *</label>
+                    <select id="district_name" name="district_name" class="auth-input">
+                        <option value="">Select District</option>
+                        {% if user.district_name %}
+                        <option value="{{ user.district_name }}" selected>{{ user.district_name }}</option>
+                        {% endif %}
+                    </select>
+                </div>
+                
+                <!-- PASSWORD - OPTIONAL -->
+                <div class="form-group">
+                    <label for="password">New Password (leave blank to keep unchanged)</label>
+                    <input type="password" id="password" name="password" maxlength="100" placeholder="Enter new password" class="auth-input">
+                    <div class="password-strength" id="passwordStrength"></div>
+                    <small class="form-help">✅ Password is optional - leave blank to keep current password</small>
+                </div>
+                
+                <!-- EMAIL FIELD REMOVED - NO EMAIL FIELD HERE -->
+                <!-- ✅ EMAIL FIELD COMPLETELY REMOVED AS REQUESTED -->
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary cyber-button">💾 Update User</button>
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">❌ Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // ✅ EXACT COPY FROM REGISTRATION FORM - Division-District mapping
+    const allDivisionDistricts = {
+        'Rajshahi': ['Rajshahi', 'Naogaon', 'Natore', 'Chapai Nawabganj', 'Pabna', 'Bogura', 'Sirajganj', 'Joypurhat'],
+        'Dhaka': ['Dhaka', 'Tangail', 'Narsingdi', 'Gazipur', 'Munshiganj', 'Narayanganj', 'Manikganj', 'Kishoreganj'],
+        'Chattogram': ['Chattogram', 'Cumilla', 'Brahmanbaria', 'Chandpur', 'Noakhali', 'Feni', 'Lakshmipur'],
+        'Khulna': ['Khulna', 'Bagerhat', 'Satkhira', 'Jashore (Jessore)', 'Narail', 'Jhenaidah', 'Magura', 'Kushtia', 'Chuadanga', 'Meherpur'],
+        'Rangpur': ['Rangpur', 'Kurigram', 'Lalmonirhat', 'Nilphamari', 'Gaibandha', 'Dinajpur', 'Thakurgaon', 'Panchagarh'],
+        'Barishal': ['Barishal', 'Patuakhali', 'Bhola', 'Pirojpur', 'Barguna', 'Jhalokathi'],
+        'Mymensingh': ['Mymensingh', 'Jamalpur', 'Sherpur', 'Netrokona'],
+        'Sylhet': ['Sylhet', 'Sunamganj', 'Moulvibazar', 'Habiganj'],
+        'Faridpur': ['Faridpur', 'Rajbari', 'Shariatpur', 'Gopalganj', 'Madaripur'],
+        'Chittagong Hill Tracts (Parbatya Chattagram)': ['Rangamati', 'Bandarban', 'Khagrachhari', 'Cox\'s Bazar']
+    };
+
+    const internalDivisions = ['Dhaka', 'Chattogram', 'Rajshahi', 'Khulna', 'Barishal', 'Mymensingh', 'Rangpur', 'Sylhet', 'Faridpur'];
+    const borderDivisions = ['Chittagong Hill Tracts (Parbatya Chattagram)'];
+
+    // Get DOM elements
+    const wingSelect = document.getElementById('wing_name');
+    const internalTypeSelect = document.getElementById('internal_type');
+    const borderTypeSelect = document.getElementById('border_type');
+    const externalTypeSelect = document.getElementById('external_type');
+    const divisionSelect = document.getElementById('division_name');
+    const districtSelect = document.getElementById('district_name');
+    const countrySelect = document.getElementById('country_name');
+    const internalTypeGroup = document.getElementById('internal_type_group');
+    const borderTypeGroup = document.getElementById('border_type_group');
+    const externalTypeGroup = document.getElementById('external_type_group');
+    const sectionGroup = document.getElementById('section_group');
+    const divisionGroup = document.getElementById('division_group');
+    const districtGroup = document.getElementById('district_group');
+    const countryGroup = document.getElementById('country_group');
+
+    console.log('✅ Edit User Form Initialized - All DOM elements found');
+
+    function populateDivisions(divisions) {
+        divisionSelect.innerHTML = '<option value="">Select Division</option>';
+        divisions.forEach(division => {
+            const opt = document.createElement('option');
+            opt.value = division;
+            opt.textContent = division;
+            divisionSelect.appendChild(opt);
+        });
+        console.log('✅ Divisions populated:', divisions);
+    }
+
+    function populateDistricts(division) {
+        districtSelect.innerHTML = '<option value="">Select District</option>';
+        const list = allDivisionDistricts[division] || [];
+        list.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            districtSelect.appendChild(opt);
+        });
+        console.log('✅ Districts populated for', division, ':', list);
+    }
+
+    // ✅ EXACT WING CHANGE LOGIC FROM REGISTRATION FORM
+    function handleWingChange() {
+        const selectedWing = wingSelect.value;
+        console.log('🔄 Wing changed to:', selectedWing);
+        
+        const isInternalWing = selectedWing === 'Internal Wing';
+        const isBorderWing = selectedWing === 'Border Wing';
+        const isExternalWing = selectedWing === 'External Affairs & Liasons Wing';
+        
+        // Hide all conditional groups first
+        internalTypeGroup.style.display = 'none';
+        borderTypeGroup.style.display = 'none';
+        externalTypeGroup.style.display = 'none';
+        sectionGroup.style.display = 'block';
+        divisionGroup.style.display = 'none';
+        districtGroup.style.display = 'none';
+        countryGroup.style.display = 'none';
+        
+        // Clear values
+        internalTypeSelect.value = '';
+        borderTypeSelect.value = '';
+        externalTypeSelect.value = '';
+        countrySelect.value = '';
+        divisionSelect.value = '';
+        districtSelect.innerHTML = '<option value="">Select District</option>';
+        
+        if (isInternalWing) {
+            internalTypeGroup.style.display = 'block';
+            console.log('✅ Internal Wing: Showing type selection');
+        } else if (isBorderWing) {
+            borderTypeGroup.style.display = 'block';
+            console.log('✅ Border Wing: Showing type selection');
+        } else if (isExternalWing) {
+            externalTypeGroup.style.display = 'block';
+            sectionGroup.style.display = 'none';
+            console.log('✅ External Affairs Wing: Showing location selection');
+        } else {
+            console.log('✅ Other Wing: Showing section field only');
+        }
+    }
+
+    // ✅ INTERNAL TYPE CHANGE LOGIC
+    function handleInternalTypeChange() {
+        const selectedType = internalTypeSelect.value;
+        console.log('🔄 Internal type changed to:', selectedType);
+        
+        if (selectedType === 'HQ') {
+            sectionGroup.style.display = 'block';
+            divisionGroup.style.display = 'none';
+            districtGroup.style.display = 'none';
+            console.log('✅ Internal HQ: Showing section field');
+        } else if (selectedType === 'Others') {
+            sectionGroup.style.display = 'none';
+            divisionGroup.style.display = 'block';
+            districtGroup.style.display = 'block';
+            populateDivisions(internalDivisions);
+            console.log('✅ Internal Others: Showing division/district');
+        } else {
+            sectionGroup.style.display = 'none';
+            divisionGroup.style.display = 'none';
+            districtGroup.style.display = 'none';
+        }
+    }
+
+    // ✅ BORDER TYPE CHANGE LOGIC
+    function handleBorderTypeChange() {
+        const selectedType = borderTypeSelect.value;
+        console.log('🔄 Border type changed to:', selectedType);
+        
+        if (selectedType === 'HQ') {
+            sectionGroup.style.display = 'block';
+            divisionGroup.style.display = 'none';
+            districtGroup.style.display = 'none';
+            console.log('✅ Border HQ: Showing section field');
+        } else if (selectedType === 'Others') {
+            sectionGroup.style.display = 'none';
+            divisionGroup.style.display = 'block';
+            districtGroup.style.display = 'block';
+            populateDivisions(borderDivisions);
+            console.log('✅ Border Others: Showing CHT divisions only');
+        } else {
+            sectionGroup.style.display = 'none';
+            divisionGroup.style.display = 'none';
+            districtGroup.style.display = 'none';
+        }
+    }
+
+    // ✅ EXTERNAL TYPE CHANGE LOGIC
+    function handleExternalTypeChange() {
+        const selectedType = externalTypeSelect.value;
+        console.log('🔄 External type changed to:', selectedType);
+        
+        if (selectedType === 'Inside BD') {
+            sectionGroup.style.display = 'block';
+            countryGroup.style.display = 'none';
+            console.log('✅ External Inside BD: Showing section field');
+        } else if (selectedType === 'Outside BD') {
+            sectionGroup.style.display = 'none';
+            countryGroup.style.display = 'block';
+            console.log('✅ External Outside BD: Showing country selection');
+        } else {
+            sectionGroup.style.display = 'none';
+            countryGroup.style.display = 'none';
+        }
+    }
+
+    // Event listeners
+    if (wingSelect) {
+        wingSelect.addEventListener('change', handleWingChange);
+        console.log('✅ Wing change listener attached');
+    }
+
+    if (internalTypeSelect) {
+        internalTypeSelect.addEventListener('change', handleInternalTypeChange);
+        console.log('✅ Internal type change listener attached');
+    }
+
+    if (borderTypeSelect) {
+        borderTypeSelect.addEventListener('change', handleBorderTypeChange);
+        console.log('✅ Border type change listener attached');
+    }
+
+    if (externalTypeSelect) {
+        externalTypeSelect.addEventListener('change', handleExternalTypeChange);
+        console.log('✅ External type change listener attached');
+    }
+
+    if (divisionSelect && districtSelect) {
+        divisionSelect.addEventListener('change', function() {
+            populateDistricts(this.value);
+        });
+        console.log('✅ Division change listener attached');
+    }
+
+    // Password strength indicator
+    const passwordInput = document.getElementById('password');
+    const passwordStrength = document.getElementById('passwordStrength');
+    
+    if (passwordInput && passwordStrength) {
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            if (!password) {
+                passwordStrength.textContent = '';
+                return;
+            }
+            
+            let strength = 0;
+            if (password.length >= 6) strength++;
+            if (/[a-z]/.test(password)) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^a-zA-Z0-9]/.test(password)) strength++;
+
+            const strengthTexts = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
+            const strengthColors = ['#ff4444', '#ff8800', '#ffaa00', '#88cc00', '#00cc44'];
+            
+            passwordStrength.textContent = `Strength: ${strengthTexts[strength - 1]}`;
+            passwordStrength.style.color = strengthColors[strength - 1];
+        });
+        console.log('✅ Password strength indicator attached');
+    }
+
+    // Initialize form on page load
+    handleWingChange();
+    if (internalTypeSelect.value) handleInternalTypeChange();
+    if (borderTypeSelect.value) handleBorderTypeChange();
+    if (externalTypeSelect.value) handleExternalTypeChange();
+    
+    // Populate districts if division is already selected
+    if (divisionSelect.value) {
+        populateDistricts(divisionSelect.value);
+        const currentDistrict = '{{ user.district_name or "" }}';
+        if (currentDistrict) {
+            setTimeout(() => {
+                document.getElementById('district_name').value = currentDistrict;
+            }, 100);
+        }
+    }
+
+    console.log('🎉 Edit User Form Fully Initialized with Registration Form Logic');
+});
+</script>
+{% endblock %}

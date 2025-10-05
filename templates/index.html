@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}Cyber Security Awareness Week - 2025{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Make Registration Requirements heading readable on white background */
+.requirements-section h2 {
+    color: #00f5fe !important; /* theme dark blue */
+    text-shadow: none;
+    -webkit-text-stroke: 0;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<section class="hero-section">
+    <div class="hero-content">
+        <h1>🛡 Cyber Security Awareness Week - 2025</h1>
+        <p class="hero-subtitle">Secure your digital world – Awareness, Action, Protection</p>
+    </div>
+    <div class="hero-features" style="justify-items: center; text-align: center;">
+        <div class="feature">
+            <span class="feature-icon">👨‍🎓</span>
+            <h3>For Employees</h3>
+           <ul style="text-align:left;">
+                <li>Learn safe online practices through engaging quizzes and workshops</li>
+                <li>Participate in real-time cyber challenges with instant feedback</li>
+                <li>Earn certificates and showcase your cyber awareness skills</li>
+            </ul>
+        </div>
+        <div class="feature">
+            <div style="text-align:center;">
+                <span class="feature-icon">👨‍💼</span>
+                <h3>For Administrators & Faculty</h3>
+            </div>
+            <ul style="text-align:left;">
+                <li>Manage awareness sessions, workshops, and cyber drills</li>
+                <li>Create knowledge-based assessments for employees</li>
+                <li>Track participation and analyze awareness levels with detailed reports</li>
+            </ul>
+        </div>
+        <div class="feature">
+            <span class="feature-icon">🔐</span>
+            <h3>Secure & Reliable</h3>
+          <ul style="text-align:left;">
+                <li>Robust authentication and monitoring during online assessments</li>
+                <li>Awareness modules designed with real-world cyber threat scenarios</li>
+                <li>Built-in safety checks and reporting for better learning outcomes</li>
+            </ul>
+        </div>
+    </div>
+    <div class="hero-actions">
+    <a href="{{ url_for('register') }}" class="btn btn-primary btn-large">Register as Employee</a>
+    <a href="{{ url_for('login') }}" class="btn btn-primary btn-large">Employee Login</a>
+        <a href="{{ url_for('admin_login') }}" class="btn btn-admin btn-large">Admin Login</a>
+    </div>
+</section>
+
+<section class="info-section">
+    <h2>How It Works</h2>
+    <div class="steps">
+        <div class="step">
+            <div class="step-number">1</div>
+            <h3>Register</h3>
+            <p>Sign up using your official NSI ID (e.g., A-1234)</p>
+        </div>
+        <div class="step">
+            <div class="step-number">2</div>
+            <h3>Login</h3>
+            <p>Access your personalized awareness dashboard</p>
+        </div>
+        <div class="step">
+            <div class="step-number">3</div>
+            <h3>Participate</h3>
+            <p>Attend events, take quizzes, and join cyber drills</p>
+        </div>
+        <div class="step">
+            <div class="step-number">4</div>
+            <h3>View Results</h3>
+            <p>Instantly check scores, receive certificates, and track progress</p>
+        </div>
+    </div>
+</section>
+
+<section class="requirements-section">
+    <h2>Registration Requirements</h2>
+    <div class="requirements">
+        <div class="requirement">
+            <h4>NSI ID Format</h4>
+            <p>Use format: A-0561 (uppercase letter A, B, C, or D, followed by dash and 4 digits)</p>
+            <div class="example">Example: If your NSI ID is A-0561, enter A-0561</div>
+        </div>
+        <div class="requirement">
+            <h4>Required Information</h4>
+            <ul>
+                <li>NSI ID (required)</li>
+                <li>Full Name (required)</li>
+                <li>Wing Name (optional)</li>
+                <li>District Name (optional)</li>
+                <li>Section Name (optional)</li>
+                <li>Password (minimum 6 characters)</li>
+            </ul>
+        </div>
+    </div>
+</section>
+{% endblock %}

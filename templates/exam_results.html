@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}Exam Results{% endblock %}
+
+{% block content %}
+<div class="exam-container">
+    <div class="exam-header">
+        <div class="exam-info">
+            <h1>🎉 Exam Completed!</h1>
+            <p>Your exam has been submitted successfully</p>
+        </div>
+    </div>
+
+    <div class="exam-card">
+        <div class="result-display">
+            <div class="score-circle {% if result.passed %}pass{% else %}fail{% endif %}">
+                <div class="score-value">{{ result.score }}%</div>
+            </div>
+            
+            <div class="result-details">
+                <h2>{% if result.passed %}🎉 Congratulations!{% else %}📚 Keep Learning!{% endif %}</h2>
+                
+                {% if result.passed %}
+                    <p class="result-message success">
+                        You have successfully passed the exam with a score of {{ result.score }}%!
+                    </p>
+                {% else %}
+                    <p class="result-message fail">
+                        You scored {{ result.score }}%, which is below the passing score of {{ result.passing_score }}%. 
+                        Don't worry, keep studying and try again!
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="result-breakdown">
+            <h3>📊 Result Breakdown</h3>
+            
+            <div class="breakdown-grid">
+                <div class="breakdown-item">
+                    <div class="breakdown-icon">✅</div>
+                    <div class="breakdown-content">
+                        <span class="breakdown-label">Correct Answers</span>
+                        <span class="breakdown-value">{{ result.correct_count }}</span>
+                    </div>
+                </div>
+                
+                <div class="breakdown-item">
+                    <div class="breakdown-icon">📝</div>
+                    <div class="breakdown-content">
+                        <span class="breakdown-label">Total Questions</span>
+                        <span class="breakdown-value">{{ result.total_questions }}</span>
+                    </div>
+                </div>
+                
+                <div class="breakdown-item">
+                    <div class="breakdown-icon">📊</div>
+                    <div class="breakdown-content">
+                        <span class="breakdown-label">Your Score</span>
+                        <span class="breakdown-value">{{ result.score }}%</span>
+                    </div>
+                </div>
+                
+                <div class="breakdown-item">
+                    <div class="breakdown-icon">🎯</div>
+                    <div class="breakdown-content">
+                        <span class="breakdown-label">Passing Score</span>
+                        <span class="breakdown-value">{{ result.passing_score }}%</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="result-actions">
+            <a href="{{ url_for('student_dashboard') }}" class="btn btn-primary btn-large">
+                📋 Back to Employee Dashboard
+            </a>
+            <a href="{{ url_for('student_exam_review', session_id=result.session_id) }}" class="btn btn-secondary btn-large">
+                🔍 Review Answers
+            </a>
+        </div>
+    </div>
+
+    <div class="result-tips">
+        <h3>💡 Tips for Next Time</h3>
+        <div class="tips-grid">
+            <div class="tip-item">
+                <div class="tip-icon">📚</div>
+                <div class="tip-content">
+                    <h4>Study Regularly</h4>
+                    <p>Consistent study habits lead to better retention and understanding.</p>
+                </div>
+            </div>
+            
+            <div class="tip-item">
+                <div class="tip-icon">⏰</div>
+                <div class="tip-content">
+                    <h4>Manage Your Time</h4>
+                    <p>Practice time management during preparation to improve exam performance.</p>
+                </div>
+            </div>
+            
+            <div class="tip-item">
+                <div class="tip-icon">🎯</div>
+                <div class="tip-content">
+                    <h4>Focus on Weak Areas</h4>
+                    <p>Identify topics you struggled with and dedicate extra time to them.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.result-display {
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 12px;
+}
+
+.score-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+}
+
+.score-circle.pass {
+    background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.score-circle.fail {
+    background: linear-gradient(135deg, #dc3545, #fd7e14);
+}
+
+.result-details h2 {
+    margin-bottom: 1rem;
+    color: #333;
+}
+
+.result-message {
+    font-size: 1.125rem;
+    line-height: 1.6;
+}
+
+.result-message.success {
+    color: #155724;
+}
+
+.result-message.fail {
+    color: #721c24;
+}
+
+.result-breakdown {
+    margin-bottom: 2rem;
+}
+
+.breakdown-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.breakdown-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1.5rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+}
+
+.breakdown-icon {
+    font-size: 1.5rem;
+    opacity: 0.8;
+}
+
+.breakdown-content {
+    display: flex;
+    flex-direction: column;
+}
+
+.breakdown-label {
+    font-size: 0.875rem;
+    color: #666;
+    font-weight: 500;
+}
+
+.breakdown-value {
+    font-size: 1.25rem;
+    color: #333;
+    font-weight: 700;
+}
+
+.result-actions {
+    text-align: center;
+    margin: 2rem 0;
+}
+
+.result-tips {
+    margin-top: 3rem;
+    padding: 2rem;
+    background-color: #f8f9fa;
+    border-radius: 12px;
+}
+
+.result-tips h3 {
+    text-align: center;
+    margin-bottom: 2rem;
+    color: #333;
+}
+
+.tips-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+}
+
+.tip-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.tip-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    opacity: 0.8;
+}
+
+.tip-content h4 {
+    margin-bottom: 0.5rem;
+    color: #333;
+}
+
+.tip-content p {
+    color: #666;
+    font-size: 0.875rem;
+    line-height: 1.5;
+}
+
+@media (max-width: 768px) {
+    .result-display {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .breakdown-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .tips-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

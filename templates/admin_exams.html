@@ -1,0 +1,770 @@
+{% extends "base.html" %}
+{% from "pagination_component.html" import render_pagination %}
+
+{% block title %}Manage Exams - Admin Panel{% endblock %}
+
+{% block content %}
+<div class="admin-content">
+    <div class="content-header">
+        <h1>📝 Exam Management</h1>
+        <p>View, edit, delete, or activate/deactivate exams.</p>
+        <div class="header-actions">
+            <a href="{{ url_for('add_exam') }}" class="btn btn-primary">➕ Create New Exam</a>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="content-body">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% if exams %}
+            <div class="exams-container">
+                {% for exam in exams %}
+                    <div class="exam-card {% if exam.is_active %}active-exam{% endif %}">
+                        <div class="exam-header">
+                            <div class="exam-title">
+                                <h3>{{ exam.title }}</h3>
+                                <div class="exam-status">
+                                    {% if exam.is_active %}
+                                        <span class="status-badge active">Active</span>
+                                    {% else %}
+                                        <span class="status-badge inactive">Inactive</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <div class="exam-actions">
+                                {% if exam.is_active %}
+                                    <a href="{{ url_for('deactivate_exam', exam_id=exam.id) }}" 
+                                       class="btn btn-small btn-danger"
+                                       onclick="return confirm('Are you sure you want to deactivate this exam?')">
+                                        Deactivate
+                                    </a>
+                                {% else %}
+                                    <button onclick="showActivateModal({{ exam.id }})" 
+                                            class="btn btn-small btn-success">
+                                        Activate
+                                    </button>
+                                {% endif %}
+                                <button onclick="editExam({{ exam.id }})" class="btn btn-small btn-secondary">Edit</button>
+                                <button onclick="deleteExam({{ exam.id }})" class="btn btn-small btn-danger">Delete</button>
+                            </div>
+                        </div>
+
+                        <div class="exam-content">
+                            {% if exam.description %}
+                                <p class="exam-description">{{ exam.description }}</p>
+                            {% endif %}
+
+                            <div class="exam-details">
+                                <div class="detail-grid">
+                                    <div class="detail-item">
+                                        <span class="detail-icon">⏱️</span>
+                                        <div class="detail-content">
+                                            <span class="detail-label">Duration</span>
+                                            <span class="detail-value">{{ exam.duration_minutes }} minutes</span>
+                                        </div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-icon">❓</span>
+                                        <div class="detail-content">
+                                            <span class="detail-label">Questions</span>
+                                            <span class="detail-value">{{ exam.num_questions }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-icon">📊</span>
+                                        <div class="detail-content">
+                                            <span class="detail-label">Passing Score</span>
+                                            <span class="detail-value">{{ exam.passing_score }}%</span>
+                                        </div>
+                                    </div>
+                                    <div class="detail-item">
+                                        <span class="detail-icon">🔄</span>
+                                        <div class="detail-content">
+                                            <span class="detail-label">Max Attempts</span>
+                                            <span class="detail-value">{{ exam.max_attempts }}</span>
+                                        </div>
+                                    </div>
+                                    {% if exam.scheduled_start %}
+                                        <div class="detail-item">
+                                            <span class="detail-icon">🕒</span>
+                                            <div class="detail-content">
+                                                <span class="detail-label">Scheduled Start</span>
+                                                <span class="detail-value">{{ exam.scheduled_start }}</span>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                    {% if exam.scheduled_end %}
+                                        <div class="detail-item">
+                                            <span class="detail-icon">🕕</span>
+                                            <div class="detail-content">
+                                                <span class="detail-label">Scheduled End</span>
+                                                <span class="detail-value">{{ exam.scheduled_end }}</span>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="exam-footer">
+                            <small class="exam-date">Created: {{ exam.created_at }}</small>
+                            {% if exam.is_active %}
+                                <div class="active-indicator">
+                                    <span class="pulse-dot"></span>
+                                    Currently accepting employees
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div class="no-exams">
+                <div class="no-exams-icon">📝</div>
+                <h3>No Exams Created</h3>
+                <p>You haven't created any exams yet. Start by creating your first exam.</p>
+                <a href="{{ url_for('add_exam') }}" class="btn btn-primary">➕ Create New Exam</a>
+            </div>
+        {% endif %}
+
+        {# Render pagination if there are pages #}
+        {% if pagination and pagination.pages > 1 %}
+            {{ render_pagination(pagination, 'admin_exams', query_params=request.args) }}
+        {% endif %}
+    </div>
+</div>
+
+<!-- Edit Exam Modal -->
+<div class="modal" id="editExamModal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Edit Exam</h3>
+            <button onclick="closeEditExamModal()" class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="editExamForm">
+                <input type="hidden" id="editExamId">
+                <div class="form-group">
+                    <label for="editExamTitle">Exam Title *</label>
+                    <input type="text" id="editExamTitle" required>
+                </div>
+                <div class="form-group">
+                    <label for="editExamDescription">Description</label>
+                    <textarea id="editExamDescription" rows="4"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editExamDuration">Duration (minutes) *</label>
+                        <input type="number" id="editExamDuration" min="1" max="300" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editExamQuestions">Number of Questions *</label>
+                        <input type="number" id="editExamQuestions" min="1" max="100" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editExamPassingScore">Passing Score (%) *</label>
+                        <input type="number" id="editExamPassingScore" min="0" max="100" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="editExamMaxAttempts">Max Attempts *</label>
+                        <input type="number" id="editExamMaxAttempts" min="1" max="10" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editExamScheduledStart">Scheduled Start (optional)</label>
+                    <input type="datetime-local" id="editExamScheduledStart">
+                </div>
+                <div class="form-group">
+                    <label for="editExamScheduledEnd">Scheduled End (optional)</label>
+                    <input type="datetime-local" id="editExamScheduledEnd">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeEditExamModal()" class="btn btn-secondary">Cancel</button>
+            <button onclick="saveExam()" class="btn btn-primary">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<!-- Activate Exam Modal -->
+<div class="modal" id="activateExamModal" style="display: none;">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Activate Exam</h3>
+            <button onclick="closeActivateExamModal()" class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="activateExamForm">
+                <input type="hidden" id="activateExamId">
+                <div class="form-group">
+                    <label for="activationDelay">Activate After (minutes) *</label>
+                    <input type="number" id="activationDelay" min="0" value="0" required>
+                    <p class="form-help">Enter 0 for immediate activation or specify minutes from now.</p>
+                    <p class="form-preview" id="activationPreview"></p>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeActivateExamModal()" class="btn btn-secondary">Cancel</button>
+            <button onclick="activateExam()" class="btn btn-primary">Activate</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.admin-content {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 30px;
+}
+
+.content-header {
+    text-align: center;
+    margin-bottom: 50px;
+}
+
+.content-header h1 {
+    font-size: 2.4em;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.content-header p {
+    font-size: 1.1em;
+    color: #7f8c8d;
+}
+
+.header-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-top: 20px;
+}
+
+.alert {
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 25px;
+    font-size: 1em;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.exams-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 30px;
+}
+
+.exam-card {
+    background: #fff;
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.exam-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+.exam-card.active-exam {
+    border-left: 6px solid #2ecc71;
+}
+
+.exam-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.exam-title h3 {
+    font-size: 1.5em;
+    color: #34495e;
+    margin: 0;
+}
+
+.exam-status .status-badge {
+    padding: 8px 14px;
+    border-radius: 20px;
+    font-size: 0.95em;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.active {
+    background: #2ecc71;
+    color: #fff;
+}
+
+.status-badge.inactive {
+    background: #ecf0f1;
+    color: #7f8c8d;
+   
+}
+
+.exam-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.exam-description {
+    font-size: 1em;
+    color: #7f8c8d;
+    margin-bottom: 20px;
+    line-height: 1.5;
+}
+
+.exam-details .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 15px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.detail-icon {
+    font-size: 1.4em;
+    color: #3498db;
+}
+
+.detail-content {
+    flex: 1;
+}
+
+.detail-label {
+    font-size: 0.95em;
+    color: #7f8c8d;
+    text-transform: uppercase;
+}
+
+.detail-value {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #2c3e50;
+}
+
+.exam-footer {
+    margin-top: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.exam-date {
+    font-size: 0.9em;
+    color: #7f8c8d;
+}
+
+.active-indicator {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.95em;
+    font-weight: 600;
+    color: #2ecc71;
+}
+
+.pulse-dot {
+    width: 12px;
+    height: 12px;
+    background: #2ecc71;
+    border-radius: 50%;
+    animation: pulse 1.5s infinite;
+}
+
+.no-exams {
+    text-align: center;
+    padding: 50px;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.no-exams-icon {
+    font-size: 2.5em;
+    color: #7f8c8d;
+    margin-bottom: 15px;
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn-small {
+    padding: 8px 16px;
+    font-size: 0.95em;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: #fff;
+    border: none;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+
+.btn-danger {
+    background: #e74c3c;
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background: #c0392b;
+}
+
+.btn-success {
+    background: #2ecc71;
+    color: #fff;
+}
+
+.btn-success:hover {
+    background: #27ae60;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #fff;
+    padding: 25px;
+    border-radius: 10px;
+    max-width: 550px;
+    width: 90%;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 1.6em;
+    color: #2c3e50;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.6em;
+    cursor: pointer;
+    color: #7f8c8d;
+    transition: color 0.2s;
+}
+
+.modal-close:hover {
+    color: #2c3e50;
+}
+
+.modal-body {
+    margin-bottom: 20px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #2c3e50;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1em;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+.form-row {
+    display: flex;
+    gap: 20px;
+}
+
+.form-row .form-group {
+    flex: 1;
+}
+
+.form-help {
+    font-size: 0.9em;
+    color: #7f8c8d;
+    margin-top: 8px;
+}
+
+.form-preview {
+    font-size: 0.9em;
+    color: #3498db;
+    font-weight: 600;
+    margin-top: 8px;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function editExam(examId) {
+    fetch(`/admin/exams/edit/${examId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(data.error);
+                return;
+            }
+            document.getElementById('editExamId').value = examId;
+            document.getElementById('editExamTitle').value = data.title;
+            document.getElementById('editExamDescription').value = data.description || '';
+            document.getElementById('editExamDuration').value = data.duration_minutes;
+            document.getElementById('editExamQuestions').value = data.num_questions;
+            document.getElementById('editExamPassingScore').value = data.passing_score;
+            document.getElementById('editExamMaxAttempts').value = data.max_attempts;
+            document.getElementById('editExamScheduledStart').value = data.scheduled_start ? data.scheduled_start.replace(' ', 'T') : '';
+            document.getElementById('editExamScheduledEnd').value = data.scheduled_end ? data.scheduled_end.replace(' ', 'T') : '';
+            document.getElementById('editExamModal').style.display = 'flex';
+        })
+        .catch(error => {
+            console.error('Error fetching exam data:', error);
+            alert('Failed to load exam data. Please try again.');
+        });
+}
+
+function closeEditExamModal() {
+    document.getElementById('editExamModal').style.display = 'none';
+}
+
+function saveExam() {
+    const examId = document.getElementById('editExamId').value;
+    const formData = {
+        title: document.getElementById('editExamTitle').value,
+        description: document.getElementById('editExamDescription').value,
+        duration_minutes: document.getElementById('editExamDuration').value,
+        num_questions: document.getElementById('editExamQuestions').value,
+        passing_score: document.getElementById('editExamPassingScore').value,
+        max_attempts: document.getElementById('editExamMaxAttempts').value,
+        scheduled_start: document.getElementById('editExamScheduledStart').value,
+        scheduled_end: document.getElementById('editExamScheduledEnd').value
+    };
+
+    fetch(`/admin/exams/edit/${examId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(formData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Exam updated successfully!');
+            location.reload();
+        } else {
+            alert(data.error || 'Failed to update exam. Please try again.');
+        }
+    })
+    .catch(error => {
+        console.error('Error updating exam:', error);
+        alert('Failed to update exam. Please try again.');
+    });
+}
+
+function showActivateModal(examId) {
+    document.getElementById('activateExamId').value = examId;
+    document.getElementById('activationDelay').value = 0;
+    document.getElementById('activateExamModal').style.display = 'flex';
+    updateActivationPreview();
+}
+
+function closeActivateExamModal() {
+    document.getElementById('activateExamModal').style.display = 'none';
+}
+
+function activateExam() {
+    console.log('activateExam function called');
+    
+    try {
+        const examId = document.getElementById('activateExamId').value;
+        const delayMinutes = document.getElementById('activationDelay').value;
+        
+        console.log('Exam ID:', examId, 'Delay:', delayMinutes);
+        
+        if (!examId) {
+            alert('Please select an exam to activate.');
+            return;
+        }
+
+        // Use XMLHttpRequest as fallback to avoid potential fetch conflicts
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `/admin/exams/activate/${examId}`, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        
+        xhr.onreadystatechange = function() {
+            if (xhr.readyState === 4) {
+                console.log('Response status:', xhr.status);
+                console.log('Response text:', xhr.responseText);
+                
+                try {
+                    if (xhr.status === 200) {
+                        const data = JSON.parse(xhr.responseText);
+                        if (data.success) {
+                            alert('Exam scheduled for activation successfully!');
+                            closeActivateExamModal();
+                            location.reload();
+                        } else {
+                            alert(data.error || 'Failed to activate exam. Please try again.');
+                        }
+                    } else {
+                        alert('Server error. Please try again.');
+                    }
+                } catch (parseError) {
+                    console.error('Error parsing response:', parseError);
+                    alert('Failed to activate exam. Please try again.');
+                }
+            }
+        };
+        
+        xhr.onerror = function() {
+            console.error('Network error');
+            alert('Network error. Please check your connection and try again.');
+        };
+        
+        xhr.send(JSON.stringify({ delay_minutes: parseInt(delayMinutes) || 0 }));
+        
+    } catch (error) {
+        console.error('Error in activateExam function:', error);
+        alert('Failed to activate exam. Please try again.');
+    }
+}
+
+function updateActivationPreview() {
+    const delayMinutes = parseInt(document.getElementById('activationDelay').value) || 0;
+    const now = new Date();
+    const activationTime = new Date(now.getTime() + delayMinutes * 60000);
+    const options = {
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit',
+        hour12: false
+    };
+    const formattedTime = activationTime.toLocaleString('en-GB', options).replace(',', '');
+    document.getElementById('activationPreview').textContent = 
+        delayMinutes === 0 ? 'Exam will activate immediately' : `Exam will activate at ${formattedTime}`;
+}
+
+function deleteExam(examId) {
+    if (confirm('Are you sure you want to delete this exam? This action cannot be undone and will also delete all associated exam sessions.')) {
+        fetch(`/admin/exams/delete/${examId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Exam deleted successfully!');
+                location.reload();
+            } else {
+                alert(data.error || 'Failed to delete exam. Please try again.');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting exam:', error);
+            alert('Failed to delete exam. Please try again.');
+        });
+    }
+}
+
+// Auto-refresh to show status changes
+setInterval(function() {
+    if (document.getElementById('editExamModal').style.display === 'none' && 
+        document.getElementById('activateExamModal').style.display === 'none') {
+        location.reload();
+    }
+}, 30000);
+
+// Update activation preview on input change
+document.getElementById('activationDelay')?.addEventListener('input', updateActivationPreview);
+</script>
+{% endblock %}

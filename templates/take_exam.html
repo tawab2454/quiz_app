@@ -1,0 +1,556 @@
+{% extends "base.html" %}
+
+{% block title %}{{ exam.title | safe_text }} - Online Examination System{% endblock %}
+
+{% block content %}
+<div class="exam-container" 
+     data-enable-copy-protection="{{ toggles.enable_copy_protection }}"
+     data-enable-screenshot-block="{{ toggles.enable_screenshot_block }}"
+     data-enable-tab-switch-detect="{{ toggles.enable_tab_switch_detect }}">
+    <div class="exam-header">
+        <div class="exam-title">
+            <h1>📝 {{ exam.title | safe_text }}</h1>
+            <p>{{ exam.description | safe_text }}</p>
+            <div class="progress-info">0/{{ questions|length }} questions answered</div>
+        </div>
+        <div class="exam-timer">
+            <div class="timer-display" id="timer">
+                <span id="timeRemaining">{{ exam.duration_minutes }}:00</span>
+            </div>
+            <p>Time Remaining</p>
+        </div>
+    </div>
+
+    <div class="exam-progress">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text">
+            <span id="currentQuestion">1</span> of {{ questions|length }} questions
+        </div>
+    </div>
+
+    <form method="POST" action="{{ url_for('submit_exam', session_id=session_id) }}" id="examForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        <div class="questions-container">
+            {% for question in questions %}
+            <div class="question-card" id="question{{ loop.index }}" {% if loop.index> 1 %}style="display: none;"{% endif %}>
+                <div class="question-header">
+                    <h3>Question {{ loop.index }}</h3>
+                    <span class="question-difficulty {{ question.difficulty | lower | safe_output }}">
+                        {{ question.difficulty.title() | safe_output }}
+                    </span>
+                </div>
+
+                <div class="question-text">
+                    <p>{{ question.question_text | safe_text }}</p>
+                    {% if question.question_image %}
+                    <div class="question-image">
+                        <div class="image-loading" id="imgLoading{{ loop.index }}" style="display: none;">
+                            <div class="loading-spinner"></div>
+                            <span style="margin-left: 10px;">Loading image...</span>
+                        </div>
+                        <img src="{{ question.question_image | replace('\\','/') | safe_url }}" 
+                             alt="Question {{ loop.index }} Image" 
+                             loading="lazy"
+                             onload="document.getElementById('imgLoading{{ loop.index }}').style.display='none'"
+                             onerror="this.style.display='none'; 
+                                     document.getElementById('imgLoading{{ loop.index }}').style.display='none';
+                                     document.getElementById('imgError{{ loop.index }}').style.display='flex';">
+                        <div class="image-error" id="imgError{{ loop.index }}" style="display: none;">
+                            📷 Image could not be loaded<br>
+                            <small>The image file may be missing or corrupted</small>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if question.question_youtube %}
+                    <div class="youtube-preview" style="display: block;">
+                        {% set yt = question.question_youtube %}
+                        {% set vid = none %}
+                        {% set embed_url = none %}
+                        {% if 'watch?v=' in yt %}
+                            {% set vid = yt.split('v=')[-1].split('&')[0] %}
+                        {% elif 'youtu.be/' in yt %}
+                            {% set vid = yt.rsplit('/', 1)[-1].split('?')[0] %}
+                        {% elif 'embed/' in yt %}
+                            {% set embed_url = yt %}
+                        {% endif %}
+
+                        {% if vid is not none %}
+                            {% set embed_url = 'https://www.youtube.com/embed/' ~ vid ~ '?enablejsapi=1' %}
+                        {% endif %}
+
+                        {% if embed_url is none %}
+                            {% set embed_url = yt %}
+                        {% endif %}
+
+                        <iframe 
+                            src="{{ embed_url }}" 
+                            class="youtube-iframe"
+                            loading="lazy"
+                            sandbox="allow-scripts allow-same-origin allow-presentation"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen
+                            title="YouTube video player for Question {{ loop.index }}"
+                            onerror="this.style.display='none';document.getElementById('youtube-fallback-{{ loop.index }}').style.display='block';">
+                        </iframe>
+                        <div class="youtube-fallback" id="youtube-fallback-{{ loop.index }}" style="display: none;">
+                            <p>📺 Unable to load video.<br>
+                            <a href="{{ yt }}" target="_blank" rel="noopener noreferrer">Watch on YouTube</a></p>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="options-container">
+                    {% for letter, text in question.options %}
+                    <label class="option-label" tabindex="0">
+                        <input type="radio" name="question_{{ question.id }}" value="{{ letter }}" onchange="updateReviewStatus()" style="display: none;">
+                        <span class="option-content">
+                            <span class="option-letter">{{ letter }}</span>
+                            <div style="flex: 1; display: flex; flex-direction: column;">
+                                {{ text }}
+                                {% if question.option_images and question.option_images[letter] %}
+                                <div class="option-image">
+                                    <img src="{{ question.option_images[letter] | replace('\\','/') | safe_url }}" 
+                                         alt="Option {{ letter }}" 
+                                         loading="eager"
+                                         style="display: block; width: 100%; height: auto;"
+                                         onerror="this.style.display='none'; 
+                                                 document.getElementById('optImgError{{ loop.index }}_{{ letter }}').style.display='flex';">
+                                    <div class="image-error" id="optImgError{{ loop.index }}_{{ letter }}" style="display: none;">
+                                        📷 Image unavailable
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </span>
+                    </label>
+                    {% endfor %}
+                </div>
+
+                <div class="question-actions">
+                    {% if loop.index > 1 %}
+                    <button type="button" class="btn btn-secondary" onclick="showQuestion({{ loop.index - 1 }})">← Previous</button>
+                    {% endif %}
+
+                    {% if loop.index < questions|length %}
+                        <button type="button" class="btn btn-primary" onclick="showQuestion({{ loop.index + 1 }})">Next →</button>
+                    {% else %}
+                        <button type="button" class="btn btn-success" onclick="showReviewScreen()">Review & Submit</button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            <!-- Review Screen -->
+            <div class="review-screen" id="reviewScreen" style="display: none;">
+                <div class="review-header">
+                    <h2>📋 Review Your Answers</h2>
+                    <p>Please review your answers before submitting the exam.</p>
+                </div>
+
+                <div class="review-summary">
+                    <div class="summary-stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="answeredCount">0</span>
+                            <span class="stat-label">Answered</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value" id="unansweredCount">{{ questions|length }}</span>
+                            <span class="stat-label">Unanswered</span>
+                        </div>
+                        <div class="stat-item">
+                            <span class="stat-value">{{ questions|length }}</span>
+                            <span class="stat-label">Total</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="review-questions" id="reviewQuestions">
+                    <!-- Review items will be populated by JavaScript -->
+                </div>
+
+                <div class="review-actions">
+                    <button type="button" class="btn btn-secondary" onclick="showQuestion({{ questions|length }})">← Back to Questions</button>
+                    <button type="submit" class="btn btn-success btn-large" id="submitExamBtn">🚀 Submit Exam</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<!-- Warning Modal -->
+<div class="modal" id="warningModal" style="display: none;">
+    <div class="modal-content">
+        <h3>⚠️ Warning</h3>
+        <p id="warningMessage"></p>
+        <div class="modal-actions">
+            <button onclick="closeModal()" class="btn btn-secondary">OK</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+<script>
+    // Enhanced UI functionality with mobile optimizations
+    document.addEventListener('DOMContentLoaded', function() {
+        // Show loading indicators for question images that are still loading
+        const questionImages = document.querySelectorAll('.question-image img');
+        
+        questionImages.forEach(function(img, index) {
+            const loadingEl = document.getElementById('imgLoading' + (index + 1));
+            if (loadingEl && !img.complete) {
+                loadingEl.style.display = 'flex';
+            }
+        });
+            
+            label.addEventListener('click', function(e) {
+                e.preventDefault();
+                
+                // Find the radio button associated with this label
+                const radioInput = this.querySelector('input[type="radio"]');
+                if (radioInput) {
+                    // Clear all selected states in this question
+                    const questionCard = this.closest('.question-card');
+                    const allLabels = questionCard.querySelectorAll('.option-label');
+                    allLabels.forEach(function(otherLabel) {
+                        otherLabel.classList.remove('selected');
+                    });
+                    
+                    // Mark this option as selected
+                    this.classList.add('selected');
+                    
+                    // Trigger the radio button
+                    radioInput.checked = true;
+                    radioInput.dispatchEvent(new Event('change'));
+                    
+                    // Update review status
+                    updateReviewStatus();
+                    
+                    // Provide visual feedback
+                    if (this.classList.contains('selected')) {
+                        // Smooth scroll to next question after selection
+                        setTimeout(() => {
+                            const nextBtn = questionCard.querySelector('.btn-primary');
+                            if (nextBtn && nextBtn.textContent.includes('Next')) {
+                                nextBtn.scrollIntoView({ 
+                                    behavior: 'smooth', 
+                                    block: 'center' 
+                                });
+                            }
+                        }, 300);
+                    }
+                }
+            });
+            
+            // Enhanced hover effects for desktop
+                    radioInput.checked = true;
+                    
+                    // Add visual feedback with haptic-like animation
+                    this.style.transform = 'scale(1.05)';
+                    setTimeout(() => {
+                        this.style.transform = 'scale(1.02)';
+                    }, 100);
+                    
+                    // Update progress
+                    updateProgress();
+                    updateReviewStatus();
+                    
+                    // Auto-scroll to next question on mobile (optional)
+                    if (window.innerWidth <= 768) {
+                        setTimeout(() => {
+                            const nextBtn = questionCard.querySelector('.btn-primary');
+                            if (nextBtn && nextBtn.textContent.includes('Next')) {
+                                nextBtn.scrollIntoView({ 
+                                    behavior: 'smooth', 
+                                    block: 'center' 
+                                });
+                            }
+                        }, 300);
+                    }
+                }
+            });
+            
+            // Enhanced hover effects for desktop
+            if (window.innerWidth > 768) {
+                label.addEventListener('mouseenter', function() {
+                    if (!this.classList.contains('selected')) {
+                        this.style.transform = 'scale(1.01)';
+                        this.style.boxShadow = '0 4px 12px rgba(0,123,255,0.2)';
+                    }
+                });
+                
+                label.addEventListener('mouseleave', function() {
+                    if (!this.classList.contains('selected')) {
+                        this.style.transform = 'scale(1)';
+                        this.style.boxShadow = '';
+                    }
+                });
+            }
+        });
+
+        // Progress tracking with visual feedback
+        function updateProgress() {
+            const totalQuestions = document.querySelectorAll('.question-card').length;
+            const answeredQuestions = document.querySelectorAll('.option-label.selected').length;
+            const progressPercentage = (answeredQuestions / totalQuestions) * 100;
+            
+            // Update progress bar
+            const progressFill = document.getElementById('progressFill');
+            if (progressFill) {
+                progressFill.style.width = progressPercentage + '%';
+            }
+            
+            // Update progress text
+            const progressElement = document.querySelector('.progress-info');
+            if (progressElement) {
+                progressElement.textContent = `${answeredQuestions}/${totalQuestions} questions answered`;
+                
+                // Add completion effect
+                if (answeredQuestions === totalQuestions) {
+                    progressElement.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                    progressElement.innerHTML = `✅ ${answeredQuestions}/${totalQuestions} questions completed!`;
+                }
+            }
+        }
+
+        // Enhanced form submission with loading states
+        const examForm = document.getElementById('examForm');
+        if (examForm) {
+            examForm.addEventListener('submit', function(e) {
+                e.preventDefault(); // Always prevent default form submission
+                
+                // Add loading state to submit button
+                const submitButton = this.querySelector('button[type="submit"], .btn-success');
+                if (submitButton) {
+                    const originalText = submitButton.innerHTML;
+                    submitButton.innerHTML = '<div class="loading-spinner" style="width: 20px; height: 20px; margin-right: 10px;"></div> Submitting...';
+                    submitButton.disabled = true;
+                    submitButton.style.cursor = 'not-allowed';
+                }
+                
+                // Collect answers
+                const answers = {};
+                const questionCards = document.querySelectorAll('.question-card');
+                
+                questionCards.forEach((card, index) => {
+                    const questionIdInput = card.querySelector('input[name^="question_"]');
+                    if (!questionIdInput) return;
+
+                    const questionId = questionIdInput.name.split('_')[1];
+                    const selectedOption = card.querySelector('input[name^="question_' + questionId + '"]:checked');
+                    
+                    // Store null if no answer is selected
+                    answers[questionId] = selectedOption ? selectedOption.value : null;
+                });
+                
+                // Submit as JSON
+                const sessionId = {{ session_id }};
+                fetch(`/exam/${sessionId}/submit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-Token': '{{ csrf_token() }}' // Include CSRF token
+                    },
+                    body: JSON.stringify({ answers: answers })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { 
+                            throw new Error(err.message || 'Submission failed with status ' + response.status); 
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Show success message briefly before redirect
+                        if (submitButton) {
+                            submitButton.innerHTML = '✅ Success! Redirecting...';
+                            submitButton.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                        }
+                        
+                        setTimeout(() => {
+                            window.location.href = data.redirect_url || '{{ url_for("student_dashboard") }}';
+                        }, 1000);
+                    } else {
+                        throw new Error(data.message || 'An unknown error occurred during submission.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Submission error:', error);
+                    
+                    // Show error in button
+                    if (submitButton) {
+                        submitButton.innerHTML = '❌ Error - Try Again';
+                        submitButton.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+                        submitButton.disabled = false;
+                        submitButton.style.cursor = 'pointer';
+                        
+                        // Reset button after 3 seconds
+                        setTimeout(() => {
+                            submitButton.innerHTML = originalText;
+                            submitButton.style.background = '';
+                        }, 3000);
+                    }
+                });
+            });
+        }
+
+        // Initialize on page load
+        updateProgress();
+        
+        // Add smooth scrolling for navigation
+        function smoothScrollToQuestion(questionNumber) {
+            const question = document.getElementById('question' + questionNumber);
+            if (question) {
+                question.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start' 
+                });
+            }
+        }
+        
+        // Enhanced button clicks for mobile
+        const buttons = document.querySelectorAll('.btn');
+        buttons.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                // Add click effect for mobile
+                if (window.innerWidth <= 768) {
+                    this.style.transform = 'scale(0.95)';
+                    setTimeout(() => {
+                        this.style.transform = '';
+                    }, 150);
+                }
+            });
+        });
+    });
+            // Update progress if there's a progress element
+            const progressElement = document.querySelector('.progress-info');
+            if (progressElement) {
+                progressElement.textContent = `${answeredQuestions}/${totalQuestions} questions answered`;
+            }
+        }
+
+        // Initialize progress on page load
+        updateProgress();
+    });
+
+    // Navigation functions for question flow
+    function showQuestion(questionNumber) {
+        // Hide all questions
+        const allQuestions = document.querySelectorAll('.question-card');
+        allQuestions.forEach(q => q.style.display = 'none');
+        
+        // Show target question
+        const targetQuestion = document.getElementById('question' + questionNumber);
+        if (targetQuestion) {
+            targetQuestion.style.display = 'block';
+            targetQuestion.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            
+            // Update current question display
+            const currentQuestionSpan = document.getElementById('currentQuestion');
+            if (currentQuestionSpan) {
+                currentQuestionSpan.textContent = questionNumber;
+            }
+        }
+        
+        // Hide review screen
+        const reviewScreen = document.getElementById('reviewScreen');
+        if (reviewScreen) {
+            reviewScreen.style.display = 'none';
+        }
+    }
+
+    function showReviewScreen() {
+        // Hide all questions
+        const allQuestions = document.querySelectorAll('.question-card');
+        allQuestions.forEach(q => q.style.display = 'none');
+        
+        // Show review screen
+        const reviewScreen = document.getElementById('reviewScreen');
+        if (reviewScreen) {
+            reviewScreen.style.display = 'block';
+            reviewScreen.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        // Update review statistics
+        updateReviewStatistics();
+    }
+
+    function updateReviewStatistics() {
+        const totalQuestions = document.querySelectorAll('.question-card').length;
+        const answeredQuestions = document.querySelectorAll('input[type="radio"]:checked').length;
+        const unansweredQuestions = totalQuestions - answeredQuestions;
+        
+        const answeredCount = document.getElementById('answeredCount');
+        const unansweredCount = document.getElementById('unansweredCount');
+        
+        if (answeredCount) answeredCount.textContent = answeredQuestions;
+        if (unansweredCount) unansweredCount.textContent = unansweredQuestions;
+    }
+
+    // Update review status when answer is selected
+    function updateReviewStatus() {
+        const totalQuestions = document.querySelectorAll('.question-card').length;
+        const answeredQuestions = document.querySelectorAll('input[type="radio"]:checked').length;
+        
+        // Update progress if there's a progress element
+        const progressElement = document.querySelector('.progress-info');
+        if (progressElement) {
+            progressElement.textContent = `${answeredQuestions}/${totalQuestions} questions answered`;
+        }
+        
+        // Update visual feedback for answered questions
+        document.querySelectorAll('.question-card').forEach(function(card) {
+            const questionInputs = card.querySelectorAll('input[type="radio"]');
+            const hasAnswer = Array.from(questionInputs).some(input => input.checked);
+            
+            if (hasAnswer) {
+                card.classList.add('answered');
+            } else {
+                card.classList.remove('answered');
+            }
+        });
+        
+        // Update submit button state
+        const submitButton = document.querySelector('button[type="submit"], .btn-success');
+        if (submitButton) {
+            if (answeredQuestions === totalQuestions) {
+                submitButton.disabled = false;
+                submitButton.classList.remove('disabled');
+                submitButton.style.opacity = '1';
+            } else {
+                submitButton.disabled = false; // Allow submission with incomplete answers
+                submitButton.classList.remove('disabled');
+                submitButton.style.opacity = '1';
+            }
+        }
+    }
+
+    // Warning modal functions
+    function showWarning(message) {
+        const warningModal = document.getElementById('warningModal');
+        const warningMessage = document.getElementById('warningMessage');
+        if (warningModal && warningMessage) {
+            warningMessage.textContent = message;
+            warningModal.style.display = 'flex';
+        }
+    }
+
+    function closeModal() {
+        const warningModal = document.getElementById('warningModal');
+        if (warningModal) {
+            warningModal.style.display = 'none';
+        }
+    }
+
+    // Click outside modal to close
+    document.addEventListener('click', function(e) {
+        const modal = document.getElementById('warningModal');
+        if (e.target === modal) {
+            closeModal();
+        }
+    });
+</script>

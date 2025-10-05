@@ -1,0 +1,132 @@
+/* Enhanced Form Elements with Balanced Colors */
+
+/* Input fields with better text visibility */
+input[type="text"],
+input[type="password"],
+input[type="email"],
+input[type="number"],
+input[type="date"],
+input[type="search"],
+textarea,
+select {
+    color: var(--cyber-text-bright) !important;
+    background-color: rgba(13, 36, 66, 0.9) !important;
+    border: 1px solid var(--cyber-primary) !important;
+    border-radius: 4px !important;
+    padding: 12px !important;
+    width: 100% !important;
+    font-family: var(--font-mono) !important;
+    font-size: 16px !important; /* Larger font size for better mobile readability */
+    transition: all 0.3s ease !important;
+}
+
+/* Input placeholders */
+::placeholder {
+    color: var(--cyber-mid-text) !important;
+    opacity: 0.7;
+}
+
+/* Focus states with enhanced visibility */
+input:focus,
+textarea:focus,
+select:focus {
+    box-shadow: 0 0 8px rgba(30, 255, 0, 0.4) !important;
+    outline: none !important;
+    background-color: rgba(20, 40, 70, 0.95) !important;
+}
+
+/* Select dropdown options */
+select option {
+    background-color: var(--cyber-dark-alt) !important;
+    color: var(--cyber-text-bright) !important;
+    padding: 8px !important;
+}
+
+/* Form labels with better contrast */
+label {
+    color: var(--cyber-text-bright);
+    margin-bottom: 6px;
+    display: block;
+    font-weight: 500;
+}
+
+/* Textarea */
+textarea {
+    min-height: 100px;
+    line-height: 1.5;
+}
+
+/* Radio and Checkbox inputs */
+input[type="radio"],
+input[type="checkbox"] {
+    margin-right: 8px;
+}
+
+/* Custom checkbox/radio styling */
+.custom-control {
+    position: relative;
+    padding-left: 30px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    font-size: 16px;
+    user-select: none;
+    display: block;
+    color: var(--cyber-text);
+}
+
+.custom-control input {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+    height: 0;
+    width: 0;
+}
+
+.checkmark {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    background-color: rgba(13, 36, 66, 0.9);
+    border: 1px solid var(--cyber-primary);
+}
+
+.custom-control:hover input ~ .checkmark {
+    background-color: rgba(20, 40, 70, 0.95);
+}
+
+.custom-control input:checked ~ .checkmark {
+    background-color: var(--cyber-primary);
+}
+
+.checkmark:after {
+    content: "";
+    position: absolute;
+    display: none;
+}
+
+.custom-control input:checked ~ .checkmark:after {
+    display: block;
+}
+
+/* Form Help Text */
+.form-help {
+    font-size: 0.85rem;
+    color: var(--cyber-mid-text);
+    margin-top: 4px;
+}
+
+/* Error messages */
+.error-message {
+    color: #ff3366;
+    font-size: 0.85rem;
+    margin-top: 4px;
+}
+
+/* Success messages */
+.success-message {
+    color: #1eff00;
+    font-size: 0.85rem;
+    margin-top: 4px;
+}

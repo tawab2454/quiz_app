@@ -1,0 +1,259 @@
+/* Enhanced Typography for Better Readability */
+
+/* Base Typography Enhancements */
+body, p, span, div {
+    font-family: 'Share Tech Mono', 'Courier New', monospace;
+    letter-spacing: 0.03rem;
+    font-size: 1rem;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'VT323', 'Share Tech Mono', monospace;
+    letter-spacing: 0.05rem;
+    line-height: 1.3;
+}
+
+h1 {
+    font-size: 2.6rem;
+    background: linear-gradient(to right, #25df4a, #00e1cc);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    text-shadow: 0 2px 15px rgba(37, 223, 74, 0.4);
+    margin-bottom: 1.2rem;
+}
+
+h2 {
+    font-size: 2.1rem;
+    color: #52f775;
+    text-shadow: 0 0 10px rgba(37, 223, 74, 0.3);
+    position: relative;
+    display: inline-block;
+    margin-bottom: 1.5rem;
+}
+
+h2:after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(to right, #52f775, transparent);
+}
+
+h3 {
+    font-size: 1.7rem;
+    color: #25df4a;
+    margin-bottom: 1rem;
+}
+
+h4 {
+    font-size: 1.4rem;
+    color: #e9f0f7;
+}
+
+/* Enhanced Text Visibility */
+.text-primary {
+    color: #25df4a !important;
+    text-shadow: 0 0 5px rgba(37, 223, 74, 0.3);
+}
+
+.text-secondary {
+    color: #00e1cc !important;
+}
+
+.text-bright {
+    color: #e9f0f7 !important;
+    font-weight: 500;
+}
+
+.text-accent {
+    color: #ff5e7d !important;
+}
+
+.text-warning {
+    color: #ffcc00 !important;
+}
+
+.text-success {
+    color: #52f775 !important;
+}
+
+.text-highlight {
+    background: rgba(37, 223, 74, 0.15);
+    padding: 0.15rem 0.3rem;
+    border-radius: 3px;
+    color: #e9f0f7;
+}
+
+/* Font Size Helpers */
+.text-xl {
+    font-size: 1.5rem !important;
+}
+
+.text-lg {
+    font-size: 1.25rem !important;
+}
+
+.text-md {
+    font-size: 1rem !important;
+}
+
+.text-sm {
+    font-size: 0.875rem !important;
+}
+
+.text-xs {
+    font-size: 0.75rem !important;
+}
+
+/* Font Weight Helpers */
+.font-bold {
+    font-weight: 700 !important;
+}
+
+.font-semibold {
+    font-weight: 600 !important;
+}
+
+.font-normal {
+    font-weight: 400 !important;
+}
+
+.font-light {
+    font-weight: 300 !important;
+}
+
+/* Text Effects */
+.text-glow {
+    text-shadow: 0 0 10px currentColor;
+}
+
+.text-blink {
+    animation: blink 2s infinite;
+}
+
+@keyframes blink {
+    0%, 49% {
+        opacity: 1;
+    }
+    50%, 100% {
+        opacity: 0.7;
+    }
+}
+
+/* Enhanced Links */
+a {
+    color: #25df4a;
+    text-decoration: none;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+a:hover {
+    color: #52f775;
+    text-shadow: 0 0 8px rgba(37, 223, 74, 0.4);
+}
+
+a.text-link {
+    display: inline-block;
+    padding-bottom: 2px;
+    background-image: linear-gradient(transparent 0%, transparent calc(100% - 2px), rgba(37, 223, 74, 0.4) calc(100% - 2px), rgba(37, 223, 74, 0.4) 100%);
+    background-size: 100% 100%;
+    background-position: 0 0;
+    background-repeat: no-repeat;
+    transition: background-size 0.2s ease-in-out, color 0.1s ease;
+}
+
+a.text-link:hover {
+    background-size: 100% 100%;
+    color: #52f775;
+    background-image: linear-gradient(transparent 0%, transparent calc(100% - 2px), rgba(37, 223, 74, 0.8) calc(100% - 2px), rgba(37, 223, 74, 0.8) 100%);
+}
+
+/* Font Icons with Better Visibility */
+.icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    height: 1.5rem;
+    background: rgba(37, 223, 74, 0.15);
+    border-radius: 50%;
+    margin-right: 0.5rem;
+}
+
+.icon-lg {
+    width: 2.5rem;
+    height: 2.5rem;
+    font-size: 1.5rem;
+}
+
+.icon-border {
+    border: 1px solid currentColor;
+}
+
+/* Paragraph Styling */
+p {
+    margin-bottom: 1rem;
+    line-height: 1.6;
+    color: #e9f0f7;
+}
+
+.lead {
+    font-size: 1.2rem;
+    line-height: 1.8;
+    margin-bottom: 1.5rem;
+    color: #a4e6b0;
+}
+
+/* List Styling with Better Visibility */
+ul.enhanced-list, 
+ol.enhanced-list {
+    padding-left: 1.5rem;
+    margin: 1rem 0;
+}
+
+ul.enhanced-list li, 
+ol.enhanced-list li {
+    margin-bottom: 0.5rem;
+    color: #e9f0f7;
+    position: relative;
+}
+
+ul.enhanced-list li:before {
+    content: '>';
+    position: absolute;
+    left: -1.5rem;
+    color: #25df4a;
+}
+
+/* Code and Pre with Better Visibility */
+code {
+    font-family: 'Share Tech Mono', monospace;
+    background: rgba(3, 16, 34, 0.8);
+    color: #00e1cc;
+    padding: 0.2rem 0.4rem;
+    border-radius: 3px;
+    font-size: 0.9em;
+    border: 1px solid rgba(37, 223, 74, 0.2);
+}
+
+pre {
+    background: rgba(3, 16, 34, 0.8);
+    border: 1px solid rgba(37, 223, 74, 0.3);
+    border-radius: 5px;
+    padding: 1rem;
+    overflow-x: auto;
+    font-family: 'Share Tech Mono', monospace;
+    color: #e9f0f7;
+    margin: 1.5rem 0;
+}
+
+pre code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: inherit;
+}

@@ -1,0 +1,215 @@
+/* ==========================================================================
+   Student Dashboard - Rankings & Performance - Responsive Styles
+   ========================================================================== */
+
+/*
+ * TABLE OF CONTENTS
+ *
+ * 0. Base/Default Styles (Desktop First)
+ * 1. Mobile First (up to 768px)
+ * 2. Small Mobile (< 480px)
+ * 3. Tablet (769px - 1024px)
+ * 4. Desktop (1025px+)
+ * 5. Large Desktop (1441px+)
+ */
+
+/* ===================================
+   0. Base/Default Styles (Desktop First)
+   =================================== */
+/* This ensures desktop layout is the default */
+.rankings-performance-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 2.5rem !important;
+}
+
+/* ===================================
+   1. Mobile First (up to 768px)
+   =================================== */
+@media (max-width: 768px) {
+    /* Main grid stacks to a single column */
+    .rankings-performance-grid {
+        grid-template-columns: 1fr !important;
+        gap: 1.5rem !important;
+    }
+
+    .ranking-section-card,
+    .leaderboard-section-card {
+        padding: 1.5rem !important;
+        min-height: auto !important; /* Let content define height */
+    }
+
+    .card-header h3 {
+        font-size: 1.3rem !important;
+    }
+
+    .leaderboard-subtitle {
+        font-size: 0.85rem !important;
+    }
+
+    /* Allow vertical scroll on mobile */
+    .personal-rankings-grid {
+        max-height: 400px !important;
+    }
+
+
+
+    .ranking-stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
+        gap: 0.8rem !important;
+    }
+
+    /* Podium stacks vertically */
+    .podium-container {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+
+    .podium-item {
+        flex-direction: row;
+        align-items: center;
+        padding: 1rem !important;
+    }
+    
+    .podium-item.podium-1,
+    .podium-item.podium-2,
+    .podium-item.podium-3 {
+        order: 0 !important; /* Reset order for vertical stacking */
+        transform: none !important; /* Remove scaling */
+    }
+
+    .podium-rank {
+        margin-bottom: 0 !important;
+        margin-right: 1rem;
+    }
+}
+
+/* ===================================
+   2. Small Mobile (< 480px)
+   =================================== */
+@media (max-width: 480px) {
+    .ranking-stats-grid {
+        grid-template-columns: 1fr !important; /* Single column for stats */
+    }
+
+    .card-header h3 {
+        font-size: 1.2rem !important;
+    }
+
+    .exam-title {
+        font-size: 1rem !important;
+    }
+}
+
+/* ===================================
+   3. Tablet (769px - 1024px)
+   =================================== */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .rankings-performance-grid {
+        grid-template-columns: 1fr 1fr !important; /* Two columns for tablets */
+        gap: 2rem !important;
+    }
+
+    .ranking-section-card,
+    .leaderboard-section-card {
+        padding: 2rem !important;
+    }
+
+    /* Keep podium stacked on tablet for better spacing */
+    .podium-container {
+        grid-template-columns: 1fr !important;
+        gap: 1rem !important;
+    }
+}
+
+/* ===================================
+   4. Desktop (1025px+)
+   =================================== */
+@media (min-width: 1025px) {
+    .rankings-performance-grid {
+        grid-template-columns: 1fr 1fr !important; /* Corrected: Two columns for desktop */
+        gap: 2.5rem !important;
+    }
+
+    .ranking-section-card,
+    .leaderboard-section-card {
+        padding: 2.5rem !important;
+    }
+
+    .personal-rankings-grid {
+        max-height: 500px !important;
+    }
+
+    .ranking-stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+    }
+
+    /* Restore the 3-column podium layout for desktop */
+    .podium-container {
+        display: grid;
+        grid-template-columns: 1fr 1.2fr 1fr !important;
+        align-items: flex-end;
+        gap: 1rem !important;
+        margin-top: 2rem;
+    }
+
+    .podium-item {
+        flex-direction: column;
+    }
+
+    .podium-item.podium-1 {
+        order: 2 !important;
+        transform: translateY(-15px) scale(1.1) !important;
+    }
+
+    .podium-item.podium-2 {
+        order: 1 !important;
+        transform: none !important;
+    }
+
+    .podium-item.podium-3 {
+        order: 3 !important;
+        transform: none !important;
+    }
+
+    .podium-rank {
+        margin-bottom: 0.5rem !important;
+        margin-right: 0;
+    }
+    
+    /* Ensure remaining performers section displays properly */
+    .remaining-performers {
+        display: block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    .performers-list {
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    .performer-item {
+        display: grid !important;
+        grid-template-columns: 60px 1fr auto !important;
+    }
+}
+
+/* ===================================
+   5. Large Desktop (1441px+)
+   =================================== */
+@media (min-width: 1441px) {
+    .rankings-performance-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 3rem !important;
+    }
+    
+    .podium-container {
+        gap: 2rem !important;
+    }
+    
+    .ranking-section-card,
+    .leaderboard-section-card {
+        padding: 3rem !important;
+    }
+}

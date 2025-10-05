@@ -1,0 +1,430 @@
+{% extends "base.html" %}
+
+{% block title %}Add Question - Admin Panel{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Force override for add question form background */
+.form-container .form-card.large {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%) !important;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-card large">
+        <div class="form-header">
+            <h2>➕ Add New Question</h2>
+            <p>Create a new question for the question bank</p>
+        </div>
+
+        <form method="POST" class="form" id="addQuestionForm" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="question_text">Question Text *</label>
+                <textarea id="question_text" name="question_text" rows="4" required 
+                          placeholder="Enter the question text here..."></textarea>
+                <div class="form-help">Write a clear and concise question (max 500 characters)</div>
+                <div id="questionTextError" class="error-message"></div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="question_image">Question Image (optional)</label>
+                    <input type="file" id="question_image" name="question_image" accept="image/*" onchange="previewImage(this, 'questionImagePreview')">
+                    <div id="questionImagePreview" class="image-preview"></div>
+                    <div id="questionImageError" class="error-message"></div>
+                </div>
+                <div class="form-group">
+                    <label for="question_youtube">Question YouTube Link (optional)</label>
+                    <input type="url" id="question_youtube" name="question_youtube" placeholder="Paste YouTube link (e.g., https://youtu.be/xyz)" onchange="handleYouTubeLink(this, 'questionYoutubePreview')">
+                    <div id="questionYoutubePreview" class="youtube-preview"></div>
+                    <div id="questionYoutubeError" class="error-message"></div>
+                </div>
+            </div>
+
+            <div class="options-section">
+                <h3>Answer Options</h3>
+                <div class="options-grid">
+                    {% for i in range(1, 7) %}
+                        <div class="form-group">
+                            <div class="option-container">
+                                <label for="option_{{ i }}">Option {{ 'ABCDEF'[i-1] }} {% if i <= 4 %}*{% endif %}</label>
+                                <input type="text" id="option_{{ i }}" name="option_{{ i }}" {% if i <= 4 %}required{% endif %}
+                                       placeholder="{{ 'Fifth' if i == 5 else 'Sixth' if i == 6 else 'Option ' + 'ABCDEF'[i-1] }} ({{ 'optional' if i > 4 else 'required' }})">
+                                <input type="file" id="option_{{ i }}_image" name="option_{{ i }}_image" accept="image/*" onchange="previewImage(this, 'option{{ i }}Preview')">
+                                <div id="option{{ i }}Preview" class="image-preview"></div>
+                                <div id="option{{ i }}Error" class="error-message"></div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="correct_option">Correct Answer *</label>
+                    <select id="correct_option" name="correct_option" required>
+                        <option value="">Select correct option</option>
+                        <option value="1">A - Option 1</option>
+                        <option value="2">B - Option 2</option>
+                        <option value="3">C - Option 3</option>
+                        <option value="4">D - Option 4</option>
+                        <option value="5">E - Option 5</option>
+                        <option value="6">F - Option 6</option>
+                    </select>
+                    <div id="correctOptionError" class="error-message"></div>
+                </div>
+
+                <div class="form-group">
+                    <label for="difficulty_level">Difficulty Level</label>
+                    <select id="difficulty_level" name="difficulty_level">
+                        <option value="easy">🟢 Easy</option>
+                        <option value="medium" selected>🟡 Medium</option>
+                        <option value="hard">🔴 Hard</option>
+                        <option value="unseen">👁️ Unseen</option>
+                        <option value="image">🖼️ Image</option>
+                        <option value="video">🎥 Video</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="subject">Subject/Category</label>
+                    <input type="text" id="subject" name="subject" 
+                           placeholder="e.g., Mathematics, Science, Programming"
+                           list="subjectSuggestions">
+                    <datalist id="subjectSuggestions">
+                        <option value="Mathematics">
+                        <option value="Science">
+                        <option value="Programming">
+                        <option value="General Knowledge">
+                        <option value="English">
+                        <option value="Computer Science">
+                        <option value="Web Development">
+                        <option value="Database">
+                    </datalist>
+                </div>
+            </div>
+
+            <div class="preview-section">
+                <h3>Question Preview</h3>
+                <div class="question-preview" id="questionPreview">
+                    <div class="preview-question">
+                        <strong>Q:</strong> <span id="previewQuestionText">Your question will appear here...</span>
+                        <div id="previewQuestionImage" class="image-preview" style="display: none;"></div>
+                        <div id="previewQuestionYouTube" class="youtube-preview" style="display: none;"></div>
+                    </div>
+                    <div class="preview-options" id="previewOptions">
+                        <!-- Options will be populated by JavaScript -->
+                    </div>
+                    <div class="preview-meta">
+                        <span class="preview-difficulty" id="previewDifficulty">Medium</span>
+                        <span class="preview-subject" id="previewSubject"></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                <button type="button" onclick="window.history.back()" class="btn btn-secondary">Cancel</button>
+                <button type="button" onclick="previewQuestion()" class="btn btn-info">👁️ Preview</button>
+                <button type="submit" class="btn btn-primary">💾 Save Question</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Image preview function
+function previewImage(input, previewId) {
+    const preview = document.getElementById(previewId);
+    preview.style.display = 'block';
+    preview.innerHTML = '';
+    
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            const img = document.createElement('img');
+            img.src = e.target.result;
+            
+            const closeBtn = document.createElement('span');
+            closeBtn.className = 'preview-close';
+            closeBtn.innerHTML = '×';
+            closeBtn.onclick = function(ev) {
+                ev.stopPropagation();
+                preview.style.display = 'none';
+                input.value = '';
+                updatePreview(); // Update preview after clearing
+            };
+            
+            const container = document.createElement('div');
+            container.className = 'preview-media';
+            container.appendChild(closeBtn);
+            container.appendChild(img);
+
+            preview.appendChild(container);
+            updatePreview(); // Update preview with image
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// YouTube link handler
+function handleYouTubeLink(input, previewId) {
+    const preview = document.getElementById(previewId);
+    const videoId = getYouTubeVideoId(input.value);
+    
+    if (videoId) {
+        preview.style.display = 'block';
+        preview.innerHTML = `
+            <div class="preview-media">
+                <span class="preview-close" onclick="clearYouTubePreview('${input.id}', '${previewId}')">×</span>
+                <iframe src="https://www.youtube.com/embed/${videoId}" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen></iframe>
+            </div>`;
+        updatePreview(); // Update preview with YouTube
+    } else {
+        preview.style.display = 'none';
+        preview.innerHTML = '';
+        document.getElementById('questionYoutubeError').textContent = input.value ? 'Invalid YouTube URL' : '';
+        document.getElementById('questionYoutubeError').style.display = input.value ? 'block' : 'none';
+    }
+}
+
+// Clear YouTube preview
+function clearYouTubePreview(inputId, previewId) {
+    document.getElementById(inputId).value = '';
+    document.getElementById(previewId).style.display = 'none';
+    document.getElementById(previewId).innerHTML = '';
+    document.getElementById('questionYoutubeError').style.display = 'none';
+    updatePreview(); // Update preview after clearing
+}
+
+// Extract YouTube video ID from URL
+function getYouTubeVideoId(url) {
+    if (!url) return null;
+    const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+    const match = url.match(regExp);
+    return (match && match[2].length === 11) ? match[2] : null;
+}
+
+// Make form handle file uploads
+document.getElementById('addQuestionForm').setAttribute('enctype', 'multipart/form-data');
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('addQuestionForm');
+    const inputs = form.querySelectorAll('input, textarea, select');
+
+    // Auto-preview on input change
+    inputs.forEach(input => {
+        input.addEventListener('input', updatePreview);
+        input.addEventListener('change', updatePreview);
+    });
+
+    // Initial preview
+    updatePreview();
+
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        if (!validateForm()) {
+            e.preventDefault();
+        }
+    });
+});
+
+function updatePreview() {
+    const questionText = document.getElementById('question_text').value || 'Your question will appear here...';
+    const difficulty = document.getElementById('difficulty_level').value;
+    const subject = document.getElementById('subject').value;
+    const correctOption = parseInt(document.getElementById('correct_option').value);
+
+    // Update preview text
+    document.getElementById('previewQuestionText').textContent = questionText;
+    document.getElementById('previewDifficulty').textContent = difficulty.charAt(0).toUpperCase() + difficulty.slice(1);
+    document.getElementById('previewSubject').textContent = subject || 'No category';
+
+    // Update question image preview
+    const questionImagePreview = document.getElementById('previewQuestionImage');
+    const questionImageInput = document.getElementById('question_image');
+    if (questionImageInput.files && questionImageInput.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            questionImagePreview.innerHTML = `<img src="${e.target.result}" alt="Question Image Preview">`;
+            questionImagePreview.style.display = 'block';
+        };
+        reader.readAsDataURL(questionImageInput.files[0]);
+    } else {
+        questionImagePreview.style.display = 'none';
+        questionImagePreview.innerHTML = '';
+    }
+
+    // Update YouTube preview
+    const youtubePreview = document.getElementById('previewQuestionYouTube');
+    const youtubeInput = document.getElementById('question_youtube');
+    const videoId = getYouTubeVideoId(youtubeInput.value);
+    if (videoId) {
+        youtubePreview.innerHTML = `
+            <iframe src="https://www.youtube.com/embed/${videoId}" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen></iframe>`;
+        youtubePreview.style.display = 'block';
+    } else {
+        youtubePreview.style.display = 'none';
+        youtubePreview.innerHTML = '';
+    }
+
+    // Update options
+    const optionsContainer = document.getElementById('previewOptions');
+    optionsContainer.innerHTML = '';
+
+    for (let i = 1; i <= 6; i++) {
+        const optionValue = document.getElementById(`option_${i}`).value;
+        const optionImagePreview = document.getElementById(`option${i}Preview`);
+        if (optionValue.trim()) {
+            const optionDiv = document.createElement('div');
+            optionDiv.className = `preview-option ${i === correctOption ? 'correct-preview' : ''}`;
+            optionDiv.innerHTML = `
+                <span class="option-letter">${String.fromCharCode(64 + i)}</span>
+                <span class="option-text">${optionValue}</span>
+                ${i === correctOption ? '<span class="correct-indicator">✅</span>' : ''}
+            `;
+            if (optionImagePreview.innerHTML) {
+                optionDiv.appendChild(optionImagePreview.cloneNode(true));
+            }
+            optionsContainer.appendChild(optionDiv);
+        }
+    }
+
+    // Update correct option dropdown
+    updateCorrectOptionDropdown();
+}
+
+function updateCorrectOptionDropdown() {
+    const correctSelect = document.getElementById('correct_option');
+    const currentValue = correctSelect.value;
+    
+    // Clear and rebuild options
+    correctSelect.innerHTML = '<option value="">Select correct option</option>';
+    
+    for (let i = 1; i <= 6; i++) {
+        const optionValue = document.getElementById(`option_${i}`).value;
+        if (optionValue.trim()) {
+            const option = document.createElement('option');
+            option.value = i;
+            option.textContent = `${String.fromCharCode(64 + i)} - ${optionValue.substring(0, 30)}${optionValue.length > 30 ? '...' : ''}`;
+            correctSelect.appendChild(option);
+        }
+    }
+    
+    // Restore previous selection if still valid
+    if (currentValue && correctSelect.querySelector(`option[value="${currentValue}"]`)) {
+        correctSelect.value = currentValue;
+    }
+}
+
+function previewQuestion() {
+    const preview = document.getElementById('questionPreview');
+    preview.scrollIntoView({ behavior: 'smooth' });
+    preview.style.border = '2px solid #007bff';
+    setTimeout(() => {
+        preview.style.border = '1px solid #ddd';
+    }, 2000);
+}
+
+function validateForm() {
+    let isValid = true;
+    const maxFileSize = 5 * 1024 * 1024; // 5MB
+    const maxTextLength = 500;
+
+    // Clear previous error messages
+    document.querySelectorAll('.error-message').forEach(el => {
+        el.textContent = '';
+        el.style.display = 'none';
+    });
+
+    // Validate question text
+    const questionText = document.getElementById('question_text').value.trim();
+    if (!questionText) {
+        document.getElementById('questionTextError').textContent = 'Please enter the question text';
+        document.getElementById('questionTextError').style.display = 'block';
+        document.getElementById('question_text').focus();
+        isValid = false;
+    } else if (questionText.length > maxTextLength) {
+        document.getElementById('questionTextError').textContent = `Question text must be less than ${maxTextLength} characters`;
+        document.getElementById('questionTextError').style.display = 'block';
+        document.getElementById('question_text').focus();
+        isValid = false;
+    }
+
+    // Validate options
+    for (let i = 1; i <= 4; i++) {
+        const option = document.getElementById(`option_${i}`).value.trim();
+        if (!option) {
+            document.getElementById(`option${i}Error`).textContent = `Option ${String.fromCharCode(64 + i)} is required`;
+            document.getElementById(`option${i}Error`).style.display = 'block';
+            document.getElementById(`option_${i}`).focus();
+            isValid = false;
+        }
+    }
+
+    // Validate correct option
+    const correctOption = document.getElementById('correct_option').value;
+    if (!correctOption) {
+        document.getElementById('correctOptionError').textContent = 'Please select the correct answer';
+        document.getElementById('correctOptionError').style.display = 'block';
+        document.getElementById('correct_option').focus();
+        isValid = false;
+    } else {
+        const selectedOptionText = document.getElementById(`option_${correctOption}`).value.trim();
+        if (!selectedOptionText) {
+            document.getElementById('correctOptionError').textContent = 'The selected correct option must have text';
+            document.getElementById('correctOptionError').style.display = 'block';
+            document.getElementById(`option_${correctOption}`).focus();
+            isValid = false;
+        }
+    }
+
+    // Validate file sizes
+    const imageInputs = document.querySelectorAll('input[type="file"]');
+    for (let input of imageInputs) {
+        if (input.files && input.files[0] && input.files[0].size > maxFileSize) {
+            const errorId = input.id.replace('image', 'Error');
+            document.getElementById(errorId).textContent = 'Image file size must be less than 5MB';
+            document.getElementById(errorId).style.display = 'block';
+            input.focus();
+            isValid = false;
+        }
+    }
+
+    // Validate YouTube links
+    const youtubeInput = document.getElementById('question_youtube');
+    if (youtubeInput.value && !getYouTubeVideoId(youtubeInput.value)) {
+        document.getElementById('questionYoutubeError').textContent = 'Please enter a valid YouTube URL';
+        document.getElementById('questionYoutubeError').style.display = 'block';
+        youtubeInput.focus();
+        isValid = false;
+    }
+
+    return isValid;
+}
+
+// Character counter for question text
+document.getElementById('question_text').addEventListener('input', function() {
+    const maxLength = 500;
+    const currentLength = this.value.length;
+    
+    if (!document.getElementById('questionCounter')) {
+        const counter = document.createElement('div');
+        counter.id = 'questionCounter';
+        counter.className = 'form-help';
+        this.parentNode.appendChild(counter);
+    }
+    
+    const counter = document.getElementById('questionCounter');
+    counter.textContent = `${currentLength}/${maxLength} characters`;
+    counter.style.color = currentLength > maxLength * 0.9 ? '#ff4444' : '#666';
+});
+</script>
+{% endblock %}

@@ -1,0 +1,361 @@
+/* Authentication Portals Enhanced Styling */
+.auth-container {
+    min-height: calc(100vh - 100px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    position: relative;
+    background: var(--cyber-dark);
+    overflow: hidden;
+}
+
+/* Background Grid Effect */
+.auth-container::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        linear-gradient(90deg, rgba(30, 255, 0, 0.03) 1px, transparent 1px) 0 0,
+        linear-gradient(rgba(30, 255, 0, 0.03) 1px, transparent 1px) 0 0;
+    background-size: 20px 20px;
+    pointer-events: none;
+    animation: gridMove 20s linear infinite;
+}
+
+/* Portal Card */
+.auth-card {
+    background: var(--cyber-dark-alt);
+    border: 2px solid var(--cyber-primary);
+    padding: 2.5rem;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 500px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 0 30px rgba(30, 255, 0, 0.1);
+    animation: portalAppear 0.5s ease-out;
+}
+
+/* Mobile responsiveness for auth cards */
+@media (max-width: 600px) {
+    .auth-card {
+        padding: 1.5rem;
+        margin: 1rem;
+        max-width: 100%;
+        border-width: 1px;
+    }
+    
+    .auth-header {
+        margin-bottom: 1.5rem;
+    }
+    
+    .auth-header h2 {
+        font-size: 1.8rem;
+    }
+}
+
+/* Portal Header */
+.auth-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+    position: relative;
+}
+
+.auth-header h2 {
+    color: var(--cyber-primary);
+    font-family: var(--font-display);
+    font-size: 2.5rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 0.5rem;
+    text-shadow: var(--cyber-glow);
+}
+
+.auth-header p {
+    color: var(--cyber-text-dim);
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+}
+
+/* Form Elements */
+.auth-input {
+    width: 100%;
+    padding: 1rem;
+    background: rgba(13, 36, 66, 0.9);
+    border: 2px solid var(--cyber-primary);
+    color: var(--cyber-text-bright) !important;
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+}
+
+.auth-input:focus {
+    outline: none;
+    box-shadow: 0 0 15px rgba(30, 255, 0, 0.3);
+    background: rgba(13, 36, 66, 1);
+}
+
+.auth-input::placeholder {
+    color: rgba(164, 230, 176, 0.7);
+}
+
+.auth-label {
+    display: block;
+    color: var(--cyber-primary);
+    font-family: var(--font-mono);
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    text-shadow: 0 0 8px rgba(30, 255, 0, 0.8), 0 0 15px rgba(30, 255, 0, 0.4);
+    background: linear-gradient(90deg, var(--cyber-primary), #00ff41);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    position: relative;
+    z-index: 1;
+}
+
+.auth-label::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, var(--cyber-primary), #00ff41);
+    opacity: 0.1;
+    border-radius: 4px;
+    z-index: -1;
+    padding: 0.2rem 0.5rem;
+    margin: -0.2rem -0.5rem;
+}
+
+/* Enhanced visibility for specific labels */
+.auth-label[for="nsi_id"],
+.auth-label[for="username"] {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #00ff41 !important;
+    text-shadow: 0 0 10px rgba(0, 255, 65, 0.9), 0 0 20px rgba(0, 255, 65, 0.5), 0 0 30px rgba(0, 255, 65, 0.3);
+    background: none;
+    -webkit-text-fill-color: #00ff41;
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    background-image: linear-gradient(90deg, #00ff41, transparent);
+    background-repeat: no-repeat;
+    background-size: 0% 2px;
+    background-position: bottom;
+    transition: background-size 0.3s ease;
+}
+
+.auth-label[for="nsi_id"]:hover,
+.auth-label[for="username"]:hover {
+    background-size: 100% 2px;
+}
+
+.auth-label[for="password"] {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #ff6b35 !important;
+    text-shadow: 0 0 10px rgba(255, 107, 53, 0.9), 0 0 20px rgba(255, 107, 53, 0.5);
+    background: none;
+    -webkit-text-fill-color: #ff6b35;
+    border-bottom: 2px solid transparent;
+    background-image: linear-gradient(90deg, #ff6b35, transparent);
+    background-repeat: no-repeat;
+    background-size: 0% 2px;
+    background-position: bottom;
+    transition: background-size 0.3s ease;
+}
+
+.auth-label[for="password"]:hover {
+    background-size: 100% 2px;
+}
+
+/* Mobile responsive auth labels */
+@media (max-width: 768px) {
+    .auth-label {
+        font-size: 1.1rem;
+        letter-spacing: 1.2px;
+    }
+    
+    .auth-label[for="nsi_id"],
+    .auth-label[for="username"],
+    .auth-label[for="password"] {
+        font-size: 1.2rem;
+    }
+}
+
+/* Additional contrast enhancement */
+@media (prefers-contrast: high) {
+    .auth-label[for="nsi_id"],
+    .auth-label[for="username"] {
+        color: #00ff00 !important;
+        text-shadow: 0 0 15px #00ff00, 0 0 25px #00ff00;
+    }
+    
+    .auth-label[for="password"] {
+        color: #ff4500 !important;
+        text-shadow: 0 0 15px #ff4500, 0 0 25px #ff4500;
+    }
+}
+
+/* Help Text */
+.auth-help {
+    color: var(--cyber-text-dim);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Submit Button */
+.auth-button {
+    width: 100%;
+    padding: 1rem;
+    background: var(--cyber-dark-alt);
+    border: 2px solid var(--cyber-primary);
+    color: var(--cyber-primary);
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-button::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(30, 255, 0, 0.2), 
+        transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s ease;
+}
+
+.auth-button:hover {
+    background: rgba(30, 255, 0, 0.1);
+    box-shadow: 0 0 20px rgba(30, 255, 0, 0.3);
+}
+
+.auth-button:hover::before {
+    transform: translateX(100%);
+}
+
+/* Footer Links */
+.auth-footer {
+    margin-top: 2rem;
+    text-align: center;
+}
+
+.auth-link {
+    color: var(--cyber-text-dim);
+    text-decoration: none;
+    font-family: var(--font-mono);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.auth-link:hover {
+    color: var(--cyber-primary);
+    text-shadow: 0 0 5px var(--cyber-primary);
+}
+
+/* Scanner Effect */
+.auth-card::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, 
+        transparent,
+        var(--cyber-primary),
+        transparent
+    );
+    animation: scan 2s linear infinite;
+}
+
+/* Animations */
+@keyframes scan {
+    0% {
+        transform: translateY(-100%);
+    }
+    100% {
+        transform: translateY(1000%);
+    }
+}
+
+@keyframes gridMove {
+    0% {
+        transform: translateY(0);
+    }
+    100% {
+        transform: translateY(20px);
+    }
+}
+
+@keyframes portalAppear {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Admin Portal Specific */
+.admin-portal .auth-card {
+    border-color: #ff3366;
+}
+
+.admin-portal .auth-button {
+    border-color: #ff3366;
+    color: #ff3366;
+}
+
+.admin-portal .auth-button:hover {
+    background: rgba(255, 51, 102, 0.1);
+    box-shadow: 0 0 20px rgba(255, 51, 102, 0.3);
+}
+
+.admin-portal .auth-header h2 {
+    color: #ff3366;
+    text-shadow: 0 0 10px rgba(255, 51, 102, 0.5);
+}
+
+/* Registration Portal Specific */
+.register-portal .auth-card {
+    border-image: linear-gradient(45deg, var(--cyber-primary), var(--cyber-accent)) 1;
+}
+
+.register-portal .auth-header h2 {
+    background: linear-gradient(45deg, var(--cyber-primary), var(--cyber-accent));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: none;
+}

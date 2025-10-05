@@ -1,0 +1,19 @@
+# Core web framework
+flask==2.3.3
+
+# Pin core deps for consistency
+jinja2==3.1.4
+werkzeug==2.3.7
+itsdangerous==2.2.0
+click==8.1.7
+blinker==1.8.2
+
+# Optional: cross-platform production server (Windows-এও চলে)
+waitress==3.0.0
+
+# Development / test dependencies (not required for runtime but useful for contributors)
+pytest==8.4.2
+requests==2.32.5
+bcrypt==5.0.0
+beautifulsoup4==4.14.2
+Flask-WTF==1.1.1

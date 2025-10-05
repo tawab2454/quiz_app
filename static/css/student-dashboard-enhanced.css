@@ -1,0 +1,673 @@
+/* General table enhancements */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+    border-collapse: collapse;
+}
+
+.table th,
+.table td {
+    padding: 0.75rem;
+    vertical-align: top;
+    border-top: 1px solid #dee2e6;
+}
+
+.table thead th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #dee2e6;
+    background-color: #f8f9fa;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+/* Desktop-specific styles for better presentation */
+@media (min-width: 768px) {
+    .content-section {
+        padding: 2rem;
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .section-title {
+        font-size: 1.75rem;
+        margin-bottom: 1.5rem;
+        color: #333;
+        border-bottom: 2px solid #007bff;
+        padding-bottom: 0.5rem;
+    }
+
+    .table {
+        font-size: 1rem;
+    }
+
+    .table th {
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .btn {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.9rem;
+        border-radius: 0.25rem;
+    }
+
+    .exam-meta {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+}
+
+/* Mobile responsive styles */
+@media (max-width: 767px) {
+    .table thead {
+        display: none; /* Hide table headers on mobile */
+    }
+
+    .table, .table tbody, .table tr, .table td {
+        display: block;
+        width: 100%;
+    }
+
+    .table tr {
+        margin-bottom: 1rem;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 10px;
+        box-shadow: 0 2px 3px rgba(0,0,0,0.1);
+    }
+
+    .table td {
+        text-align: right;
+        padding-left: 50%;
+        position: relative;
+        border: none;
+        padding-top: 8px;
+        padding-bottom: 8px;
+    }
+
+    .table td::before {
+        content: attr(data-label);
+        position: absolute;
+        left: 10px;
+        width: calc(50% - 20px);
+        padding-right: 10px;
+        font-weight: bold;
+        text-align: left;
+        white-space: nowrap;
+    }
+
+    .table td:last-child {
+        border-bottom: 0;
+    }
+}
+
+.exam-meta {
+    display: flex;
+    flex-direction: column; /* Arrange items vertically */
+    gap: 1rem; /* Add space between items */
+    align-items: flex-start; /* Align items to the start */
+    margin-top: 1.5rem;
+}
+
+/* Ensure vertical layout on desktop as well, with high specificity */
+@media (min-width: 768px) {
+    .dashboard-container .exam-meta {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 1rem !important;
+    }
+}
+
+/* Ensure vertical layout on mobile, with high specificity */
+.dashboard-container .exam-meta {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 1rem !important;
+}
+
+.dashboard-container .exam-body {
+    display: flex;
+    flex-direction: column; /* Arrange children vertically */
+    align-items: center; /* Center items horizontally */
+    gap: 1.5rem; /* Add space between score circle and meta info */
+}
+
+/* Rankings & Performance Section */
+.dashboard-section.rankings-section {
+    background: linear-gradient(180deg, rgba(8, 23, 45, 0.98) 0%, rgba(2, 10, 23, 0.98) 100%);
+    border: 1px solid rgba(0, 210, 255, 0.35);
+    box-shadow: 0 25px 60px rgba(0, 160, 255, 0.15), inset 0 0 40px rgba(0, 190, 255, 0.08);
+    border-radius: 22px;
+    padding: clamp(1.75rem, 4vw, 3rem);
+    color: #e6f7ff;
+    position: relative;
+    overflow: hidden;
+}
+
+.dashboard-section.rankings-section::before,
+.dashboard-section.rankings-section::after {
+    content: "";
+    position: absolute;
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+.dashboard-section.rankings-section::before {
+    inset: 0;
+    background: radial-gradient(circle at top left, rgba(0, 212, 255, 0.18), transparent 60%),
+                radial-gradient(circle at bottom right, rgba(0, 255, 170, 0.14), transparent 55%);
+    opacity: 0.9;
+}
+
+.dashboard-section.rankings-section::after {
+    inset: 12px;
+    border: 1px solid rgba(0, 224, 255, 0.18);
+    box-shadow: inset 0 0 20px rgba(0, 255, 234, 0.08);
+}
+
+.rankings-section .section-header {
+    text-align: center;
+    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+    position: relative;
+    z-index: 1;
+}
+
+.rankings-section .section-header h2 {
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #58d7ff;
+    text-shadow: 0 0 18px rgba(88, 215, 255, 0.55);
+}
+
+.rankings-section .section-header .section-subtitle {
+    font-size: clamp(0.8rem, 2vw, 0.95rem);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(214, 242, 255, 0.72);
+    margin-top: 0.6rem;
+}
+
+.rankings-section .section-header::after {
+    content: "";
+    display: block;
+    width: clamp(160px, 24vw, 220px);
+    height: 2px;
+    margin: 0.85rem auto 0;
+    background: linear-gradient(90deg, transparent, rgba(80, 216, 255, 0.85), transparent);
+    border-radius: 999px;
+    opacity: 0.7;
+}
+
+.rankings-section .rankings-performance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: clamp(1.25rem, 3vw, 2.75rem);
+    align-items: stretch;
+    position: relative;
+    z-index: 1;
+}
+
+.rankings-section .rankings-column,
+.rankings-section .leaderboard-column {
+    display: flex;
+    flex-direction: column;
+}
+
+.rankings-section .ranking-section-card,
+.rankings-section .leaderboard-section-card {
+    background: linear-gradient(180deg, rgba(12, 54, 99, 0.72) 0%, rgba(6, 26, 53, 0.92) 60%, rgba(4, 18, 38, 0.96) 100%);
+    border: 1px solid rgba(70, 220, 255, 0.4);
+    box-shadow: 0 18px 50px rgba(0, 174, 255, 0.18), inset 0 0 28px rgba(63, 224, 255, 0.09);
+    border-radius: 20px;
+    padding: clamp(1.5rem, 3.2vw, 2.5rem);
+    color: #f2fbff;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(6px);
+    min-height: 100%;
+}
+
+.rankings-section .ranking-section-card::before,
+.rankings-section .leaderboard-section-card::before {
+    content: "";
+    position: absolute;
+    inset: 18px;
+    border-radius: 16px;
+    border: 1px solid rgba(106, 240, 255, 0.15);
+    box-shadow: inset 0 0 25px rgba(80, 216, 255, 0.12);
+    opacity: 0.8;
+    pointer-events: none;
+}
+
+.rankings-section .ranking-section-card > *,
+.rankings-section .leaderboard-section-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.rankings-section .card-header {
+    background: linear-gradient(90deg, rgba(27, 189, 255, 0.85) 0%, rgba(73, 246, 255, 0.72) 100%);
+    border: 1px solid rgba(120, 250, 255, 0.55);
+    border-radius: 16px;
+    padding: 0.9rem 1.4rem;
+    text-align: center;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #021020;
+    box-shadow: 0 12px 30px rgba(31, 206, 255, 0.32);
+    margin-bottom: clamp(1.25rem, 2.5vw, 1.8rem);
+}
+
+.rankings-section .card-header h3 {
+    margin: 0;
+    font-size: clamp(1rem, 2.2vw, 1.3rem);
+    font-weight: 700;
+    color: #021020 !important;
+    text-shadow: none !important;
+}
+
+.rankings-section .card-header .leaderboard-subtitle {
+    display: block;
+    margin-top: 0.45rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    color: rgba(2, 16, 32, 0.85) !important;
+    text-shadow: none !important;
+}
+
+.rankings-section .personal-rankings-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    max-height: clamp(240px, 45vh, 420px);
+    overflow-y: auto;
+    padding-right: 0.35rem;
+}
+
+.rankings-section .personal-rankings-grid::-webkit-scrollbar {
+    width: 6px;
+}
+
+.rankings-section .personal-rankings-grid::-webkit-scrollbar-track {
+    background: rgba(6, 26, 53, 0.85);
+    border-radius: 999px;
+}
+
+.rankings-section .personal-rankings-grid::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, rgba(88, 215, 255, 0.85) 0%, rgba(40, 183, 255, 0.7) 100%);
+    border-radius: 999px;
+}
+
+.rankings-section .ranking-card {
+    display: grid;
+    grid-template-columns: 78px 1fr;
+    gap: 1.15rem;
+    align-items: center;
+    background: linear-gradient(120deg, rgba(255, 255, 255, 0.12) 0%, rgba(7, 48, 85, 0.65) 65%, rgba(3, 23, 45, 0.85) 100%);
+    border: 1px solid rgba(96, 228, 255, 0.35);
+    border-radius: 18px;
+    padding: 1.1rem 1.35rem;
+    box-shadow: 0 12px 35px rgba(0, 165, 255, 0.15);
+    transition: transform 0.25s ease, box-shadow 0.3s ease;
+}
+
+.rankings-section .ranking-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 40px rgba(0, 200, 255, 0.22);
+}
+
+.rankings-section .ranking-badge-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.rankings-section .rank-badge {
+    width: 70px;
+    height: 70px;
+    border-radius: 18px;
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.8), rgba(255, 223, 116, 0.65));
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 -3px 8px rgba(0, 0, 0, 0.12), 0 10px 22px rgba(0, 0, 0, 0.18);
+    color: #1c2139;
+    text-shadow: none;
+}
+
+.rankings-section .rank-badge.rank-silver {
+    background: linear-gradient(145deg, rgba(243, 246, 255, 0.9), rgba(166, 190, 255, 0.6));
+}
+
+.rankings-section .rank-badge.rank-bronze {
+    background: linear-gradient(145deg, rgba(255, 236, 205, 0.9), rgba(235, 172, 109, 0.65));
+}
+
+.rankings-section .rank-number {
+    font-size: 1.5rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.rankings-section .rank-medal {
+    font-size: 1.1rem;
+    margin-top: 0.25rem;
+}
+
+.rankings-section .ranking-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.rankings-section .ranking-content .exam-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #50d8ff !important;
+    margin: 0;
+    letter-spacing: 0.03em;
+    text-shadow: 0 0 12px rgba(80, 216, 255, 0.6);
+}
+
+.rankings-section .ranking-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem;
+}
+
+.rankings-section .stat-item {
+    background: rgba(9, 36, 66, 0.75);
+    border: 1px solid rgba(94, 222, 255, 0.25);
+    border-radius: 12px;
+    padding: 0.65rem 0.75rem;
+    display: flex;
+    gap: 0.55rem;
+    align-items: center;
+}
+
+.rankings-section .stat-icon {
+    font-size: 1.05rem;
+    filter: drop-shadow(0 0 6px rgba(88, 215, 255, 0.4));
+}
+
+.rankings-section .stat-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.rankings-section .stat-label {
+    font-size: 0.72rem;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+    color: rgba(80, 216, 255, 0.95) !important;
+    text-shadow: 0 0 8px rgba(80, 216, 255, 0.4);
+}
+
+.rankings-section .stat-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #ffffff !important;
+    text-shadow: 0 0 10px rgba(80, 216, 255, 0.5);
+}
+
+.rankings-section .stat-value.score-excellent { color: #4df6a1; }
+.rankings-section .stat-value.score-good { color: #82f0ff; }
+.rankings-section .stat-value.score-average { color: #ffe27a; }
+.rankings-section .stat-value.score-poor { color: #ff6f6f; }
+
+.rankings-section .podium-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.75rem;
+}
+
+.rankings-section .podium-item {
+    background: linear-gradient(160deg, rgba(255, 255, 255, 0.16) 0%, rgba(12, 46, 86, 0.85) 60%, rgba(3, 20, 42, 0.92) 100%);
+    border: 1px solid rgba(90, 224, 255, 0.25);
+    border-radius: 18px;
+    padding: 1rem 1.1rem;
+    text-align: center;
+    box-shadow: 0 15px 35px rgba(0, 150, 255, 0.18);
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+
+.rankings-section .podium-item.podium-1 {
+    background: linear-gradient(160deg, rgba(255, 239, 173, 0.35) 0%, rgba(19, 80, 130, 0.85) 60%, rgba(4, 22, 46, 0.95) 100%);
+    border-color: rgba(255, 222, 115, 0.55);
+}
+
+.rankings-section .podium-item.podium-2 {
+    background: linear-gradient(160deg, rgba(225, 238, 255, 0.35) 0%, rgba(16, 71, 122, 0.85) 60%, rgba(3, 20, 42, 0.95) 100%);
+    border-color: rgba(173, 215, 255, 0.45);
+}
+
+.rankings-section .podium-item.podium-3 {
+    background: linear-gradient(160deg, rgba(255, 225, 197, 0.35) 0%, rgba(25, 74, 119, 0.82) 60%, rgba(4, 24, 46, 0.94) 100%);
+    border-color: rgba(255, 189, 120, 0.45);
+}
+
+.rankings-section .podium-rank {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.9);
+}
+
+.rankings-section .performer-name {
+    font-weight: 700;
+    font-size: 1.05rem;
+    letter-spacing: 0.04em;
+    color: #50d8ff !important;
+    text-shadow: 0 0 12px rgba(80, 216, 255, 0.6);
+}
+
+.rankings-section .performer-name.current-user {
+    color: #6ef7ff;
+    text-shadow: 0 0 12px rgba(110, 247, 255, 0.6);
+}
+
+.rankings-section .performer-wing {
+    font-size: 0.8rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: rgba(80, 216, 255, 0.85) !important;
+    text-shadow: 0 0 8px rgba(80, 216, 255, 0.3);
+}
+
+.rankings-section .performer-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.rankings-section .stat-row {
+    display: flex;
+    justify-content: center;
+    gap: 0.4rem;
+    font-size: 0.9rem;
+    background: rgba(5, 30, 54, 0.7);
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+    border: 1px solid rgba(90, 224, 255, 0.2);
+}
+
+.rankings-section .performer-score {
+    font-weight: 700;
+    color: #ffffff !important;
+    text-shadow: 0 0 12px rgba(80, 216, 255, 0.6);
+}
+
+.rankings-section .performer-duration,
+.rankings-section .performer-exams {
+    color: #ffffff !important;
+    text-shadow: 0 0 10px rgba(80, 216, 255, 0.5);
+}
+
+.rankings-section .remaining-performers {
+    border-top: 1px solid rgba(90, 224, 255, 0.3);
+    margin-top: 1.75rem;
+    padding-top: 1.5rem;
+}
+
+.rankings-section .remaining-performers h4 {
+    margin: 0 0 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    font-size: 0.85rem;
+    color: #50d8ff !important;
+    text-shadow: 0 0 12px rgba(80, 216, 255, 0.6);
+}
+
+.rankings-section .performers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.9rem;
+}
+
+.rankings-section .performer-item {
+    display: grid;
+    grid-template-columns: 32px 1fr auto;
+    gap: 0.75rem;
+    align-items: center;
+    background: rgba(6, 28, 53, 0.75);
+    border: 1px solid rgba(88, 215, 255, 0.22);
+    border-radius: 14px;
+    padding: 0.75rem 0.95rem;
+}
+
+.rankings-section .performer-item.current-user {
+    border-color: rgba(110, 247, 255, 0.55);
+    box-shadow: 0 0 15px rgba(110, 247, 255, 0.25);
+}
+
+.rankings-section .performer-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.rankings-section .performer-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+    gap: 0.4rem;
+}
+
+.rankings-section .info-label {
+    text-transform: uppercase;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: rgba(80, 216, 255, 0.9) !important;
+    text-shadow: 0 0 6px rgba(80, 216, 255, 0.3);
+}
+
+.rankings-section .info-value {
+    font-size: 0.85rem;
+    color: #ffffff !important;
+    text-shadow: 0 0 8px rgba(80, 216, 255, 0.4);
+}
+
+.rankings-section .no-rankings-placeholder,
+.rankings-section .no-leaderboard-placeholder {
+    background: rgba(6, 28, 53, 0.7);
+    border: 1px dashed rgba(90, 224, 255, 0.35);
+    border-radius: 18px;
+    padding: 2rem;
+    text-align: center;
+    color: #50d8ff !important;
+    text-shadow: 0 0 10px rgba(80, 216, 255, 0.4);
+}
+
+.rankings-section .no-rankings-placeholder h4,
+.rankings-section .no-leaderboard-placeholder h4 {
+    color: #50d8ff !important;
+    text-shadow: 0 0 12px rgba(80, 216, 255, 0.6);
+    margin: 0.8rem 0 0.5rem;
+}
+
+.rankings-section .no-rankings-placeholder p,
+.rankings-section .no-leaderboard-placeholder p {
+    color: rgba(80, 216, 255, 0.9) !important;
+    text-shadow: 0 0 8px rgba(80, 216, 255, 0.3);
+    margin: 0;
+}
+
+.rankings-section .placeholder-icon {
+    font-size: 2.2rem;
+    filter: drop-shadow(0 0 12px rgba(88, 215, 255, 0.45));
+}
+
+@media (max-width: 1024px) {
+    .rankings-section .ranking-card {
+        grid-template-columns: 64px 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-section.rankings-section {
+        padding: 1.5rem;
+    }
+
+    .rankings-section .rankings-performance-grid {
+        gap: 1.25rem;
+    }
+
+    .rankings-section .ranking-card {
+        grid-template-columns: 1fr;
+        text-align: center;
+    }
+
+    .rankings-section .ranking-badge-container {
+        justify-content: center;
+    }
+
+    .rankings-section .ranking-content {
+        align-items: center;
+    }
+
+    .rankings-section .ranking-stats-grid {
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    }
+}
+
+/* ===================================
+   Exam History Section - Score Display Neon Colors
+   =================================== */
+.score-label {
+    color: #50d8ff !important;
+    text-shadow: 0 0 8px rgba(80, 216, 255, 0.5) !important;
+}
+
+.passing-score {
+    color: rgba(80, 216, 255, 0.9) !important;
+    text-shadow: 0 0 6px rgba(80, 216, 255, 0.4) !important;
+}
+
+.score-display {
+    background: rgba(8, 23, 45, 0.75) !important;
+    border: 1px solid rgba(80, 216, 255, 0.35) !important;
+    box-shadow: 0 4px 15px rgba(0, 174, 255, 0.15) !important;
+}

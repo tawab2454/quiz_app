@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Security Controls Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .control-panel {
+            background: #007bff;
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .toggle-group {
+            margin: 10px 0;
+        }
+        .toggle-group label {
+            display: inline-block;
+            width: 200px;
+            font-weight: bold;
+        }
+        button {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #218838;
+        }
+        .test-area {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .status {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+        .exam-container {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            padding: 15px;
+            border-radius: 5px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔒 Security Controls Test Page</h1>
+        
+        <div class="control-panel">
+            <h3>Security Control Panel</h3>
+            <div class="toggle-group">
+                <label>Copy Protection:</label>
+                <input type="checkbox" id="copyProtection" checked>
+                <span id="copyStatus">Enabled</span>
+            </div>
+            <div class="toggle-group">
+                <label>Screenshot Block:</label>
+                <input type="checkbox" id="screenshotBlock" checked>
+                <span id="screenshotStatus">Enabled</span>
+            </div>
+            <div class="toggle-group">
+                <label>Tab Switch Detect:</label>
+                <input type="checkbox" id="tabSwitchDetect" checked>
+                <span id="tabSwitchStatus">Enabled</span>
+            </div>
+            <button onclick="applySettings()">Apply Settings</button>
+            <button onclick="startExam()">Start Exam Mode</button>
+            <button onclick="stopExam()">Stop Exam Mode</button>
+        </div>
+
+        <div class="exam-container" 
+             data-enable-copy-protection="1"
+             data-enable-screenshot-block="1"
+             data-enable-tab-switch-detect="1">
+            <h3>🎯 Exam Container (Security Target)</h3>
+            <p>This simulates the exam environment. Security features will apply here when exam is active.</p>
+        </div>
+
+        <div class="test-area">
+            <h3>🧪 Test Area</h3>
+            <p>Try these actions to test security:</p>
+            <ul>
+                <li><strong>Right-click</strong> anywhere (should be blocked when copy protection is on)</li>
+                <li><strong>Press Ctrl+C</strong> (should be blocked)</li>
+                <li><strong>Press Ctrl+V</strong> (should be blocked)</li>
+                <li><strong>Press Ctrl+A</strong> (should be blocked)</li>
+                <li><strong>Press Print Screen</strong> (should be blocked when screenshot protection is on)</li>
+                <li><strong>Switch to another tab</strong> (should show warning when tab detection is on)</li>
+            </ul>
+            
+            <textarea placeholder="Try copying and pasting text here..." rows="3" style="width: 100%; margin: 10px 0;"></textarea>
+            
+            <p><strong>Sample text to test copying:</strong> This is some sample text that you can try to select and copy.</p>
+        </div>
+
+        <div class="status">
+            <h4>📊 Current Status:</h4>
+            <div id="statusDisplay">Not initialized</div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize security variables (like in the real app)
+        let enableCopyProtection = false;
+        let enableScreenshotBlock = false;
+        let enableTabSwitchDetect = false;
+        let isExamActive = false;
+        let tabSwitchCount = 0;
+
+        // Store event listeners for removal
+        let securityEventListeners = {
+            contextmenu: null,
+            selectstart: null,
+            copy: null,
+            cut: null,
+            paste: null,
+            keydown: [],
+            visibilitychange: null
+        };
+
+        // Copy all the security functions from the main script
+        function showAlert(message, type) {
+            alert(type.toUpperCase() + ': ' + message);
+        }
+
+        function removeAllSecurityListeners() {
+            console.log('🧹 Removing existing security listeners...');
+            
+            if (securityEventListeners.contextmenu) {
+                document.removeEventListener('contextmenu', securityEventListeners.contextmenu);
+                securityEventListeners.contextmenu = null;
+            }
+            if (securityEventListeners.selectstart) {
+                document.removeEventListener('selectstart', securityEventListeners.selectstart);
+                securityEventListeners.selectstart = null;
+            }
+            if (securityEventListeners.copy) {
+                document.removeEventListener('copy', securityEventListeners.copy);
+                securityEventListeners.copy = null;
+            }
+            if (securityEventListeners.cut) {
+                document.removeEventListener('cut', securityEventListeners.cut);
+                securityEventListeners.cut = null;
+            }
+            if (securityEventListeners.paste) {
+                document.removeEventListener('paste', securityEventListeners.paste);
+                securityEventListeners.paste = null;
+            }
+            securityEventListeners.keydown.forEach(listener => {
+                document.removeEventListener('keydown', listener);
+            });
+            securityEventListeners.keydown = [];
+            if (securityEventListeners.visibilitychange) {
+                document.removeEventListener('visibilitychange', securityEventListeners.visibilitychange);
+                securityEventListeners.visibilitychange = null;
+            }
+            
+            const securityStyle = document.getElementById('security-styles');
+            if (securityStyle) {
+                securityStyle.remove();
+            }
+        }
+
+        function initializeCopyProtection() {
+            console.log('🛡️ Enabling copy protection');
+
+            securityEventListeners.contextmenu = function(e) {
+                if (isExamActive) {
+                    e.preventDefault();
+                    showAlert('Right-click is disabled during the exam', 'error');
+                    return false;
+                }
+            };
+            document.addEventListener('contextmenu', securityEventListeners.contextmenu);
+
+            securityEventListeners.selectstart = function(e) {
+                if (isExamActive) {
+                    e.preventDefault();
+                    return false;
+                }
+            };
+            document.addEventListener('selectstart', securityEventListeners.selectstart);
+
+            securityEventListeners.copy = function(e) {
+                if (isExamActive) {
+                    e.preventDefault();
+                    showAlert('Copying is not allowed during the exam', 'error');
+                    return false;
+                }
+            };
+            document.addEventListener('copy', securityEventListeners.copy);
+
+            securityEventListeners.cut = function(e) {
+                if (isExamActive) {
+                    e.preventDefault();
+                    showAlert('Cutting is not allowed during the exam', 'error');
+                    return false;
+                }
+            };
+            document.addEventListener('cut', securityEventListeners.cut);
+
+            securityEventListeners.paste = function(e) {
+                if (isExamActive) {
+                    e.preventDefault();
+                    showAlert('Pasting is not allowed during the exam', 'error');
+                    return false;
+                }
+            };
+            document.addEventListener('paste', securityEventListeners.paste);
+
+            const keydownListener = function(e) {
+                if (!isExamActive) return;
+
+                if (e.ctrlKey && (e.key === 'c' || e.key === 'x' || e.key === 'v')) {
+                    e.preventDefault();
+                    showAlert('Copy/Cut/Paste shortcuts are disabled during the exam', 'error');
+                    return false;
+                }
+                if (e.ctrlKey && e.key === 'a') {
+                    e.preventDefault();
+                    showAlert('Select all is disabled during the exam', 'error');
+                    return false;
+                }
+            };
+            document.addEventListener('keydown', keydownListener);
+            securityEventListeners.keydown.push(keydownListener);
+        }
+
+        function initializeScreenshotBlock() {
+            console.log('📸 Enabling screenshot blocking');
+
+            const printScreenListener = function(e) {
+                if (isExamActive && e.key === 'PrintScreen') {
+                    e.preventDefault();
+                    showAlert('Screenshots are not allowed during the exam', 'error');
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText('').catch(() => {});
+                    }
+                    return false;
+                }
+            };
+            document.addEventListener('keydown', printScreenListener);
+            securityEventListeners.keydown.push(printScreenListener);
+
+            const style = document.createElement('style');
+            style.id = 'security-styles';
+            style.textContent = `
+                body {
+                    -webkit-user-select: none;
+                    -moz-user-select: none;
+                    -ms-user-select: none;
+                    user-select: none;
+                    -webkit-touch-callout: none;
+                }
+            `;
+            document.head.appendChild(style);
+        }
+
+        function initializeTabSwitchDetection() {
+            console.log('👁️ Enabling tab switch detection');
+
+            securityEventListeners.visibilitychange = function() {
+                if (!isExamActive) return;
+                if (document.hidden) {
+                    tabSwitchCount++;
+                    console.log(`🚨 Tab switch detected! Count: ${tabSwitchCount}`);
+                    showAlert(`Warning: Tab switch detected (${tabSwitchCount}/5). Please stay on the exam page.`, 'warning');
+                    updateStatus();
+                }
+            };
+            document.addEventListener('visibilitychange', securityEventListeners.visibilitychange);
+        }
+
+        function initializeExamSecurity() {
+            console.log('🔒 Initializing exam security features...');
+            
+            removeAllSecurityListeners();
+
+            if (enableCopyProtection) {
+                initializeCopyProtection();
+            }
+            if (enableScreenshotBlock) {
+                initializeScreenshotBlock();
+            }
+            if (enableTabSwitchDetect) {
+                initializeTabSwitchDetection();
+            }
+            
+            updateStatus();
+        }
+
+        function applySettings() {
+            enableCopyProtection = document.getElementById('copyProtection').checked;
+            enableScreenshotBlock = document.getElementById('screenshotBlock').checked;
+            enableTabSwitchDetect = document.getElementById('tabSwitchDetect').checked;
+            
+            // Update data attributes
+            const examContainer = document.querySelector('.exam-container');
+            examContainer.dataset.enableCopyProtection = enableCopyProtection ? '1' : '0';
+            examContainer.dataset.enableScreenshotBlock = enableScreenshotBlock ? '1' : '0';
+            examContainer.dataset.enableTabSwitchDetect = enableTabSwitchDetect ? '1' : '0';
+            
+            // Update status display
+            document.getElementById('copyStatus').textContent = enableCopyProtection ? 'Enabled' : 'Disabled';
+            document.getElementById('screenshotStatus').textContent = enableScreenshotBlock ? 'Enabled' : 'Disabled';
+            document.getElementById('tabSwitchStatus').textContent = enableTabSwitchDetect ? 'Enabled' : 'Disabled';
+            
+            // Re-initialize security
+            initializeExamSecurity();
+            
+            console.log('Settings applied:', {enableCopyProtection, enableScreenshotBlock, enableTabSwitchDetect});
+        }
+
+        function startExam() {
+            isExamActive = true;
+            updateStatus();
+            showAlert('Exam mode started! Security features are now active.', 'info');
+        }
+
+        function stopExam() {
+            isExamActive = false;
+            tabSwitchCount = 0;
+            updateStatus();
+            showAlert('Exam mode stopped! Security features are now inactive.', 'info');
+        }
+
+        function updateStatus() {
+            const status = `
+                Copy Protection: ${enableCopyProtection ? '✅ Enabled' : '❌ Disabled'}
+                Screenshot Block: ${enableScreenshotBlock ? '✅ Enabled' : '❌ Disabled'}
+                Tab Switch Detect: ${enableTabSwitchDetect ? '✅ Enabled' : '❌ Disabled'}
+                Exam Active: ${isExamActive ? '🟢 Yes' : '🔴 No'}
+                Tab Switch Count: ${tabSwitchCount}
+            `;
+            document.getElementById('statusDisplay').innerHTML = status.replace(/\n/g, '<br>');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            applySettings();
+            updateStatus();
+        });
+    </script>
+</body>
+</html>

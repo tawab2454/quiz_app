@@ -1,0 +1,215 @@
+/* Admin theme: improved contrast & consistent cards */
+
+:root {
+	--admin-bg: #0b1220;           /* deep navy */
+	--admin-panel: #0f1a2b;        /* panel background */
+	--admin-card: #122033;         /* card background */
+	--admin-border: #1f3b5b;       /* subtle blue border */
+	--admin-text: #e6f1ff;         /* high-contrast text */
+	--admin-text-dim: #a9c1e2;     /* secondary text */
+	--admin-accent: #4aa8ff;       /* bright accent */
+	--admin-accent-2: #22d3ee;     /* cyan accent */
+	--admin-success: #22c55e;      /* green */
+	--admin-danger: #ef4444;       /* red */
+}
+
+/* Dashboard wrapper */
+.admin-dashboard {
+	background: var(--admin-bg);
+	padding: 1rem 0 2rem;
+}
+
+.dashboard-header {
+	color: var(--admin-text);
+}
+.dashboard-header h1 { color: var(--admin-accent); text-shadow: none; }
+.dashboard-header p { color: var(--admin-text-dim); }
+.dashboard-header::after { background: var(--admin-accent-2); }
+
+/* Sections & cards */
+.dashboard-section {
+	background: var(--admin-panel) !important;
+	border: 1px solid var(--admin-border);
+	box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+.dashboard-section h2 { color: var(--admin-text); }
+
+.stat-card, .action-card, .info-card, .active-exam-card, .exam-card {
+	background: var(--admin-card) !important;
+	border: 1px solid var(--admin-border);
+	color: var(--admin-text);
+}
+.stat-card .stat-content h3 { color: var(--admin-accent-2); }
+.stat-card .stat-content p { color: var(--admin-text-dim); }
+
+.action-card h3 { color: var(--admin-text); }
+.action-card p { color: var(--admin-text-dim); }
+.action-card .action-icon { color: var(--admin-accent); }
+
+/* Tables */
+.results-table, .users-table table {
+	background: var(--admin-card);
+	color: var(--admin-text);
+}
+.results-table th, .users-table th {
+	background: rgba(255,255,255,0.04);
+	color: var(--admin-text);
+}
+.results-table td, .users-table td { color: var(--admin-text-dim); }
+.results-table tr:hover td, .users-table tr:hover td { background: rgba(74, 168, 255, 0.06); }
+
+/* Active Exam Status block */
+.active-exam-card {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+}
+.active-exam-card h3 { color: var(--admin-accent-2); }
+.active-exam-card p { color: var(--admin-text-dim); }
+.exam-details, .exam-info {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.75rem 1rem;
+}
+.exam-details .detail-item,
+.exam-info .detail-item {
+	background: rgba(255,255,255,0.06);
+	color: var(--admin-text);
+	border: 1px solid var(--admin-border);
+	border-radius: 8px;
+}
+.exam-details .detail-item:hover,
+.exam-info .detail-item:hover {
+	background: rgba(74,168,255,0.08);
+}
+.exam-status.active, .status-badge.passed, .status-badge.active {
+	color: var(--admin-success) !important;
+}
+.status-badge.failed, .status-badge.inactive { color: var(--admin-danger) !important; }
+
+@media (max-width: 768px) {
+	.active-exam-card { flex-direction: column; align-items: stretch; }
+	.exam-actions { display: flex; justify-content: flex-end; }
+}
+
+/* Status & buttons */
+.status-indicator .status-dot.active { background: var(--admin-success); }
+.btn-primary { background: linear-gradient(135deg, var(--admin-accent), var(--admin-accent-2)); color: #04121f; }
+.btn-secondary { background: #24364d; color: var(--admin-text); }
+.btn-danger { background: var(--admin-danger); }
+.btn-info { background: #2563eb; }
+
+/* Inputs inside info cards */
+.url-display input[readonly] {
+	background: #0b1422;
+	color: var(--admin-text-dim);
+	border: 1px solid var(--admin-border);
+}
+
+/* System Information cards */
+.system-info { gap: 1rem; }
+.system-info .info-card {
+	background: var(--admin-card);
+	border: 1px solid var(--admin-border);
+	box-shadow: 0 6px 20px rgba(0,0,0,0.35);
+}
+.system-info .info-card h4 { color: var(--admin-accent); margin-bottom: 0.75rem; }
+.url-display { display: grid; grid-template-columns: 1fr auto; gap: 0.5rem; align-items: center; }
+.url-display input { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+.url-display .btn { white-space: nowrap; }
+
+/* Generic badges */
+.badge { display: inline-flex; align-items: center; gap: .25rem; padding: .18rem .5rem; border-radius: 999px; font-size: .78rem; font-weight: 600; letter-spacing: .02em; }
+.badge-success { background: rgba(34,197,94,.15); color: #22c55e; border: 1px solid rgba(34,197,94,.3); }
+.badge-info { background: rgba(37,99,235,.15); color: #60a5fa; border: 1px solid rgba(37,99,235,.3); }
+.badge-warning { background: rgba(245,158,11,.15); color: #f59e0b; border: 1px solid rgba(245,158,11,.3); }
+.badge-danger { background: rgba(239,68,68,.15); color: #ef4444; border: 1px solid rgba(239,68,68,.3); }
+
+/* Compact small buttons */
+.btn-small { padding: 0.35rem 0.6rem !important; font-size: .85rem !important; line-height: 1.2; }
+.users-table td:last-child .btn { margin-right: .35rem; }
+
+/* Zebra tables & sticky header within container */
+.results-table-container thead th, .users-table thead th { position: sticky; top: 0; z-index: 1; }
+.results-table tbody tr:nth-child(odd), .users-table tbody tr:nth-child(odd) { background: rgba(255,255,255,0.02); }
+.results-table tbody tr:hover td, .users-table tbody tr:hover td { background: rgba(74,168,255,0.06); }
+
+/* Activity list / System health / Metrics (if present) */
+.activity-list { display: grid; gap: .75rem; }
+.activity-item { display: grid; grid-template-columns: auto 1fr; gap: .75rem; padding: .75rem; border-left: 3px solid var(--admin-accent-2); background: rgba(255,255,255,0.04); border-radius: 8px; }
+.activity-item time { color: var(--admin-text-dim); font-size: .85rem; }
+
+.system-health { display: grid; gap: .75rem; }
+.health-row { display: flex; justify-content: space-between; background: rgba(255,255,255,0.04); border: 1px solid var(--admin-border); border-radius: 8px; padding: .6rem .8rem; }
+.health-row .label { color: var(--admin-text-dim); }
+.health-row .value { color: var(--admin-text); font-weight: 600; }
+
+.system-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: .75rem; }
+.metric-card { background: rgba(255,255,255,0.04); border: 1px solid var(--admin-border); border-radius: 10px; padding: .9rem; }
+.metric-card .metric-title { color: var(--admin-text-dim); font-size: .85rem; }
+.metric-card .metric-value { color: var(--admin-text); font-weight: 700; font-size: 1.1rem; }
+
+/* Hero readability on mobile */
+@media (max-width: 768px) {
+	.hero-subtitle { letter-spacing: 1px; }
+}
+
+/* Register portal: fix input colors/contrast on dark theme */
+.register-portal .auth-card { background: var(--admin-panel); border-color: var(--admin-border); }
+.register-portal .auth-label { color: var(--admin-accent); text-shadow: none; }
+.register-portal .auth-help { color: var(--admin-text-dim); }
+
+.register-portal .auth-input,
+.register-portal select.auth-input,
+.register-portal textarea.auth-input {
+	background: #0b1422; /* deep navy to match theme */
+	color: var(--admin-text);
+	border: 1px solid var(--admin-border);
+	border-radius: 8px;
+	outline: none;
+	transition: border-color .2s ease, box-shadow .2s ease, background-color .2s ease;
+}
+
+.register-portal .auth-input::placeholder { color: rgba(230, 241, 255, 0.55); opacity: 0.9; }
+/* modern browsers */
+.register-portal .auth-input::placeholder { color: color-mix(in oklab, var(--admin-text) 55%, transparent); opacity: 0.7; }
+
+.register-portal .auth-input:focus,
+.register-portal select.auth-input:focus,
+.register-portal textarea.auth-input:focus {
+	background: #0e1a2b;
+	border-color: var(--admin-accent);
+	box-shadow: 0 0 0 3px rgba(74, 168, 255, 0.25);
+}
+
+/* Valid/invalid quick feedback (subtle) */
+.register-portal .auth-input:invalid { border-color: rgba(239,68,68,.7); }
+.register-portal .auth-input:valid { border-color: rgba(34,197,94,.5); }
+
+/* Select: custom arrow and padding */
+.register-portal select.auth-input {
+	appearance: none;
+	-webkit-appearance: none;
+	-moz-appearance: none;
+	background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23a9c1e2' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><polyline points='6 9 12 15 18 9'/></svg>");
+	background-repeat: no-repeat;
+	background-position: right .75rem center;
+	background-size: 14px 14px;
+	padding-right: 2rem;
+}
+
+.register-portal select.auth-input option {
+	color: var(--admin-text);
+	background: #0b1422;
+}
+
+/* Chrome autofill fix on dark background */
+.register-portal input.auth-input:-webkit-autofill,
+.register-portal input.auth-input:-webkit-autofill:hover,
+.register-portal input.auth-input:-webkit-autofill:focus {
+	-webkit-text-fill-color: var(--admin-text);
+	caret-color: var(--admin-text);
+	box-shadow: 0 0 0px 1000px #0b1422 inset;
+	transition: background-color 9999s ease-in-out 0s;
+}

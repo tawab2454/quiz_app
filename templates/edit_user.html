@@ -1,0 +1,545 @@
+{% extends "base.html" %}
+
+{% block title %}Edit User - Admin Panel{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_users.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/cyber-forms.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-content">
+    <div class="content-header">
+        <h1>✏️ Edit User</h1>
+        <div class="header-actions">
+            <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">← Back to Users</a>
+        </div>
+    </div>
+
+    <div class="content-body">
+        <div class="cyber-form-container">
+            <form method="POST" action="{{ url_for('edit_user', nsi_id=user.nsi_id) }}" class="cyber-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <div class="form-group">
+                    <label for="nsi_id">NSI ID *</label>
+                    <input type="text" id="nsi_id" name="nsi_id" value="{{ user.nsi_id }}" required maxlength="6" placeholder="e.g., A-0561">
+                    <small class="form-help">Admin can modify NSI ID if needed</small>
+                </div>
+                
+                <div class="form-group">
+                    <label for="name">Full Name *</label>
+                    <input type="text" id="name" name="name" value="{{ user.name }}" required maxlength="100">
+                </div>
+                
+                <div class="form-group">
+                    <label for="wing_name">Wing Name *</label>
+                    <select id="wing_name" name="wing_name" required class="auth-input">
+                        <option value="">Select Wing</option>
+                        <option value="Technical Intelligence Wing" {% if user.wing_name == 'Technical Intelligence Wing' %}selected{% endif %}>Technical Intelligence Wing</option>
+                        <option value="Admin Wing" {% if user.wing_name == 'Admin Wing' %}selected{% endif %}>Admin Wing</option>
+                        <option value="External Affairs & Liasons Wing" {% if user.wing_name == 'External Affairs & Liasons Wing' %}selected{% endif %}>External Affairs & Liasons Wing</option>
+                        <option value="Political Wing" {% if user.wing_name == 'Political Wing' %}selected{% endif %}>Political Wing</option>
+                        <option value="Research Wing" {% if user.wing_name == 'Research Wing' %}selected{% endif %}>Research Wing</option>
+                        <option value="Special Affairs Wing" {% if user.wing_name == 'Special Affairs Wing' %}selected{% endif %}>Special Affairs Wing</option>
+                        <option value="DG Secretariat" {% if user.wing_name == 'DG Secretariat' %}selected{% endif %}>DG Secretariat</option>
+                        <option value="DG Coordination" {% if user.wing_name == 'DG Coordination' %}selected{% endif %}>DG Coordination</option>
+                        <option value="Economic Security Wing" {% if user.wing_name == 'Economic Security Wing' %}selected{% endif %}>Economic Security Wing</option>
+                        <option value="Internal Wing" {% if user.wing_name == 'Internal Wing' %}selected{% endif %}>Internal Wing</option>
+                        <option value="Border Wing" {% if user.wing_name == 'Border Wing' %}selected{% endif %}>Border Wing</option>
+                        <option value="Counter Terrorism Wing" {% if user.wing_name == 'Counter Terrorism Wing' %}selected{% endif %}>Counter Terrorism Wing</option>
+                        <option value="Dhaka Wing" {% if user.wing_name == 'Dhaka Wing' %}selected{% endif %}>Dhaka Wing</option>
+                        <option value="Media Wing" {% if user.wing_name == 'Media Wing' %}selected{% endif %}>Media Wing</option>
+                        <option value="Training Institute Wing" {% if user.wing_name == 'Training Institute Wing' %}selected{% endif %}>Training Institute Wing</option>
+                        <option value="CTcell" {% if user.wing_name == 'CTcell' %}selected{% endif %}>CTcell</option>
+                    </select>
+                </div>
+
+                <!-- Internal Wing Type - only shown for Internal Wing -->
+                <div class="form-group" id="internal_type_group" style="display: {% if user.wing_name == 'Internal Wing' %}block{% else %}none{% endif %};">
+                    <label for="internal_type">Internal Wing Type *</label>
+                    <select id="internal_type" name="internal_type" class="auth-input">
+                        <option value="">Select Type</option>
+                        <option value="HQ" {% if user.internal_type == 'HQ' %}selected{% endif %}>HQ</option>
+                        <option value="Others" {% if user.internal_type == 'Others' %}selected{% endif %}>Others</option>
+                    </select>
+                </div>
+
+                <!-- Border Wing Type - only shown for Border Wing -->
+                <div class="form-group" id="border_type_group" style="display: {% if user.wing_name == 'Border Wing' %}block{% else %}none{% endif %};">
+                    <label for="border_type">Border Wing Type *</label>
+                    <select id="border_type" name="border_type" class="auth-input">
+                        <option value="">Select Type</option>
+                        <option value="HQ" {% if user.border_type == 'HQ' %}selected{% endif %}>HQ</option>
+                        <option value="Others" {% if user.border_type == 'Others' %}selected{% endif %}>Others</option>
+                    </select>
+                </div>
+
+                <!-- External Affairs Wing Type - only shown for External Affairs Wing -->
+                <div class="form-group" id="external_type_group" style="display: {% if user.wing_name == 'External Affairs & Liasons Wing' %}block{% else %}none{% endif %};">
+                    <label for="external_type">Office Location *</label>
+                    <select id="external_type" name="external_type" class="auth-input">
+                        <option value="">Select Location</option>
+                        <option value="Inside BD" {% if user.external_type == 'Inside BD' %}selected{% endif %}>Inside BD</option>
+                        <option value="Outside BD" {% if user.external_type == 'Outside BD' %}selected{% endif %}>Outside BD</option>
+                    </select>
+                </div>
+
+                <!-- Country Field - only shown for External Affairs Wing Outside BD -->
+                <div class="form-group" id="country_group" style="display: {% if user.wing_name == 'External Affairs & Liasons Wing' and user.external_type == 'Outside BD' %}block{% else %}none{% endif %};">
+                    <label for="country_name">Country *</label>
+                    <select id="country_name" name="country_name" class="auth-input">
+                        <option value="">Select Country</option>
+                        <option value="India" {% if user.country_name == 'India' %}selected{% endif %}>India</option>
+                        <option value="UAE" {% if user.country_name == 'UAE' %}selected{% endif %}>UAE</option>
+                        <option value="UK" {% if user.country_name == 'UK' %}selected{% endif %}>UK</option>
+                        <option value="USA" {% if user.country_name == 'USA' %}selected{% endif %}>USA</option>
+                        <option value="Pakistan" {% if user.country_name == 'Pakistan' %}selected{% endif %}>Pakistan</option>
+                        <option value="Nepal" {% if user.country_name == 'Nepal' %}selected{% endif %}>Nepal</option>
+                        <option value="Malaysia" {% if user.country_name == 'Malaysia' %}selected{% endif %}>Malaysia</option>
+                        <option value="KSA" {% if user.country_name == 'KSA' %}selected{% endif %}>KSA</option>
+                        <option value="Myanmar" {% if user.country_name == 'Myanmar' %}selected{% endif %}>Myanmar</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="section_group">
+                    <label for="section_name">Section Name</label>
+                    <input type="text" id="section_name" name="section_name" value="{{ user.section_name or '' }}" maxlength="30" placeholder="Enter section name">
+                </div>
+
+                <div class="form-group" id="division_group" style="display: none;">
+                    <label for="division_name">Division Name *</label>
+                    <select id="division_name" name="division_name" class="auth-input">
+                        <option value="">Select Division</option>
+                        <option value="Dhaka" {% if user.division_name == 'Dhaka' %}selected{% endif %}>Dhaka</option>
+                        <option value="Chattogram" {% if user.division_name == 'Chattogram' %}selected{% endif %}>Chattogram</option>
+                        <option value="Rajshahi" {% if user.division_name == 'Rajshahi' %}selected{% endif %}>Rajshahi</option>
+                        <option value="Khulna" {% if user.division_name == 'Khulna' %}selected{% endif %}>Khulna</option>
+                        <option value="Barishal" {% if user.division_name == 'Barishal' %}selected{% endif %}>Barishal</option>
+                        <option value="Mymensingh" {% if user.division_name == 'Mymensingh' %}selected{% endif %}>Mymensingh</option>
+                        <option value="Rangpur" {% if user.division_name == 'Rangpur' %}selected{% endif %}>Rangpur</option>
+                        <option value="Sylhet" {% if user.division_name == 'Sylhet' %}selected{% endif %}>Sylhet</option>
+                        <option value="Faridpur" {% if user.division_name == 'Faridpur' %}selected{% endif %}>Faridpur (proposed)</option>
+                        <option value="Chittagong Hill Tracts (Parbatya Chattagram)" {% if user.division_name == 'Chittagong Hill Tracts (Parbatya Chattagram)' %}selected{% endif %}>Chittagong Hill Tracts (Parbatya Chattagram)</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="district_group" style="display: none;">
+                    <label for="district_name">District Name *</label>
+                    <select id="district_name" name="district_name" class="auth-input">
+                        <option value="">Select District</option>
+                        <!-- Districts will be populated by JavaScript based on division selection -->
+                        {% if user.district_name %}
+                        <option value="{{ user.district_name }}" selected>{{ user.district_name }}</option>
+                        {% endif %}
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password">New Password (leave blank to keep unchanged)</label>
+                    <input type="password" id="password" name="password" maxlength="100" placeholder="Enter new password">
+                    <div class="password-strength" id="passwordStrength"></div>
+                    <small class="form-help">Password must be at least 8 characters with uppercase, lowercase, numbers and special characters</small>
+                </div>
+<!--                 
+                <div class="form-row">
+                    <div class="form-group form-switch">
+                        <label for="is_active">Account Active</label>
+                        <label class="switch">
+                            <input type="checkbox" id="is_active" name="is_active" {% if user.is_active %}checked{% endif %}>
+                            <span class="slider"></span>
+                        </label>
+                    </div> -->
+                    
+                    <!-- <div class="form-group form-switch">
+                        <label for="is_admin">Admin Privileges</label>
+                        <label class="switch">
+                            <input type="checkbox" id="is_admin" name="is_admin" {% if user.is_admin %}checked{% endif %}>
+                            <span class="slider"></span>
+                        </label>
+                    </div> -->
+                </div>
+                
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Division -> District mapping (exact copy from registration form)
+    const allDivisionDistricts = {
+        'Rajshahi': [
+            'Rajshahi', 'Naogaon', 'Natore', 'Chapai Nawabganj', 'Pabna', 'Bogura', 'Sirajganj', 'Joypurhat'
+        ],
+        'Dhaka': [
+            'Dhaka', 'Tangail', 'Narsingdi', 'Gazipur', 'Munshiganj', 'Narayanganj', 'Manikganj', 'Kishoreganj'
+        ],
+        'Chattogram': [
+            'Chattogram', 'Cumilla', 'Brahmanbaria', 'Chandpur', 'Noakhali', 'Feni', 'Lakshmipur'
+        ],
+        'Khulna': [
+            'Khulna', 'Bagerhat', 'Satkhira', 'Jashore (Jessore)', 'Narail', 'Jhenaidah', 'Magura', 'Kushtia', 'Chuadanga', 'Meherpur'
+        ],
+        'Rangpur': [
+            'Rangpur', 'Kurigram', 'Lalmonirhat', 'Nilphamari', 'Gaibandha', 'Dinajpur', 'Thakurgaon', 'Panchagarh'
+        ],
+        'Barishal': [
+            'Barishal', 'Patuakhali', 'Bhola', 'Pirojpur', 'Barguna', 'Jhalokathi'
+        ],
+        'Mymensingh': [
+            'Mymensingh', 'Jamalpur', 'Sherpur', 'Netrokona'
+        ],
+        'Sylhet': [
+            'Sylhet', 'Sunamganj', 'Moulvibazar', 'Habiganj'
+        ],
+        'Faridpur': [
+            'Faridpur', 'Rajbari', 'Shariatpur', 'Gopalganj', 'Madaripur'
+        ],
+        'Chittagong Hill Tracts (Parbatya Chattagram)': [
+            'Rangamati', 'Bandarban', 'Khagrachhari', 'Cox\'s Bazar'
+        ]
+    };
+
+    // Divisions for Internal Wing (all except CHT)
+    const internalDivisions = [
+        'Dhaka', 'Chattogram', 'Rajshahi', 'Khulna', 'Barishal', 
+        'Mymensingh', 'Rangpur', 'Sylhet', 'Faridpur'
+    ];
+
+    // Divisions for Border Wing (only CHT)
+    const borderDivisions = [
+        'Chittagong Hill Tracts (Parbatya Chattagram)'
+    ];
+
+    // Get DOM elements
+    const wingSelect = document.getElementById('wing_name');
+    const internalTypeSelect = document.getElementById('internal_type');
+    const borderTypeSelect = document.getElementById('border_type');
+    const externalTypeSelect = document.getElementById('external_type');
+    const divisionSelect = document.getElementById('division_name');
+    const districtSelect = document.getElementById('district_name');
+    const countrySelect = document.getElementById('country_name');
+    const internalTypeGroup = document.getElementById('internal_type_group');
+    const borderTypeGroup = document.getElementById('border_type_group');
+    const externalTypeGroup = document.getElementById('external_type_group');
+    const sectionGroup = document.getElementById('section_group');
+    const divisionGroup = document.getElementById('division_group');
+    const districtGroup = document.getElementById('district_group');
+    const countryGroup = document.getElementById('country_group');
+
+    function populateDivisions(divisions) {
+        // Reset division options
+        divisionSelect.innerHTML = '<option value="">Select Division</option>';
+        divisions.forEach(division => {
+            const opt = document.createElement('option');
+            opt.value = division;
+            opt.textContent = division;
+            divisionSelect.appendChild(opt);
+        });
+    }
+
+    function populateDistricts(division) {
+        // Reset options
+        districtSelect.innerHTML = '<option value="">Select District</option>';
+        const list = allDivisionDistricts[division] || [];
+        list.forEach(d => {
+            const opt = document.createElement('option');
+            opt.value = d;
+            opt.textContent = d;
+            districtSelect.appendChild(opt);
+        });
+    }
+
+    // Wing selection change handler (exact copy from registration form)
+    function handleWingChange() {
+        const selectedWing = wingSelect.value;
+        const isInternalWing = selectedWing === 'Internal Wing';
+        const isBorderWing = selectedWing === 'Border Wing';
+        const isExternalWing = selectedWing === 'External Affairs & Liasons Wing';
+        
+        if (isInternalWing) {
+            // Show internal type selection, hide other types
+            internalTypeGroup.style.display = 'block';
+            borderTypeGroup.style.display = 'none';
+            externalTypeGroup.style.display = 'none';
+            internalTypeSelect.setAttribute('required', 'required');
+            borderTypeSelect.removeAttribute('required');
+            externalTypeSelect.removeAttribute('required');
+            borderTypeSelect.value = '';
+            externalTypeSelect.value = '';
+        } else if (isBorderWing) {
+            // Show border type selection, hide other types
+            borderTypeGroup.style.display = 'block';
+            internalTypeGroup.style.display = 'none';
+            externalTypeGroup.style.display = 'none';
+            borderTypeSelect.setAttribute('required', 'required');
+            internalTypeSelect.removeAttribute('required');
+            externalTypeSelect.removeAttribute('required');
+            internalTypeSelect.value = '';
+            externalTypeSelect.value = '';
+        } else if (isExternalWing) {
+            // Show external type selection, hide other types
+            externalTypeGroup.style.display = 'block';
+            internalTypeGroup.style.display = 'none';
+            borderTypeGroup.style.display = 'none';
+            externalTypeSelect.setAttribute('required', 'required');
+            internalTypeSelect.removeAttribute('required');
+            borderTypeSelect.removeAttribute('required');
+            internalTypeSelect.value = '';
+            borderTypeSelect.value = '';
+        } else {
+            // Hide all wing type fields and show section for other wings
+            internalTypeGroup.style.display = 'none';
+            borderTypeGroup.style.display = 'none';
+            externalTypeGroup.style.display = 'none';
+            sectionGroup.style.display = 'block';
+            divisionGroup.style.display = 'none';
+            districtGroup.style.display = 'none';
+            countryGroup.style.display = 'none';
+            
+            // Remove required attributes and clear values
+            internalTypeSelect.removeAttribute('required');
+            borderTypeSelect.removeAttribute('required');
+            externalTypeSelect.removeAttribute('required');
+            countrySelect.removeAttribute('required');
+            divisionSelect.removeAttribute('required');
+            districtSelect.removeAttribute('required');
+            internalTypeSelect.value = '';
+            borderTypeSelect.value = '';
+            externalTypeSelect.value = '';
+            countrySelect.value = '';
+            divisionSelect.value = '';
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+        }
+    }
+
+    // Internal type selection change handler (exact copy from registration form)
+    function handleInternalTypeChange() {
+        const selectedType = internalTypeSelect.value;
+        const isHQ = selectedType === 'HQ';
+        const isOthers = selectedType === 'Others';
+        
+        if (isHQ) {
+            // Show section field only for HQ
+            sectionGroup.style.display = 'block';
+            divisionGroup.style.display = 'none';
+            districtGroup.style.display = 'none';
+            
+            // Remove required attributes for division/district
+            divisionSelect.removeAttribute('required');
+            districtSelect.removeAttribute('required');
+            divisionSelect.value = '';
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+        } else if (isOthers) {
+            // Show division and district fields only, hide section
+            sectionGroup.style.display = 'none';
+            divisionGroup.style.display = 'block';
+            districtGroup.style.display = 'block';
+            
+            // Populate internal divisions (excluding CHT)
+            populateDivisions(internalDivisions);
+            
+            // Make division/district required for Others
+            divisionSelect.setAttribute('required', 'required');
+            districtSelect.setAttribute('required', 'required');
+        } else {
+            // Hide all fields when no internal type is selected
+            sectionGroup.style.display = 'none';
+            divisionGroup.style.display = 'none';
+            districtGroup.style.display = 'none';
+            
+            // Remove required attributes and clear values
+            divisionSelect.removeAttribute('required');
+            districtSelect.removeAttribute('required');
+            divisionSelect.value = '';
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+        }
+    }
+
+    // Border type selection change handler (exact copy from registration form)
+    function handleBorderTypeChange() {
+        const selectedType = borderTypeSelect.value;
+        const isHQ = selectedType === 'HQ';
+        const isOthers = selectedType === 'Others';
+        
+        if (isHQ) {
+            // Show section field only for HQ
+            sectionGroup.style.display = 'block';
+            divisionGroup.style.display = 'none';
+            districtGroup.style.display = 'none';
+            
+            // Remove required attributes for division/district
+            divisionSelect.removeAttribute('required');
+            districtSelect.removeAttribute('required');
+            divisionSelect.value = '';
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+        } else if (isOthers) {
+            // Show division and district fields only, hide section
+            sectionGroup.style.display = 'none';
+            divisionGroup.style.display = 'block';
+            districtGroup.style.display = 'block';
+            
+            // Populate border divisions (only CHT)
+            populateDivisions(borderDivisions);
+            
+            // Make division/district required for Others
+            divisionSelect.setAttribute('required', 'required');
+            districtSelect.setAttribute('required', 'required');
+        } else {
+            // Hide all fields when no border type is selected
+            sectionGroup.style.display = 'none';
+            divisionGroup.style.display = 'none';
+            districtGroup.style.display = 'none';
+            
+            // Remove required attributes and clear values
+            divisionSelect.removeAttribute('required');
+            districtSelect.removeAttribute('required');
+            divisionSelect.value = '';
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+        }
+    }
+
+    // External Affairs type selection change handler (exact copy from registration form)
+    function handleExternalTypeChange() {
+        const selectedType = externalTypeSelect.value;
+        const isInsideBD = selectedType === 'Inside BD';
+        const isOutsideBD = selectedType === 'Outside BD';
+        
+        if (isInsideBD) {
+            // Show section field only for Inside BD
+            sectionGroup.style.display = 'block';
+            countryGroup.style.display = 'none';
+            divisionGroup.style.display = 'none';
+            districtGroup.style.display = 'none';
+            
+            // Remove required attributes for country
+            countrySelect.removeAttribute('required');
+            divisionSelect.removeAttribute('required');
+            districtSelect.removeAttribute('required');
+            countrySelect.value = '';
+            divisionSelect.value = '';
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+        } else if (isOutsideBD) {
+            // Show country field only for Outside BD
+            sectionGroup.style.display = 'none';
+            countryGroup.style.display = 'block';
+            divisionGroup.style.display = 'none';
+            districtGroup.style.display = 'none';
+            
+            // Make country required for Outside BD
+            countrySelect.setAttribute('required', 'required');
+            divisionSelect.removeAttribute('required');
+            districtSelect.removeAttribute('required');
+            divisionSelect.value = '';
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+        } else {
+            // Hide all fields when no external type is selected
+            sectionGroup.style.display = 'none';
+            countryGroup.style.display = 'none';
+            divisionGroup.style.display = 'none';
+            districtGroup.style.display = 'none';
+            
+            // Remove required attributes and clear values
+            countrySelect.removeAttribute('required');
+            divisionSelect.removeAttribute('required');
+            districtSelect.removeAttribute('required');
+            countrySelect.value = '';
+            divisionSelect.value = '';
+            districtSelect.innerHTML = '<option value="">Select District</option>';
+        }
+    }
+
+    // Event listeners
+    if (wingSelect) {
+        wingSelect.addEventListener('change', handleWingChange);
+        // Initialize on page load
+        handleWingChange();
+    }
+
+    if (internalTypeSelect) {
+        internalTypeSelect.addEventListener('change', handleInternalTypeChange);
+        // Initialize on page load
+        handleInternalTypeChange();
+    }
+
+    if (borderTypeSelect) {
+        borderTypeSelect.addEventListener('change', handleBorderTypeChange);
+        // Initialize on page load
+        handleBorderTypeChange();
+    }
+
+    if (externalTypeSelect) {
+        externalTypeSelect.addEventListener('change', handleExternalTypeChange);
+        // Initialize on page load
+        handleExternalTypeChange();
+    }
+
+    if (divisionSelect && districtSelect) {
+        divisionSelect.addEventListener('change', function() {
+            populateDistricts(this.value);
+        });
+        // Populate on load if preselected (edit scenario)
+        if (divisionSelect.value) {
+            populateDistricts(divisionSelect.value);
+        }
+    }
+
+    // Password strength indicator (simplified for edit form)
+    const passwordInput = document.getElementById('password');
+    const passwordStrength = document.getElementById('passwordStrength');
+    
+    if (passwordInput && passwordStrength) {
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            if (!password) {
+                passwordStrength.textContent = '';
+                return;
+            }
+            
+            let strength = 0;
+            let message = '';
+            let color = '';
+
+            if (password.length >= 6) strength++;
+            if (/[a-z]/.test(password)) strength++;
+            if (/[A-Z]/.test(password)) strength++;
+            if (/[0-9]/.test(password)) strength++;
+            if (/[^a-zA-Z0-9]/.test(password)) strength++;
+
+            switch (strength) {
+                case 0:
+                case 1:
+                    message = 'Very Weak';
+                    color = '#ff4444';
+                    break;
+                case 2:
+                    message = 'Weak';
+                    color = '#ff8800';
+                    break;
+                case 3:
+                    message = 'Fair';
+                    color = '#ffaa00';
+                    break;
+                case 4:
+                    message = 'Good';
+                    color = '#88cc00';
+                    break;
+                case 5:
+                    message = 'Strong';
+                    color = '#00cc44';
+                    break;
+            }
+
+            passwordStrength.textContent = `Strength: ${message}`;
+            passwordStrength.style.color = color;
+        });
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

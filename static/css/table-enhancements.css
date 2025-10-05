@@ -1,0 +1,193 @@
+/* Enhanced Table Styles with Responsiveness */
+
+/* Base table styles */
+.cyber-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background-color: rgba(2, 12, 27, 0.8);
+    border: 1px solid var(--cyber-primary);
+    margin: 1.5rem 0;
+    font-family: var(--font-mono);
+    box-shadow: 0 0 10px rgba(0, 191, 255, 0.15);
+}
+
+.cyber-table th {
+    background-color: rgba(13, 36, 66, 0.9);
+    color: var(--cyber-primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 2px solid var(--cyber-primary);
+}
+
+.cyber-table td {
+    color: var(--cyber-text-bright);
+    padding: 10px 15px;
+    border-bottom: 1px solid rgba(0, 191, 255, 0.2);
+    vertical-align: middle;
+}
+
+.cyber-table tr:nth-child(odd) {
+    background-color: rgba(13, 36, 66, 0.4);
+}
+
+.cyber-table tr:hover {
+    background-color: rgba(0, 191, 255, 0.1);
+}
+
+/* Table action buttons */
+.table-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 10px;
+    margin: 0 3px;
+    background: rgba(13, 36, 66, 0.8);
+    border: 1px solid var(--cyber-primary);
+    color: var(--cyber-primary);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    border-radius: 3px;
+}
+
+.table-action:hover {
+    background: rgba(0, 191, 255, 0.1);
+    box-shadow: 0 0 8px rgba(0, 191, 255, 0.3);
+}
+
+/* Responsive table container */
+.table-responsive {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 1rem;
+    background: 
+        linear-gradient(to right, rgba(2, 12, 27, 0.9), rgba(2, 12, 27, 0) 5px, rgba(2, 12, 27, 0) 95%, rgba(2, 12, 27, 0.9)),
+        linear-gradient(to right, rgba(0, 191, 255, 0.3), rgba(0, 191, 255, 0) 5px, rgba(0, 191, 255, 0) 95%, rgba(0, 191, 255, 0.3));
+    background-attachment: local, scroll;
+}
+
+/* Responsive styles for tables */
+@media (max-width: 768px) {
+    /* Mobile tables */
+    .mobile-table-card {
+        display: block;
+    }
+    
+    .mobile-table-card .mobile-row {
+        border: 1px solid var(--cyber-primary);
+        margin-bottom: 15px;
+        padding: 10px;
+        background: rgba(13, 36, 66, 0.7);
+        border-radius: 4px;
+    }
+    
+    .mobile-table-card .mobile-cell {
+        display: flex;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(0, 191, 255, 0.1);
+    }
+    
+    .mobile-table-card .mobile-cell:last-child {
+        border-bottom: none;
+    }
+    
+    .mobile-table-card .mobile-header {
+        font-weight: bold;
+        color: var(--cyber-primary);
+        width: 40%;
+        padding-right: 10px;
+    }
+    
+    .mobile-table-card .mobile-data {
+        color: var(--cyber-text-bright);
+        width: 60%;
+    }
+    
+    /* Original table on mobile */
+    .table-responsive .cyber-table {
+        margin: 0;
+    }
+    
+    .table-responsive .cyber-table th,
+    .table-responsive .cyber-table td {
+        padding: 8px;
+        font-size: 0.85rem;
+    }
+}
+
+/* Status indicators */
+.status-indicator {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 5px;
+}
+
+.status-active {
+    background-color: var(--cyber-primary);
+    box-shadow: 0 0 5px var(--cyber-primary);
+}
+
+.status-inactive {
+    background-color: #ff3e3e;
+    box-shadow: 0 0 5px #ff3e3e;
+}
+
+.status-pending {
+    background-color: #ffcc00;
+    box-shadow: 0 0 5px #ffcc00;
+}
+
+/* Data cells with special formatting */
+.data-numeric {
+    font-family: var(--font-mono);
+    text-align: right;
+}
+
+.data-id {
+    font-family: var(--font-mono);
+    color: var(--cyber-accent);
+}
+
+.data-timestamp {
+    font-size: 0.85rem;
+    color: var(--cyber-text-dim);
+}
+
+/* Pagination for tables */
+.table-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1rem;
+    padding: 10px 0;
+    border-top: 1px solid rgba(0, 191, 255, 0.2);
+}
+
+.page-info {
+    color: var(--cyber-text-dim);
+}
+
+.page-controls {
+    display: flex;
+    gap: 5px;
+}
+
+.page-controls button {
+    padding: 5px 10px;
+    background: rgba(13, 36, 66, 0.8);
+    border: 1px solid var(--cyber-primary);
+    color: var(--cyber-primary);
+    cursor: pointer;
+}
+
+.page-controls button:hover {
+    background: rgba(30, 255, 0, 0.1);
+}

@@ -1,0 +1,671 @@
+{% extends "base.html" %}
+
+{% block title %}Exam Review - {{ exam_session.exam_title }}{% endblock %}
+
+{% block content %}
+<div class="review-container">
+    <!-- Header Section -->
+    <div class="review-header">
+        <div class="header-content">
+            <div class="back-button">
+                <a href="{{ url_for('student_dashboard') }}" class="back-btn">
+                    <span>←</span> Back to Dashboard
+                </a>
+            </div>
+            <div class="exam-info">
+                <h1>📚 Exam Review</h1>
+                <h2>{{ exam_session.exam_title }}</h2>
+                <p class="exam-description">{{ exam_session.exam_description or "Review your answers and see the correct solutions." }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Summary Card -->
+    <div class="summary-card">
+        <div class="summary-header">
+            <h3>📊 Exam Summary</h3>
+        </div>
+        <div class="summary-grid">
+            <div class="summary-item">
+                <div class="summary-icon score-icon">🎯</div>
+                <div class="summary-content">
+                    <div class="summary-label">Final Score</div>
+                    <div class="summary-value score-value">{{ exam_session.score }}%</div>
+                    <div class="summary-status {{ 'passed' if exam_session.score >= exam_session.passing_score else 'failed' }}">
+                        {% if exam_session.score >= exam_session.passing_score %}
+                            ✅ Passed
+                        {% else %}
+                            ❌ Failed
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="summary-item">
+                <div class="summary-icon">⏱️</div>
+                <div class="summary-content">
+                    <div class="summary-label">Duration</div>
+                    <div class="summary-value">
+                        {% if exam_session.duration_minutes %}
+                            {% set total_seconds = (exam_session.duration_minutes * 60)|int %}
+                            {% set hours = (total_seconds // 3600)|int %}
+                            {% set minutes = ((total_seconds % 3600) // 60)|int %}
+                            {% set seconds = (total_seconds % 60)|int %}
+                            {% if hours > 0 %}
+                                {{ hours }}h {{ minutes }}m {{ seconds }}s
+                            {% elif minutes > 0 %}
+                                {{ minutes }}m {{ seconds }}s
+                            {% else %}
+                                {{ seconds }}s
+                            {% endif %}
+                        {% else %}
+                            Not recorded
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="summary-item">
+                <div class="summary-icon">📝</div>
+                <div class="summary-content">
+                    <div class="summary-label">Questions</div>
+                    <div class="summary-value">{{ detailed_review|length }}</div>
+                    <div class="summary-details">
+                        {{ detailed_review|selectattr('is_correct', 'equalto', true)|list|length }} correct
+                    </div>
+                </div>
+            </div>
+            
+            <div class="summary-item">
+                <div class="summary-icon">🎯</div>
+                <div class="summary-content">
+                    <div class="summary-label">Passing Score</div>
+                    <div class="summary-value">{{ exam_session.passing_score }}%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Questions Review Section -->
+    <div class="questions-section">
+        <div class="section-header">
+            <h3>📋 Detailed Question Review</h3>
+            <p>Review each question, your answer, and the correct solution</p>
+        </div>
+        
+        <div class="questions-list">
+            {% for review in detailed_review %}
+            <div class="question-card {{ 'correct' if review.is_correct else 'incorrect' }}">
+                <div class="question-header">
+                    <div class="question-number">
+                        <span class="q-number">Q{{ review.question_number }}</span>
+                        <span class="result-badge {{ 'correct' if review.is_correct else 'incorrect' }}">
+                            {% if review.is_correct %}
+                                ✅ Correct
+                            {% else %}
+                                ❌ Incorrect
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="question-content">
+                    <div class="question-text">
+                        <h4>{{ review.question_text }}</h4>
+                    </div>
+                    
+                    {% if review.options %}
+                    <div class="options-section">
+                        <h5>Available Options:</h5>
+                        <div class="options-list">
+                            {% for option in review.options %}
+                            <div class="option-item 
+                                     {% if option[1] == review.user_answer %}user-selected{% endif %}
+                                     {% if option[1] == review.correct_answer %}correct-option{% endif %}">
+                                <span class="option-letter">{{ option[0] }})</span>
+                                <span class="option-text">{{ option[1] }}</span>
+                                {% if option[1] == review.user_answer %}
+                                    <span class="option-badge user-choice">Your Choice</span>
+                                {% endif %}
+                                {% if option[1] == review.correct_answer %}
+                                    <span class="option-badge correct-choice">Correct Answer</span>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="answer-comparison">
+                        <div class="answer-section user-answer">
+                            <div class="answer-header">
+                                <span class="answer-icon">👤</span>
+                                <span class="answer-label">Your Answer</span>
+                            </div>
+                            <div class="answer-value">{{ review.user_answer or "No answer selected" }}</div>
+                        </div>
+                        
+                        <div class="answer-section correct-answer">
+                            <div class="answer-header">
+                                <span class="answer-icon">✅</span>
+                                <span class="answer-label">Correct Answer</span>
+                            </div>
+                            <div class="answer-value">{{ review.correct_answer or "Not available" }}</div>
+                        </div>
+                    </div>
+                    
+                    {% if review.explanation %}
+                    <div class="explanation-section">
+                        <div class="explanation-header">
+                            <span class="explanation-icon">💡</span>
+                            <span class="explanation-label">Explanation</span>
+                        </div>
+                        <div class="explanation-text">{{ review.explanation }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Footer Actions -->
+    <div class="review-footer">
+        <a href="{{ url_for('student_dashboard') }}" class="footer-btn primary">
+            <span>📊</span> Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<style>
+/* Modern Exam Review Styles */
+.review-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+}
+
+.review-header {
+    background: linear-gradient(135deg, #1e293b, #334155);
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.review-header::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.header-content {
+    position: relative;
+    z-index: 2;
+}
+
+.back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #94a3b8;
+    text-decoration: none;
+    font-weight: 500;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.back-btn:hover {
+    color: #e2e8f0;
+    text-decoration: none;
+    transform: translateX(-5px);
+}
+
+.exam-info h1 {
+    color: #e2e8f0;
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.exam-info h2 {
+    color: #cbd5e1;
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0 0 0.5rem 0;
+}
+
+.exam-description {
+    color: #94a3b8;
+    font-size: 1rem;
+    margin: 0;
+    line-height: 1.6;
+}
+
+/* Summary Card */
+.summary-card {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border: 2px solid rgba(129, 140, 248, 0.1);
+}
+
+.summary-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.summary-header h3 {
+    color: #1e293b;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+}
+
+.summary-item {
+    text-align: center;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+    border-radius: 15px;
+    border: 2px solid rgba(129, 140, 248, 0.1);
+    transition: all 0.3s ease;
+}
+
+.summary-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border-color: rgba(129, 140, 248, 0.3);
+}
+
+.summary-icon {
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.score-icon {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+.summary-label {
+    color: #64748b;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.summary-value {
+    color: #1e293b;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.score-value {
+    color: #059669;
+    text-shadow: 0 2px 4px rgba(5, 150, 105, 0.2);
+}
+
+.summary-status.passed {
+    color: #059669;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.summary-status.failed {
+    color: #dc2626;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.summary-details {
+    color: #64748b;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* Questions Section */
+.questions-section {
+    background: #ffffff;
+    border-radius: 20px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.section-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.section-header h3 {
+    color: #1e293b;
+    font-size: 1.6rem;
+    font-weight: 700;
+    margin: 0 0 0.5rem 0;
+}
+
+.section-header p {
+    color: #64748b;
+    margin: 0;
+    font-size: 1rem;
+}
+
+/* Question Cards */
+.question-card {
+    margin-bottom: 2rem;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border: 2px solid;
+    transition: all 0.3s ease;
+}
+
+.question-card.correct {
+    border-color: #10b981;
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+}
+
+.question-card.incorrect {
+    border-color: #ef4444;
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+}
+
+.question-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.question-header {
+    padding: 1.5rem;
+    background: rgba(255, 255, 255, 0.8);
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.question-number {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.q-number {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.result-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.result-badge.correct {
+    background: #10b981;
+    color: #ffffff;
+}
+
+.result-badge.incorrect {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+.question-content {
+    padding: 2rem;
+}
+
+.question-text h4 {
+    color: #1e293b;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0 0 1.5rem 0;
+    line-height: 1.6;
+}
+
+/* Options Section */
+.options-section {
+    margin-bottom: 2rem;
+}
+
+.options-section h5 {
+    color: #374151;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0 0 1rem 0;
+}
+
+.options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.option-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    border-radius: 10px;
+    border: 2px solid #e5e7eb;
+    background: #ffffff;
+    transition: all 0.3s ease;
+    position: relative;
+}
+
+.option-item.user-selected {
+    border-color: #3b82f6;
+    background: #eff6ff;
+}
+
+.option-item.correct-option {
+    border-color: #10b981;
+    background: #f0fdf4;
+}
+
+.option-item.user-selected.correct-option {
+    border-color: #10b981;
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+}
+
+.option-letter {
+    font-weight: 700;
+    color: #374151;
+    min-width: 30px;
+}
+
+.option-text {
+    flex: 1;
+    color: #1f2937;
+    font-weight: 500;
+}
+
+.option-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.option-badge.user-choice {
+    background: #3b82f6;
+    color: #ffffff;
+}
+
+.option-badge.correct-choice {
+    background: #10b981;
+    color: #ffffff;
+}
+
+/* Answer Comparison */
+.answer-comparison {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.answer-section {
+    padding: 1.5rem;
+    border-radius: 12px;
+    border: 2px solid;
+}
+
+.answer-section.user-answer {
+    border-color: #3b82f6;
+    background: linear-gradient(135deg, #eff6ff, #dbeafe);
+}
+
+.answer-section.correct-answer {
+    border-color: #10b981;
+    background: linear-gradient(135deg, #f0fdf4, #dcfce7);
+}
+
+.answer-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.answer-icon {
+    font-size: 1.2rem;
+}
+
+.answer-label {
+    font-weight: 600;
+    color: #374151;
+}
+
+.answer-value {
+    color: #1f2937;
+    font-weight: 500;
+    font-size: 1rem;
+    line-height: 1.5;
+}
+
+/* Explanation Section */
+.explanation-section {
+    padding: 1.5rem;
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    border-radius: 12px;
+    border: 2px solid #f59e0b;
+}
+
+.explanation-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.explanation-icon {
+    font-size: 1.2rem;
+}
+
+.explanation-label {
+    font-weight: 600;
+    color: #92400e;
+}
+
+.explanation-text {
+    color: #78350f;
+    line-height: 1.6;
+    font-weight: 500;
+}
+
+/* Footer */
+.review-footer {
+    text-align: center;
+    padding: 2rem;
+}
+
+.footer-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    border-radius: 25px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+.footer-btn.primary {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #ffffff;
+}
+
+.footer-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    text-decoration: none;
+    color: #ffffff;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .review-container {
+        padding: 15px;
+    }
+    
+    .summary-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .answer-comparison {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .exam-info h1 {
+        font-size: 1.8rem;
+    }
+    
+    .exam-info h2 {
+        font-size: 1.2rem;
+    }
+    
+    .question-content {
+        padding: 1.5rem;
+    }
+    
+    .option-item {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+}
+</style>
+{% endblock %}

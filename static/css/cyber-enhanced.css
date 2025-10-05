@@ -1,0 +1,115 @@
+/* Enhanced Cyber Theme Styles */
+:root {
+    --font-mono: 'Share Tech Mono', 'Courier New', monospace;
+    --font-display: 'VT323', monospace;
+    --neon-text-shadow: 0 0 5px var(--cyber-primary), 
+                        0 0 10px var(--cyber-primary),
+                        0 0 20px var(--cyber-primary);
+}
+
+/* Hero Section Enhancements */
+.hero-section {
+    min-height: 90vh !important;
+    perspective: 1000px;
+    font-family: var(--font-mono) !important;
+}
+
+.cyber-glitch {
+    font-family: var(--font-display) !important;
+    font-size: 3.5rem !important;
+    text-transform: uppercase;
+    color: var(--cyber-primary);
+    text-shadow: var(--neon-text-shadow);
+    position: relative;
+    animation: textShadowPulse 2s infinite;
+}
+
+.typing-text {
+    font-family: var(--font-mono) !important;
+    font-size: 1.2rem;
+    animation: typing 3.5s steps(40, end), blink 0.75s step-end infinite;
+}
+
+.cyber-text {
+    font-family: var(--font-mono) !important;
+    color: var(--cyber-text);
+}
+
+.feature h3 {
+    font-family: var(--font-display) !important;
+    letter-spacing: 2px;
+    text-shadow: 0 0 5px var(--cyber-primary);
+}
+
+.cyber-button {
+    font-family: var(--font-mono) !important;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* Animations */
+@keyframes textShadowPulse {
+    0% {
+        text-shadow: 0 0 4px var(--cyber-primary),
+                     0 0 8px var(--cyber-primary);
+    }
+    50% {
+        text-shadow: 0 0 4px var(--cyber-primary),
+                     0 0 8px var(--cyber-primary),
+                     0 0 16px var(--cyber-primary);
+    }
+    100% {
+        text-shadow: 0 0 4px var(--cyber-primary),
+                     0 0 8px var(--cyber-primary);
+    }
+}
+
+@keyframes typing {
+    from { width: 0 }
+    to { width: 100% }
+}
+
+@keyframes blink {
+    from, to { border-color: transparent }
+    50% { border-color: var(--cyber-primary); }
+}
+
+/* Feature Card Enhancements */
+.feature {
+    border: 2px solid var(--cyber-primary) !important;
+    background: rgba(10, 25, 47, 0.8) !important;
+    backdrop-filter: blur(10px) !important;
+}
+
+.feature-header {
+    border-bottom: 2px solid var(--cyber-primary) !important;
+    padding: 1rem !important;
+    margin: -1rem -1rem 1rem -1rem !important;
+    background: var(--cyber-gradient) !important;
+}
+
+.cyber-bullet {
+    color: var(--cyber-primary) !important;
+    text-shadow: 0 0 5px var(--cyber-primary) !important;
+}
+
+/* Matrix Overlay Enhancement */
+.matrix-overlay {
+    opacity: 0.1 !important;
+}
+
+/* Scanner Effect */
+.scanner-overlay {
+    background: linear-gradient(
+        to bottom,
+        transparent,
+        rgba(0, 255, 0, 0.1) 50%,
+        transparent
+    ) !important;
+    animation: scan 3s ease-in-out infinite !important;
+}
+
+@keyframes scan {
+    0%, 100% { transform: translateY(-100%); }
+    50% { transform: translateY(100%); }
+}

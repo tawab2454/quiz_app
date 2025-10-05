@@ -1,0 +1,698 @@
+{% extends "base.html" %}
+
+{% block title %}Exam Controls - Online Examination System{% endblock %}
+
+{% block content %}
+<!-- Notification Area -->
+<div class="notification-container" style="position: fixed; top: 20px; right: 20px; z-index: 9999; width: 300px;"></div>
+
+<div class="admin-dashboard">
+    <div class="dashboard-header">
+        <h1>🔒 Exam Security & System Controls</h1>
+        <p>Configure global exam settings to control security and result visibility. Changes apply instantly to all exams.</p>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <div class="dashboard-section">
+        <h2>⚙️ Global Exam Controls</h2>
+        <form method="POST" action="{{ url_for('admin_exam_controls') }}" class="exam-controls-form">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="controls-grid">
+                <div class="control-item">
+                    <div class="control-header">
+                        <h3>Show Result History</h3>
+                        <label class="switch">
+                            <input type="checkbox" 
+                                   name="show_result_history" 
+                                   value="on" 
+                                   data-setting="show_result_history"
+                                   class="control-toggle"
+                                   {% if controls.show_result_history %}checked{% endif %}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="control-description">Allow employees to view their previous exam results and history. When disabled, employees cannot see their past results.</p>
+                </div>
+                <div class="control-item">
+                    <div class="control-header">
+                        <h3>Show Results Immediately</h3>
+                        <label class="switch">
+                            <input type="checkbox" 
+                                   name="show_result_immediately" 
+                                   value="on" 
+                                   data-setting="show_result_immediately"
+                                   class="control-toggle"
+                                   {% if controls.show_result_immediately %}checked{% endif %}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="control-description">When enabled, employees will see their score page right after submitting an exam. When disabled, the result page is withheld and they are redirected to the dashboard.</p>
+                </div>
+                <div class="control-item">
+                    <div class="control-header">
+                        <h3>Show Rankings</h3>
+                        <label class="switch">
+                            <input type="checkbox" 
+                                   name="show_rankings" 
+                                   value="on" 
+                                   data-setting="show_rankings"
+                                   class="control-toggle"
+                                   {% if controls.show_rankings %}checked{% endif %}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="control-description">Allow employees to view their ranking and leaderboard information. When disabled, ranking data and top performers are hidden from the dashboard.</p>
+                </div>
+                <div class="control-item">
+                    <div class="control-header">
+                        <h3>Allow Answer Review</h3>
+                        <label class="switch">
+                            <input type="checkbox" 
+                                   name="allow_answer_review" 
+                                   value="on" 
+                                   data-setting="allow_answer_review"
+                                   class="control-toggle"
+                                   {% if controls.allow_answer_review %}checked{% endif %}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="control-description">Allow employees to review their answers after completing an exam. When enabled, students can see detailed breakdown of questions, their answers, and correct solutions.</p>
+                </div>
+                <div class="control-item">
+                    <div class="control-header">
+                        <h3>Copy Protection</h3>
+                        <label class="switch">
+                            <input type="checkbox" 
+                                   name="enable_copy_protection" 
+                                   value="on" 
+                                   data-setting="enable_copy_protection"
+                                   class="control-toggle security-control"
+                                   {% if controls.enable_copy_protection %}checked{% endif %}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="control-description">Prevents employees from copying exam content during the exam.</p>
+                </div>
+                <div class="control-item">
+                    <div class="control-header">
+                        <h3>Screenshot Blocking</h3>
+                        <label class="switch">
+                            <input type="checkbox" 
+                                   name="enable_screenshot_block" 
+                                   value="on" 
+                                   data-setting="enable_screenshot_block"
+                                   class="control-toggle security-control"
+                                   {% if controls.enable_screenshot_block %}checked{% endif %}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="control-description">Attempts to block screenshot attempts during exams (browser-based prevention).</p>
+                </div>
+                <div class="control-item">
+                    <div class="control-header">
+                        <h3>Tab Switch Detection</h3>
+                        <label class="switch">
+                            <input type="checkbox" 
+                                   name="enable_tab_switch_detect" 
+                                   value="on" 
+                                   data-setting="enable_tab_switch_detect"
+                                   class="control-toggle security-control"
+                                   {% if controls.enable_tab_switch_detect %}checked{% endif %}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                    <p class="control-description">Detects and warns employees if they switch tabs or windows during an exam.</p>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+                <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- System Management Section -->
+    <div class="dashboard-section system-management">
+        <h2>🔧 System Management</h2>
+        <div class="system-management-grid">
+            <div class="system-card">
+                <h3>Registration Control</h3>
+                <p>Control whether new users can register for the system</p>
+                <div class="system-control">
+                    <button id="toggle-registration" 
+                            class="btn {% if system_settings and system_settings.registration_enabled %}btn-danger{% else %}btn-success{% endif %}"
+                            data-enabled="{{ system_settings.registration_enabled if system_settings else 'true' }}">
+                        {% if system_settings and system_settings.registration_enabled %}
+                            <i class="fas fa-lock-open"></i> Disable Registration
+                        {% else %}
+                            <i class="fas fa-lock"></i> Enable Registration
+                        {% endif %}
+                    </button>
+                    <div class="status-indicator">
+                        <strong>Status:</strong> 
+                        <span id="registration-status" 
+                              class="{% if system_settings and system_settings.registration_enabled %}text-success{% else %}text-danger{% endif %}">
+                            {{ "Enabled" if system_settings and system_settings.registration_enabled else "Disabled" }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="system-card">
+                <h3>System Operations</h3>
+                <div class="system-operations">
+                    <button id="backup-database" class="btn btn-system">
+                        <i class="fas fa-database"></i> Backup Database
+                    </button>
+                    <button id="optimize-database" class="btn btn-system">
+                        <i class="fas fa-bolt"></i> Optimize Database
+                    </button>
+                    <button id="clear-cache" class="btn btn-system">
+                        <i class="fas fa-broom"></i> Clear Cache
+                    </button>
+                    <button id="reset-all-attempts" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Reset All Exam Attempts
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- System Statistics Section -->
+    <div class="dashboard-section">
+        <h2>📊 System Statistics <button id="refresh-stats" class="btn btn-refresh"><i class="fas fa-sync-alt"></i></button>
+            <span id="loading-spinner"><i class="fas fa-circle-notch fa-spin"></i></span>
+        </h2>
+        <div class="system-stats-grid">
+            <div class="stat-item">
+                <span class="stat-label">Total Users:</span>
+                <span class="stat-value" id="stat-total_users">-</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Total Questions:</span>
+                <span class="stat-value" id="stat-total_questions">-</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Total Exams:</span>
+                <span class="stat-value" id="stat-total_exams">-</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Active Exams:</span>
+                <span class="stat-value" id="stat-active_exams">-</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Completed Sessions:</span>
+                <span class="stat-value" id="stat-completed_sessions">-</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Database Size:</span>
+                <span class="stat-value" id="stat-db_size">-</span>
+            </div>
+            <div class="stat-item">
+                <span class="stat-label">Last Backup:</span>
+                <span class="stat-value" id="stat-last_backup">-</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.admin-dashboard {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.dashboard-header h1 {
+    font-size: 2.2em;
+    color: #2c3e50;
+    margin-bottom: 10px;
+}
+
+.dashboard-header p {
+    font-size: 1em;
+    color: #7f8c8d;
+}
+
+.dashboard-section {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    margin-bottom: 30px;
+}
+
+.dashboard-section h2 {
+    font-size: 1.5em;
+    color: #2c3e50;
+    margin-bottom: 20px;
+}
+
+.alert {
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+    font-size: 0.9em;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.controls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.control-item {
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 5px;
+    transition: transform 0.2s;
+}
+
+.control-item:hover {
+    transform: translateY(-2px);
+}
+
+.control-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.control-header h3 {
+    font-size: 1.2em;
+    color: #34495e;
+    margin: 0;
+}
+
+.control-description {
+    font-size: 0.9em;
+    color: #7f8c8d;
+    margin: 0;
+}
+
+.form-actions {
+    margin-top: 20px;
+    text-align: center;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+}
+
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.btn-primary {
+    background: #3498db;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-primary:hover {
+    background: #2980b9;
+}
+
+.btn-secondary {
+    background: #95a5a6;
+    color: #fff;
+}
+
+.btn-secondary:hover {
+    background: #7f8c8d;
+}
+
+/* Toggle Switch Styling */
+.switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+.switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: 0.4s;
+    border-radius: 24px;
+}
+
+.slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: 0.4s;
+    border-radius: 50%;
+}
+
+input:checked + .slider {
+    background-color: #2ecc71;
+}
+
+input:checked + .slider:before {
+    transform: translateX(26px);
+}
+
+/* System Management Styling */
+.system-management-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.system-card {
+    background: rgba(52, 73, 94, 0.1);
+    border-radius: 8px;
+    padding: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.system-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.system-card h3 {
+    font-size: 1.3em;
+    color: #2980b9;
+    margin: 0 0 10px 0;
+}
+
+.system-control {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.status-indicator {
+    font-size: 0.9em;
+}
+
+.system-operations {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.btn-system {
+    background: linear-gradient(to right, #3498db, #2980b9);
+    color: white;
+    border: none;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+
+.btn-system:hover {
+    background: linear-gradient(to right, #2980b9, #2573a7);
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background: linear-gradient(to right, #e74c3c, #c0392b);
+    color: white;
+    border: none;
+}
+
+.btn-danger:hover {
+    background: linear-gradient(to right, #c0392b, #a5281b);
+}
+
+.btn-success {
+    background: linear-gradient(to right, #2ecc71, #27ae60);
+    color: white;
+    border: none;
+}
+
+.btn-success:hover {
+    background: linear-gradient(to right, #27ae60, #219955);
+}
+
+.btn-refresh {
+    background: none;
+    border: none;
+    color: #3498db;
+    font-size: 0.8em;
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 50%;
+}
+
+.btn-refresh:hover {
+    background: rgba(52, 152, 219, 0.1);
+}
+
+#loading-spinner {
+    display: none;
+    color: #3498db;
+    margin-left: 5px;
+}
+
+/* System Statistics Styling */
+.system-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 10px;
+}
+
+.stat-item {
+    display: flex;
+    justify-content: space-between;
+    background: rgba(52, 73, 94, 0.05);
+    padding: 10px 15px;
+    border-radius: 5px;
+    align-items: center;
+}
+
+.stat-label {
+    font-weight: 600;
+    color: #7f8c8d;
+    font-size: 0.9em;
+}
+
+.stat-value {
+    font-weight: 700;
+    color: #2c3e50;
+    font-size: 1em;
+}
+
+.text-success {
+    color: #2ecc71;
+}
+
+.text-danger {
+    color: #e74c3c;
+}
+
+/* Notification animations */
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOutRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin_controls.js') }}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add confirmation before submitting changes
+    const form = document.querySelector('.exam-controls-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            if (!confirm('Are you sure you want to save these changes? They will apply to all exams immediately.')) {
+                e.preventDefault();
+            }
+        });
+    }
+    
+    // Security toggles are now handled by admin_controls.js to avoid duplicates
+    // No need for additional event listeners here
+    
+    // Visibility toggles are also handled by admin_controls.js
+    // No need for additional event listeners here
+    
+    // Fetch system stats on page load
+    if (typeof fetchSystemStats === 'function') {
+        fetchSystemStats();
+    }
+});
+
+// Notification system (moved from inline to prevent duplicates)
+function showNotification(message, type = 'info') {
+    // Check if notification container exists
+    let container = document.querySelector('.notification-container');
+    if (!container) {
+        container = document.createElement('div');
+        container.className = 'notification-container';
+        container.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 400px;
+        `;
+        document.body.appendChild(container);
+    }
+    
+    // Create notification
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.style.cssText = `
+        background: ${type === 'success' ? '#2ecc71' : type === 'error' ? '#e74c3c' : '#3498db'};
+        color: white;
+        padding: 15px 20px;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        animation: slideInRight 0.3s ease;
+    `;
+    notification.innerHTML = `
+        <div class="notification-content">${message}</div>
+        <button class="notification-close" style="background: none; border: none; color: white; font-size: 18px; cursor: pointer; margin-left: 15px;">&times;</button>
+    `;
+    
+    // Add close functionality
+    const closeBtn = notification.querySelector('.notification-close');
+    closeBtn.addEventListener('click', () => {
+        notification.style.animation = 'slideOutRight 0.3s ease';
+        setTimeout(() => notification.remove(), 300);
+    });
+    
+    // Add to container
+    container.appendChild(notification);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.style.animation = 'slideOutRight 0.3s ease';
+            setTimeout(() => {
+                if (notification.parentNode) notification.remove();
+            }, 300);
+        }
+    }, 5000);
+}
+
+// Fetch system statistics
+function fetchSystemStats() {
+    const spinner = document.getElementById('loading-spinner');
+    if (spinner) spinner.style.display = 'inline-block';
+    
+    fetch('/admin/exam_controls', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ action: 'get_system_stats' })
+    })
+    .then(response => {
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        const contentType = response.headers.get('content-type');
+        if (!contentType || !contentType.includes('application/json')) {
+            throw new Error('Authentication required. Please refresh and login again.');
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (spinner) spinner.style.display = 'none';
+        
+        if (data.success && data.stats) {
+            const stats = data.stats;
+            
+            // Update all stats on page
+            for (const [key, value] of Object.entries(stats)) {
+                const element = document.getElementById(`stat-${key}`);
+                if (element) {
+                    element.textContent = value;
+                }
+            }
+        }
+    })
+    .catch(error => {
+        if (spinner) spinner.style.display = 'none';
+        
+        let errorMessage = 'Error fetching system stats';
+        if (error.message.includes('Authentication') || error.message.includes('refresh')) {
+            errorMessage = 'Session expired. Please refresh the page and login again.';
+        } else if (error.message.includes('HTTP 401')) {
+            errorMessage = 'Authentication required. Please login as admin.';
+        }
+        
+        console.error('Error fetching system stats:', error);
+        showNotification(errorMessage, 'error');
+    });
+}
+</script>
+{% endblock %}

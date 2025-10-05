@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+
+{% block title %}Employee Login - Online Examination System{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2>👨‍💼 Access Portal</h2>
+            <p>Initialize Security Training Interface</p>
+        </div>
+
+        <form method="POST" class="form" id="loginForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="form-group">
+                <label class="auth-label" for="nsi_id">NSI ID</label>
+                <input type="text" id="nsi_id" name="nsi_id" required 
+                       placeholder="e.g., A-0561" maxlength="6" pattern="[A-D]-[0-9]{4}"
+                       class="auth-input" autocomplete="off">
+                <div class="auth-help">
+                    <span class="cyber-icon">ℹ️</span> Format: [A-D]-[0-9]{4} (Example: A-1234)
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Access Key</label>
+                <input type="password" id="password" name="password" required 
+                       placeholder="Enter your security key"
+                       class="cyber-input">
+                <div class="password-toggle cyber-toggle" onclick="togglePassword('password')">
+                    <span id="passwordToggleText" class="cyber-text">Show</span>
+                </div>
+            </div>
+
+            <button type="submit" class="cyber-button btn-full">
+                <span class="cyber-icon">🔐</span> Initialize Access
+            </button>
+        </form>
+
+        <div class="form-footer">
+            <div class="cyber-links">
+                <p>
+                    <span class="cyber-icon">📝</span>
+                    <a href="{{ url_for('register') }}" class="cyber-link">New Operative Registration</a>
+                </p>
+                <p>
+                    <span class="cyber-icon">⚡</span>
+                    <a href="{{ url_for('admin_login') }}" class="cyber-link">Admin Terminal</a>
+                </p>
+                <p>
+                    <span class="cyber-icon">🏠</span>
+                    <a href="{{ url_for('index') }}" class="cyber-link">Return to Base</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const nsiIdInput = document.getElementById('nsi_id');
+    const form = document.getElementById('loginForm');
+
+    // NSI ID formatting with automatic dash insertion
+    nsiIdInput.addEventListener('input', function(e) {
+        // Convert to uppercase
+        let input = this.value.toUpperCase();
+        
+        // Remove any characters that aren't A-D or 0-9 or -
+        input = input.replace(/[^A-D0-9-]/g, '');
+        
+        // Handle automatic dash insertion
+        if (input.length >= 1) {
+            // If first character is valid (A-D) and second char isn't a dash
+            if (/[A-D]/.test(input[0]) && input.length > 1 && input[1] !== '-') {
+                // Insert the dash
+                input = input[0] + '-' + input.substring(1);
+            }
+        }
+        
+        // Limit to correct format length (6 chars: X-YYYY)
+        if (input.length > 6) {
+            input = input.substring(0, 6);
+        }
+        
+        // Update the input value
+        this.value = input;
+    });
+
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        const nsiId = nsiIdInput.value.trim();
+        
+        if (!nsiId) {
+            e.preventDefault();
+            alert('Please enter your NSI ID');
+            nsiIdInput.focus();
+            return;
+        }
+        
+        // Validate NSI ID format: A-D letter, dash, 4 digits
+        const nsiIdPattern = /^[A-D]-[0-9]{4}$/;
+        if (!nsiIdPattern.test(nsiId)) {
+            e.preventDefault();
+            alert('Invalid NSI ID format. Please use format: A-1234 (letter A-D, dash, 4 digits)');
+            nsiIdInput.focus();
+            return;
+        }
+
+        // Show loading state
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.textContent = 'Logging in...';
+        submitBtn.disabled = true;
+    });
+});
+
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const toggleText = document.getElementById(fieldId + 'ToggleText');
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        toggleText.textContent = 'Hide';
+    } else {
+        field.type = 'password';
+        toggleText.textContent = 'Show';
+    }
+}
+</script>
+{% endblock %}

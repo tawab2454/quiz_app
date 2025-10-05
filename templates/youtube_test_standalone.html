@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Embed Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .embed-container {
+            position: relative;
+            width: 100%;
+            height: 0;
+            padding-bottom: 56.25%; /* 16:9 aspect ratio */
+            margin: 10px 0;
+        }
+        .embed-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 4px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>🎥 YouTube Embed Test</h1>
+        <p>This page tests YouTube video embedding with the current CSP policy.</p>
+        
+        <button onclick="checkCSP()">🔍 Check CSP Headers</button>
+        <button onclick="testEmbed()">🧪 Test YouTube Embed</button>
+        <button onclick="clearCache()">🔄 Clear & Reload</button>
+        
+        <div id="status"></div>
+        
+        <h3>Test Video (Educational Content):</h3>
+        <div class="embed-container">
+            <iframe 
+                id="youtube-iframe"
+                src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+                title="YouTube video player" 
+                frameborder="0" 
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                allowfullscreen>
+            </iframe>
+        </div>
+        
+        <div id="debug-output" class="debug-info" style="display: none;"></div>
+    </div>
+
+    <script>
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function checkCSP() {
+            showStatus('🔍 Checking CSP headers...', 'info');
+            
+            fetch(window.location.href)
+                .then(response => {
+                    const csp = response.headers.get('Content-Security-Policy');
+                    const xFrame = response.headers.get('X-Frame-Options');
+                    const corp = response.headers.get('Cross-Origin-Resource-Policy');
+                    
+                    let debugInfo = 'CSP HEADERS DEBUG:\\n';
+                    debugInfo += '==================\\n';
+                    debugInfo += `Content-Security-Policy: ${csp || 'Not set'}\\n\\n`;
+                    debugInfo += `X-Frame-Options: ${xFrame || 'Not set'}\\n`;
+                    debugInfo += `Cross-Origin-Resource-Policy: ${corp || 'Not set'}\\n\\n`;
+                    
+                    if (csp && csp.includes('frame-src')) {
+                        const frameSrc = csp.match(/frame-src[^;]+/);
+                        debugInfo += `Frame-src directive: ${frameSrc ? frameSrc[0] : 'Not found'}\\n`;
+                        
+                        if (csp.includes('youtube.com')) {
+                            showStatus('✅ CSP allows YouTube embeds!', 'success');
+                        } else {
+                            showStatus('❌ CSP does not allow YouTube embeds', 'error');
+                        }
+                    } else {
+                        showStatus('⚠️ No frame-src directive found in CSP', 'error');
+                    }
+                    
+                    document.getElementById('debug-output').textContent = debugInfo;
+                    document.getElementById('debug-output').style.display = 'block';
+                })
+                .catch(error => {
+                    showStatus(`❌ Error checking headers: ${error.message}`, 'error');
+                });
+        }
+
+        function testEmbed() {
+            showStatus('🧪 Testing YouTube embed...', 'info');
+            
+            const iframe = document.getElementById('youtube-iframe');
+            
+            iframe.onload = function() {
+                showStatus('✅ YouTube iframe loaded successfully!', 'success');
+            };
+            
+            iframe.onerror = function() {
+                showStatus('❌ YouTube iframe failed to load', 'error');
+            };
+            
+            // Check for CSP violations in console
+            window.addEventListener('securitypolicyviolation', function(e) {
+                showStatus(`❌ CSP Violation: ${e.violatedDirective} - ${e.blockedURI}`, 'error');
+                console.error('CSP Violation:', e);
+            });
+            
+            // Force reload the iframe
+            iframe.src = iframe.src;
+        }
+
+        function clearCache() {
+            showStatus('🔄 Clearing cache and reloading...', 'info');
+            
+            // Clear any cached CSP policies
+            if ('caches' in window) {
+                caches.keys().then(names => {
+                    names.forEach(name => {
+                        caches.delete(name);
+                    });
+                });
+            }
+            
+            // Force reload with cache bypass
+            setTimeout(() => {
+                window.location.reload(true);
+            }, 1000);
+        }
+
+        // Auto-check CSP on page load
+        window.addEventListener('load', function() {
+            setTimeout(checkCSP, 500);
+        });
+
+        // Listen for CSP violations
+        document.addEventListener('securitypolicyviolation', function(e) {
+            console.error('CSP Violation detected:', e);
+            showStatus(`❌ CSP blocked: ${e.violatedDirective} - ${e.blockedURI}`, 'error');
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,1229 @@
+{% extends "base.html" %}
+
+{% block title %}Student Dashboard - Online Examination System{% endblock %}
+
+{% block extra_css %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/student-dashboard-enhanced.css') }}?v=20251005">
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <div class="dashboard-header">
+        <h1>🎓 Welcome, {{ user.name | safe_name }}!</h1>
+        <p>NSI ID: {{ user.nsi_id | safe_output }}</p>
+    </div>
+
+    <div class="dashboard-content">
+        <!-- Active Exam Section -->
+            <h2>📝 Active Exam</h2>
+            {% if active_exam %}
+                <div class="exam-card active-exam">
+                    <div class="exam-header">
+                        <h3>{{ active_exam.title | safe_text }}</h3>
+                        <span class="exam-status active">Active</span>
+                    </div>
+                    <div class="exam-details">
+                        <p><strong>Description:</strong> {{ active_exam.description | safe_text | default('No description available') }}</p>
+                        <div class="exam-info">
+                            <div class="info-item">
+                                <span class="info-label">Duration:</span>
+                                <span class="info-value">{{ active_exam.duration_minutes }} minutes</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Questions:</span>
+                                <span class="info-value">{{ active_exam.num_questions }}</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Passing Score:</span>
+                                <span class="info-value">{{ active_exam.passing_score }}%</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Max Attempts:</span>
+                                <span class="info-value">{{ active_exam.max_attempts }}</span>
+                            </div>
+                            {% if active_exam.scheduled_start %}
+                                <div class="info-item">
+                                    <span class="info-label">🕐 Participation Opens:</span>
+                                    <span class="info-value">{{ active_exam.scheduled_start.strftime('%Y-%m-%d at %H:%M') if active_exam.scheduled_start else active_exam.scheduled_start }}</span>
+                                </div>
+                            {% endif %}
+                            {% if active_exam.scheduled_end %}
+                                <div class="info-item">
+                                    <span class="info-label">⏰ Participation Closes:</span>
+                                    <span class="info-value exam-end-time">{{ active_exam.scheduled_end.strftime('%Y-%m-%d at %H:%M') if active_exam.scheduled_end else active_exam.scheduled_end }}</span>
+                                </div>
+                                <div class="participation-window-info">
+                                    <small style="color: #6c757d; font-style: italic;">
+                                        💡 You can start this exam anytime between the opening and closing times above.
+                                    </small>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="exam-actions">
+                        <div id="activeExamActions"
+                             data-start="{{ active_exam.scheduled_start or '' }}"
+                             data-end="{{ active_exam.scheduled_end or '' }}"
+                             data-active="{{ 1 if active_exam.is_active == 1 else 0 }}"
+                             data-ongoing="{{ 1 if ongoing_session else 0 }}"
+                             data-server-now="{{ now_str }}">
+                            <!-- Circular countdown (hidden by default) -->
+                            <div id="preStartCountdown" class="circular-countdown" style="display:none">
+                                <svg class="countdown-svg" viewBox="0 0 100 100">
+                                    <circle class="bg" cx="50" cy="50" r="45" />
+                                    <circle class="progress" cx="50" cy="50" r="45" />
+                                    <text class="time-text" x="50" y="54" text-anchor="middle">--:--</text>
+                                </svg>
+                                <div class="countdown-caption">Exam starts in</div>
+                            </div>
+
+                            <!-- Messages / Actions -->
+                            <p id="examEndedMsg" class="exam-ended" style="display:none">This exam has ended.</p>
+                            <p id="examInactiveMsg" class="exam-ended" style="display:none">This exam is no longer active.</p>
+                            <a id="startExamBtn" href="{{ url_for('start_exam', exam_id=active_exam.id) }}" class="btn btn-primary" style="display:none">🚀 Start Exam</a>
+                            {% if ongoing_session %}
+                            <a id="resumeExamBtn" href="{{ url_for('start_exam', exam_id=active_exam.id) }}" class="btn btn-primary" style="display:none">🚀 Resume Exam</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% else %}
+                <div class="no-exam-card">
+                    <div class="no-exam-icon">📭</div>
+                    <h3>No Active Exam</h3>
+                    <p>There are currently no active exams available. Please check back later or contact your administrator.</p>
+                </div>
+            {% endif %}
+
+            <!-- Next Scheduled Exam -->
+            {% if next_exam %}
+                {% if next_exam.is_active != 1 or (next_exam.scheduled_start and now < next_exam.scheduled_start) %}
+                    <div class="next-exam-card">
+                        <div class="next-exam-header">
+                            <h3>⏳ Upcoming Exam: {{ next_exam.title }}</h3>
+                        </div>
+                        <div class="next-exam-details">
+                            <p><strong>Description:</strong> {{ next_exam.description or 'No description available' }}</p>
+                            <div class="exam-info">
+                                <div class="info-item">
+                                    <span class="info-label">Duration:</span>
+                                    <span class="info-value">{{ next_exam.duration_minutes }} minutes</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Questions:</span>
+                                    <span class="info-value">{{ next_exam.num_questions }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Passing Score:</span>
+                                    <span class="info-value">{{ next_exam.passing_score }}%</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">🕐 Participation Opens:</span>
+                                    <span class="info-value">{{ next_exam.scheduled_start.strftime('%Y-%m-%d at %H:%M') if next_exam.scheduled_start else next_exam.scheduled_start }}</span>
+                                </div>
+                                {% if next_exam.scheduled_end %}
+                                    <div class="info-item">
+                                        <span class="info-label">⏰ Participation Closes:</span>
+                                        <span class="info-value exam-end-time">{{ next_exam.scheduled_end.strftime('%Y-%m-%d at %H:%M') if next_exam.scheduled_end else next_exam.scheduled_end }}</span>
+                                    </div>
+                                    <div class="participation-window-info">
+                                        <small style="color: #6c757d; font-style: italic;">
+                                            💡 You can start this exam anytime between the opening and closing times above.
+                                        </small>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="countdown-timer" id="countdownTimer"></div>
+                        </div>
+                    </div>
+                    <script>
+                        document.addEventListener('DOMContentLoaded', function() {
+                            function updateCountdown() {
+                                const startTime = new Date("{{ next_exam.scheduled_start }}".replace(' ', 'T')).getTime();
+                                const endTime = "{{ next_exam.scheduled_end }}" ? new Date("{{ next_exam.scheduled_end }}".replace(' ', 'T')).getTime() : null;
+                                const now = new Date().getTime();
+                                
+                                // Ignore invalid endTime (when it's earlier than startTime)
+                                const validEndTime = (startTime && endTime && endTime < startTime) ? null : endTime;
+                                
+                                if (validEndTime && now > validEndTime) {
+                                    document.getElementById('countdownTimer').innerHTML = 
+                                        '<span class="countdown-label">Exam has ended!</span>';
+                                    return;
+                                }
+                                if (now > startTime) {
+                                    document.getElementById('countdownTimer').innerHTML = 
+                                        '<span class="countdown-label">Exam is starting soon!</span>';
+                                    return;
+                                }
+                                const distance = startTime - now;
+                                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                                document.getElementById('countdownTimer').innerHTML =
+                                    '<span class="countdown-label">Exam starts in:</span> ' +
+                                    '<span class="countdown-value">' + 
+                                    (days > 0 ? days + 'd ' : '') + 
+                                    hours.toString().padStart(2, '0') + 'h ' + 
+                                    minutes.toString().padStart(2, '0') + 'm ' + 
+                                    seconds.toString().padStart(2, '0') + 's' +
+                                    '</span>';
+                            }
+                            updateCountdown();
+                            setInterval(updateCountdown, 1000);
+                        });
+                    </script>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <!-- Exam History Section -->
+    <div class="dashboard-section rankings-section">
+            <h2>📊 Exam History</h2>
+            {% if show_result_history and exam_history %}
+                <div class="exam-history">
+                    {% for exam in exam_history %}
+                        <div class="history-card">
+                            <div class="history-header">
+                                <h4>{{ exam.title }}</h4>
+                                <span class="exam-status {{ 'passed' if exam.score >= exam.passing_score else 'failed' }}">
+                                    {% if exam.score >= exam.passing_score %}
+                                        ✅ Passed
+                                    {% else %}
+                                        ❌ Failed
+                                    {% endif %}
+                                </span>
+                            </div>
+                            <div class="history-details">
+                                <div class="score-display">
+                                    <div class="score-circle {{ 'pass' if exam.score >= exam.passing_score else 'fail' }}">
+                                        <span class="score-value">{{ exam.score }}%</span>
+                                    </div>
+                                    <div class="score-info">
+                                        <div class="score-label">Exam Score</div>
+                                        <div class="passing-score">Required: {{ exam.passing_score }}%</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="exam-timeline">
+                                    <div class="timeline-item">
+                                        <div class="timeline-icon">🚀</div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-label">Started</div>
+                                            <div class="timeline-value">
+                                                {% if exam.start_time %}
+                                                    {{ exam.start_time.strftime('%d %B, %Y, %H:%M:%S') }}
+                                                {% else %}
+                                                    Not recorded
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="timeline-item">
+                                        <div class="timeline-icon">🏁</div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-label">Completed</div>
+                                            <div class="timeline-value">
+                                                {% if exam.end_time %}
+                                                    {{ exam.end_time.strftime('%d %B, %Y, %H:%M:%S') }}
+                                                {% else %}
+                                                    Not recorded
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="timeline-item">
+                                        <div class="timeline-icon">⏱️</div>
+                                        <div class="timeline-content">
+                                            <div class="timeline-label">Duration</div>
+                                            <div class="timeline-value duration-time">
+                                                {% if exam.duration_minutes %}
+                                                    {% set total_seconds = (exam.duration_minutes * 60)|int %}
+                                                    {% set hours = (total_seconds // 3600)|int %}
+                                                    {% set minutes = ((total_seconds % 3600) // 60)|int %}
+                                                    {% set seconds = (total_seconds % 60)|int %}
+                                                    {% if hours > 0 %}
+                                                        {{ hours }}h {{ minutes }}m {{ seconds }}s
+                                                    {% elif minutes > 0 %}
+                                                        {{ minutes }}m {{ seconds }}s
+                                                    {% else %}
+                                                        {{ seconds }}s
+                                                    {% endif %}
+                                                {% else %}
+                                                    Not recorded
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Action Buttons -->
+                                {% if allow_answer_review %}
+                                <div class="exam-actions">
+                                    <a href="{{ url_for('student_exam_review', session_id=exam.id) }}" class="review-btn">
+                                        <span class="btn-icon">📝</span>
+                                        <span class="btn-text">View Answers</span>
+                                    </a>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="no-history-card">
+                    <div class="no-history-icon">📈</div>
+                    <h3>No Exam History</h3>
+                    <p>
+                        {% if not show_result_history %}
+                            Exam result history is currently hidden by the administrator. Please contact your administrator for more information.
+                        {% else %}
+                            You haven't completed any exams yet. Take your first exam to see your results here.
+                        {% endif %}
+                    </p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Rankings & Performance Section -->
+        {% if show_rankings %}
+        <div class="dashboard-section rankings-section">
+            <div class="section-header">
+                <h2>🏆 Rankings & Performance</h2>
+                <p class="section-subtitle">Track your progress and compare with top performers</p>
+            </div>
+            
+            <div class="rankings-performance-grid">
+                <!-- Personal Rankings Column -->
+                <div class="rankings-column">
+                    <div class="ranking-section-card">
+                        <div class="card-header">
+                            <h3>📊 Your Exam Rankings</h3>
+                        </div>
+                        
+                        {% if exam_history and rankings %}
+                            <div class="personal-rankings-grid">
+                                {% for exam in exam_history %}
+                                    {% set exam_ranking = rankings.get(exam.exam_id) %}
+                                    {% if exam_ranking %}
+                                        <div class="ranking-card">
+                                            <div class="ranking-badge-container">
+                                                <div class="rank-badge rank-{{ 'gold' if exam_ranking.rank <= 3 else 'silver' if exam_ranking.rank <= 10 else 'bronze' }}">
+                                                    <span class="rank-number">#{{ exam_ranking.rank }}</span>
+                                                    <span class="rank-medal">
+                                                        {% if exam_ranking.rank == 1 %}🥇
+                                                        {% elif exam_ranking.rank == 2 %}🥈
+                                                        {% elif exam_ranking.rank == 3 %}🥉
+                                                        {% elif exam_ranking.rank <= 10 %}⭐
+                                                        {% else %}🏅
+                                                        {% endif %}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="ranking-content">
+                                                <h4 class="exam-title">{{ exam.title }}</h4>
+                                                <div class="ranking-stats-grid">
+                                                    <div class="stat-item">
+                                                        <span class="stat-icon">📊</span>
+                                                        <div class="stat-info">
+                                                            <span class="stat-label">Score</span>
+                                                            <span class="stat-value score-{{ 'excellent' if exam.score >= 90 else 'good' if exam.score >= 75 else 'average' if exam.score >= 60 else 'poor' }}">{{ exam.score }}%</span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="stat-item">
+                                                        <span class="stat-icon">🏆</span>
+                                                        <div class="stat-info">
+                                                            <span class="stat-label">Position</span>
+                                                            <span class="stat-value">{{ exam_ranking.rank }}/{{ exam_ranking.total_participants }}</span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div class="stat-item">
+                                                        <span class="stat-icon">📈</span>
+                                                        <div class="stat-info">
+                                                            <span class="stat-label">Percentile</span>
+                                                            <span class="stat-value">{{ exam_ranking.percentile }}th</span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    {% if exam.duration_minutes %}
+                                                    <div class="stat-item">
+                                                        <span class="stat-icon">⏱️</span>
+                                                        <div class="stat-info">
+                                                            <span class="stat-label">Duration</span>
+                                                            <span class="stat-value duration-{{ 'fast' if exam.duration_minutes <= 15 else 'normal' if exam.duration_minutes <= 30 else 'slow' }}">
+                                                                {% set total_seconds = (exam.duration_minutes * 60)|int %}
+                                                                {% set hours = (total_seconds // 3600)|int %}
+                                                                {% set minutes = ((total_seconds % 3600) // 60)|int %}
+                                                                {% set seconds = (total_seconds % 60)|int %}
+                                                                {% if hours > 0 %}
+                                                                    {{ hours }}h {{ minutes }}m {{ seconds }}s
+                                                                {% elif minutes > 0 %}
+                                                                    {{ minutes }}m {{ seconds }}s
+                                                                {% else %}
+                                                                    {{ seconds }}s
+                                                                {% endif %}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="no-rankings-placeholder">
+                                <div class="placeholder-icon">🎯</div>
+                                <h4>No Rankings Yet</h4>
+                                <p>Complete your first exam to see your ranking!</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Top Performers Column -->
+                <div class="leaderboard-column">
+                    {% if top_performers %}
+                        <div class="leaderboard-section-card">
+                            <div class="card-header">
+                                <h3>🥇 Top Performers</h3>
+                                <span class="leaderboard-subtitle">Hall of Excellence</span>
+                            </div>
+                            
+                            <div class="podium-container">
+                                {% for performer in top_performers[:3] %}
+                                    <div class="podium-item podium-{{ loop.index }}">
+                                        <div class="podium-rank">
+                                            <span class="podium-number">{{ loop.index }}</span>
+                                            <span class="podium-medal">
+                                                {% if loop.index == 1 %}🥇
+                                                {% elif loop.index == 2 %}🥈
+                                                {% else %}🥉
+                                                {% endif %}
+                                            </span>
+                                        </div>
+                                        <div class="podium-info">
+                                            <div class="performer-name {{ 'current-user' if performer.id == user.id else '' }}">{{ performer.name }}</div>
+                                            <div class="performer-wing">{{ performer.wing_name or 'General' }}</div>
+                                            <div class="performer-stats">
+                                                <div class="stat-row">
+                                                    <span class="stat-icon">📊</span>
+                                                    <span class="performer-score">{{ performer.average_score }}%</span>
+                                                </div>
+                                                {% if performer.average_duration %}
+                                                <div class="stat-row">
+                                                    <span class="stat-icon">⏱️</span>
+                                                    <span class="performer-duration">
+                                                        {% set total_seconds = (performer.average_duration * 60)|int %}
+                                                        {% set hours = (total_seconds // 3600)|int %}
+                                                        {% set minutes = ((total_seconds % 3600) // 60)|int %}
+                                                        {% set seconds = (total_seconds % 60)|int %}
+                                                        {% if hours > 0 %}
+                                                            {{ hours }}h {{ minutes }}m {{ seconds }}s
+                                                        {% elif minutes > 0 %}
+                                                            {{ minutes }}m {{ seconds }}s
+                                                        {% else %}
+                                                            {{ seconds }}s
+                                                        {% endif %}
+                                                    </span>
+                                                </div>
+                                                {% endif %}
+                                                <div class="stat-row">
+                                                    <span class="stat-icon">📚</span>
+                                                    <span class="performer-exams">{{ performer.exams_taken }} exam{{ 's' if performer.exams_taken != 1 else '' }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            
+                            {% if top_performers|length > 3 %}
+                                <div class="remaining-performers">
+                                    <h4>Other Top Performers</h4>
+                                    <div class="performers-list">
+                                        {% for performer in top_performers[3:] %}
+                                            <div class="performer-item {{ 'current-user' if performer.id == user.id else '' }}">
+                                                <div class="performer-rank">{{ loop.index + 3 }}</div>
+                                                <div class="performer-details">
+                                                    <div class="performer-name">{{ performer.name }}</div>
+                                                    <div class="performer-info-grid">
+                                                        <div class="info-cell">
+                                                            <span class="info-label">Wing:</span>
+                                                            <span class="info-value">{{ performer.wing_name or 'General' }}</span>
+                                                        </div>
+                                                        <div class="info-cell">
+                                                            <span class="info-label">Exams:</span>
+                                                            <span class="info-value">{{ performer.exams_taken }}</span>
+                                                        </div>
+                                                        {% if performer.average_duration %}
+                                                        <div class="info-cell">
+                                                            <span class="info-label">Avg Time:</span>
+                                                            <span class="info-value">
+                                                                {% set total_seconds = (performer.average_duration * 60)|int %}
+                                                                {% set hours = (total_seconds // 3600)|int %}
+                                                                {% set minutes = ((total_seconds % 3600) // 60)|int %}
+                                                                {% set seconds = (total_seconds % 60)|int %}
+                                                                {% if hours > 0 %}
+                                                                    {{ hours }}h {{ minutes }}m {{ seconds }}s
+                                                                {% elif minutes > 0 %}
+                                                                    {{ minutes }}m {{ seconds }}s
+                                                                {% else %}
+                                                                    {{ seconds }}s
+                                                                {% endif %}
+                                                            </span>
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                                <div class="performer-score">{{ performer.average_score }}%</div>
+                                            </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="leaderboard-section-card">
+                            <div class="card-header">
+                                <h3>🥇 Top Performers</h3>
+                            </div>
+                            <div class="no-leaderboard-placeholder">
+                                <div class="placeholder-icon">🏆</div>
+                                <h4>Leaderboard Coming Soon</h4>
+                                <p>Complete exams to populate the leaderboard!</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Instructions Section -->
+        <div class="dashboard-section">
+            <h2>📋 Instructions</h2>
+            <div class="instructions-card">
+                <div class="instruction-item">
+                    <div class="instruction-icon">⏱️</div>
+                    <div class="instruction-content">
+                        <h4>Timer</h4>
+                        <p>Each exam has a time limit. The timer starts when you begin the exam and cannot be paused.</p>
+                    </div>
+                </div>
+                <div class="instruction-item">
+                    <div class="instruction-icon">💾</div>
+                    <div class="instruction-content">
+                        <h4>Auto-Save</h4>
+                        <p>Your answers are automatically saved as you progress through the exam.</p>
+                    </div>
+                </div>
+                <div class="instruction-item">
+                    <div class="instruction-icon">🔒</div>
+                    <div class="instruction-content">
+                        <h4>Security</h4>
+                        <p>Do not refresh the page or navigate away during the exam. This may result in automatic submission.</p>
+                    </div>
+                </div>
+                <div class="instruction-item">
+                    <div class="instruction-icon">✅</div>
+                    <div class="instruction-content">
+                        <h4>Submission</h4>
+                        <p>Submit your exam before time runs out. Late submissions will not be accepted.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-footer">
+        <a href="{{ url_for('logout') }}" class="btn btn-secondary">Logout</a>
+    </div>
+</div>
+
+<style>
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+.dashboard-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+.dashboard-header h1 {
+    font-size: 2em;
+    color: #2c3e50;
+}
+.dashboard-section {
+    margin-bottom: 40px;
+}
+.exam-card, .no-exam-card, .next-exam-card, .no-history-card {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+.exam-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+.exam-status {
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.9em;
+}
+.exam-status.active {
+    background: #2ecc71;
+    color: #fff;
+}
+.exam-info {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 10px;
+    margin-top: 10px;
+}
+.info-item {
+    display: flex;
+    justify-content: space-between;
+}
+.info-label {
+    font-weight: bold;
+}
+.exam-actions {
+    margin-top: 20px;
+    text-align: center;
+}
+.exam-not-started, .exam-ended {
+    color: #e74c3c;
+    font-weight: bold;
+    text-align: center;
+    margin-top: 10px;
+}
+.next-exam-card {
+    margin-top: 20px;
+}
+.next-exam-header {
+    margin-bottom: 10px;
+}
+.next-exam-details {
+    font-size: 0.9em;
+}
+.countdown-timer {
+    margin-top: 15px;
+    padding: 10px;
+    background: #f5f5f5;
+    border-radius: 5px;
+    text-align: center;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.2em;
+}
+.countdown-label {
+    font-weight: bold;
+    color: #2c3e50;
+}
+.countdown-value {
+    color: #e74c3c;
+    font-weight: bold;
+}
+/* Circular countdown styles */
+.circular-countdown {
+    margin: 16px auto 0;
+    width: 140px;
+    display: grid;
+    place-items: center;
+}
+.countdown-svg { width: 140px; height: 140px; }
+.countdown-svg circle {
+    fill: none;
+    stroke-width: 8;
+}
+.countdown-svg .bg {
+    stroke: #ecf0f1;
+}
+.countdown-svg .progress {
+    stroke: #3498db;
+    stroke-linecap: round;
+    transform: rotate(-90deg);
+    transform-origin: 50% 50%;
+    stroke-dasharray: 283; /* 2 * PI * r (r=45 => ~282.74) */
+    stroke-dashoffset: 283;
+    transition: stroke-dashoffset 0.3s linear;
+}
+.countdown-svg .time-text {
+    font-size: 18px;
+    fill: #2c3e50;
+    font-family: 'Share Tech Mono', monospace;
+}
+.countdown-caption {
+    margin-top: 8px;
+    font-size: 0.9em;
+    color: #7f8c8d;
+    text-align: center;
+}
+.exam-history {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1rem;
+}
+
+.history-card {
+    background: linear-gradient(145deg, #1e293b, #334155);
+    border: 2px solid rgba(129, 140, 248, 0.3);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 
+        0 4px 15px rgba(0, 0, 0, 0.3),
+        0 0 20px rgba(129, 140, 248, 0.1);
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.history-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    background-size: 300% 100%;
+    animation: gradientShift 4s ease-in-out infinite;
+}
+
+.history-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 
+        0 8px 25px rgba(0, 0, 0, 0.4),
+        0 0 30px rgba(129, 140, 248, 0.2);
+    border-color: rgba(129, 140, 248, 0.5);
+}
+
+.history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(129, 140, 248, 0.2);
+}
+
+.history-header h4 {
+    color: #e2e8f0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin: 0;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.exam-status {
+    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.exam-status.passed {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+}
+
+.exam-status.failed {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3);
+}
+
+.score-display {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    padding: 1rem;
+    background: rgba(30, 41, 59, 0.6);
+    border-radius: 12px;
+    border: 1px solid rgba(129, 140, 248, 0.2);
+}
+
+.score-circle {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.score-circle.pass {
+    background: linear-gradient(135deg, #10b981, #059669);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
+}
+
+.score-circle.fail {
+    background: linear-gradient(135deg, #ef4444, #dc2626);
+    color: #ffffff;
+    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+}
+
+.score-value {
+    font-size: 1.1rem;
+    font-weight: 900;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.score-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.score-label {
+    color: #94a3b8;
+    font-size: 0.9rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.passing-score {
+    color: #cbd5e1;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.exam-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.timeline-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 0.8rem;
+    background: rgba(30, 41, 59, 0.4);
+    border-radius: 10px;
+    border: 1px solid rgba(129, 140, 248, 0.1);
+    transition: all 0.3s ease;
+}
+
+.timeline-item:hover {
+    background: rgba(30, 41, 59, 0.6);
+    border-color: rgba(129, 140, 248, 0.3);
+}
+
+.timeline-icon {
+    font-size: 1.2rem;
+    padding: 0.5rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 40px;
+    height: 40px;
+    box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+}
+
+.timeline-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.timeline-label {
+    color: #94a3b8;
+    font-size: 0.85rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.timeline-value {
+    color: #e2e8f0;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.timeline-value.duration-time {
+    color: #f59e0b;
+    font-weight: 700;
+    text-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+.exam-actions {
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(129, 140, 248, 0.2);
+    display: flex;
+    justify-content: center;
+}
+
+.review-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #ffffff;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.review-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+    text-decoration: none;
+    color: #ffffff;
+    background: linear-gradient(135deg, #5a67d8, #6b46c1);
+}
+
+.review-btn .btn-icon {
+    font-size: 1.1rem;
+}
+
+.review-btn .btn-text {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+}
+
+.score-status {
+    font-weight: bold;
+}
+.instructions-card {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+.instruction-item {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+.instruction-icon {
+    font-size: 1.5em;
+}
+.instruction-content h4 {
+    margin: 0 0 5px;
+}
+.btn {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+}
+.btn-primary {
+    background: #3498db;
+    color: #fff;
+}
+.btn-secondary {
+    background: #95a5a6;
+    color: #fff;
+}
+.dashboard-footer {
+    text-align: center;
+    margin-top: 30px;
+}
+
+/* Exam History Table Styles */
+.table-responsive {
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    margin-bottom: 1rem;
+    color: #212529;
+    border-collapse: collapse;
+}
+
+.table th, .table td {
+    padding: 0.75rem;
+    vertical-align: top;
+    border-top: 1px solid #dee2e6;
+}
+
+.table thead th {
+    background-color: #f8f9fa;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: #f2f2f2;
+}
+
+.table-hover tbody tr:hover {
+    background-color: #e2e6ea;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    margin-top: 1rem;
+}
+
+.page-item {
+    margin: 0 0.1rem;
+}
+
+.page-link {
+    display: block;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    color: #007bff;
+    text-decoration: none;
+    background-color: transparent;
+    border: 1px solid #007bff;
+}
+
+.page-link:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+.page-item.disabled .page-link {
+    color: #6c757d;
+    pointer-events: none;
+}
+
+.page-item.active .page-link {
+    background-color: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+</style>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Auto-refresh every 30 seconds only if no active exam or next exam is pending
+    setInterval(function() {
+        const activeExam = document.querySelector('.active-exam');
+        const nextExam = document.querySelector('.next-exam-card');
+        const now = new Date().getTime();
+        const scheduledStart = '{{ active_exam.scheduled_start }}' ? new Date('{{ active_exam.scheduled_start }}'.replace(' ', 'T')).getTime() : null;
+        const scheduledEnd = '{{ active_exam.scheduled_end }}' ? new Date('{{ active_exam.scheduled_end }}'.replace(' ', 'T')).getTime() : null;
+        
+        // Ignore invalid endTime (when it's earlier than startTime)
+        const validEndTime = (scheduledStart && scheduledEnd && scheduledEnd < scheduledStart) ? null : scheduledEnd;
+        
+        if (!activeExam && (!nextExam || (validEndTime && now > validEndTime))) {
+            location.reload();
+        }
+    }, 30000);
+});
+
+// Pre-start countdown logic for active exam
+document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('activeExamActions');
+    if (!container) return;
+
+    const startStr = container.getAttribute('data-start');
+    const endStr = container.getAttribute('data-end');
+    const isActive = container.getAttribute('data-active') === '1';
+    const serverNowStr = container.getAttribute('data-server-now');
+    const ongoing = container.getAttribute('data-ongoing') === '1';
+
+    const normalize = (s) => (s && s.includes(' ') ? s.replace(' ', 'T') : s);
+
+    const startTime = startStr ? new Date(normalize(startStr)).getTime() : null;
+    const endTime = endStr ? new Date(normalize(endStr)).getTime() : null;
+    let now = serverNowStr ? new Date(normalize(serverNowStr)).getTime() : Date.now();
+    
+    // Ignore invalid endTime (when it's earlier than startTime)
+    const validEndTime = (startTime && endTime && endTime < startTime) ? null : endTime;
+
+    const countdownEl = document.getElementById('preStartCountdown');
+    const startBtn = document.getElementById('startExamBtn');
+    const endedMsg = document.getElementById('examEndedMsg');
+    const inactiveMsg = document.getElementById('examInactiveMsg');
+    const progressCircle = countdownEl ? countdownEl.querySelector('circle.progress') : null;
+    const timeText = countdownEl ? countdownEl.querySelector('text.time-text') : null;
+
+    function showStartButton() {
+        if (startBtn) startBtn.style.display = 'inline-block';
+        if (countdownEl) countdownEl.style.display = 'none';
+        if (endedMsg) endedMsg.style.display = 'none';
+        if (inactiveMsg) inactiveMsg.style.display = 'none';
+    }
+
+    function showResumeButton() {
+        const resumeBtn = document.getElementById('resumeExamBtn');
+        if (resumeBtn) resumeBtn.style.display = 'inline-block';
+        if (countdownEl) countdownEl.style.display = 'none';
+        if (endedMsg) endedMsg.style.display = 'none';
+        if (inactiveMsg) inactiveMsg.style.display = 'none';
+    }
+
+    // If exam not marked active, show inactive message
+    if (!isActive) {
+        if (inactiveMsg) inactiveMsg.style.display = 'block';
+        return;
+    }
+
+    // If no schedule, show appropriate action immediately
+    if (!startTime && !endTime) {
+        if (ongoing) {
+            showResumeButton();
+        } else {
+            showStartButton();
+        }
+        return;
+    }
+
+    // If we have a future start, show countdown regardless of endTime
+    if (startTime && now < startTime) {
+        if (countdownEl) countdownEl.style.display = 'grid';
+    } else if (validEndTime && now > validEndTime) {
+        // Only consider ended state if we're not before the start and the end time is valid
+        if (endedMsg) endedMsg.style.display = 'block';
+        return;
+    } else {
+        // Already started or no start specified
+        if (ongoing) {
+            showResumeButton();
+        } else {
+            showStartButton();
+        }
+        return;
+    }
+
+    // Run countdown to start
+    const CIRCUMFERENCE = 2 * Math.PI * 45; // r=45
+    const total = startTime - now;
+
+    function formatMMSS(ms) {
+        const totalSec = Math.max(0, Math.floor(ms / 1000));
+        const m = Math.floor(totalSec / 60);
+        const s = totalSec % 60;
+        return `${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+    }
+
+    function tick() {
+        now = Date.now();
+        const remaining = startTime - now;
+
+        if (remaining <= 0) {
+            if (ongoing) {
+                showResumeButton();
+            } else {
+                showStartButton();
+            }
+            return;
+        }
+
+        // Update text
+        if (timeText) timeText.textContent = formatMMSS(remaining);
+
+        // Update progress (counting down -> smaller offset)
+        if (progressCircle) {
+            const fraction = Math.max(0, remaining) / total;
+            const offset = CIRCUMFERENCE * (1 - fraction);
+            progressCircle.style.strokeDasharray = `${CIRCUMFERENCE}`;
+            progressCircle.style.strokeDashoffset = `${offset}`;
+        }
+
+        requestAnimationFrame(tick);
+    }
+    // Initialize visuals to full circle empty progress and correct time
+    if (timeText) timeText.textContent = formatMMSS(total);
+    if (progressCircle) {
+        progressCircle.style.strokeDasharray = `${CIRCUMFERENCE}`;
+        progressCircle.style.strokeDashoffset = `${0}`;
+    }
+    requestAnimationFrame(tick);
+});
+
+// Add exam participation window countdown
+document.addEventListener('DOMContentLoaded', function() {
+    function updateParticipationCountdown() {
+        const examEndElements = document.querySelectorAll('.exam-end-time');
+        
+        examEndElements.forEach(function(element) {
+            const examCard = element.closest('.exam-card, .next-exam-card');
+            if (!examCard) return;
+            
+            // Get scheduled end time from the active or next exam
+            const scheduledEnd = '{{ active_exam.scheduled_end if active_exam else next_exam.scheduled_end if next_exam else "" }}';
+            if (!scheduledEnd) return;
+            
+            const endTime = new Date(scheduledEnd.replace(' ', 'T')).getTime();
+            const now = new Date().getTime();
+            const timeLeft = endTime - now;
+            
+            if (timeLeft <= 0) {
+                // Time has expired
+                if (!element.querySelector('.expired-notice')) {
+                    const expiredNotice = document.createElement('div');
+                    expiredNotice.className = 'expired-notice';
+                    expiredNotice.style.cssText = 'color: #dc3545; font-weight: bold; margin-top: 0.5rem; font-size: 0.9rem;';
+                    expiredNotice.innerHTML = '🚫 Participation window has closed';
+                    element.appendChild(expiredNotice);
+                }
+            } else {
+                // Show countdown
+                const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((timeLeft % (1000 * 60)) / 1000);
+                
+                let countdownText = '';
+                if (days > 0) {
+                    countdownText = `${days}d ${hours}h ${minutes}m remaining`;
+                } else if (hours > 0) {
+                    countdownText = `${hours}h ${minutes}m ${seconds}s remaining`;
+                } else if (minutes > 0) {
+                    countdownText = `${minutes}m ${seconds}s remaining`;
+                } else {
+                    countdownText = `${seconds}s remaining`;
+                }
+                
+                // Add or update countdown display
+                let countdownDisplay = element.querySelector('.participation-countdown');
+                if (!countdownDisplay) {
+                    countdownDisplay = document.createElement('div');
+                    countdownDisplay.className = 'participation-countdown';
+                    countdownDisplay.style.cssText = 'color: #ffc107; font-weight: bold; margin-top: 0.5rem; font-size: 0.9rem;';
+                    element.appendChild(countdownDisplay);
+                }
+                countdownDisplay.innerHTML = `⏳ ${countdownText}`;
+            }
+        });
+    }
+    
+    // Update countdown immediately and then every second
+    updateParticipationCountdown();
+    setInterval(updateParticipationCountdown, 1000);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,228 @@
+{% extends "base.html" %}
+{% from "pagination_component.html" import render_pagination %}
+
+{% block title %}Manage Users - Admin Panel{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_users.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/user_details.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-content">
+    <div class="content-header">
+        <h1>👥 User Management</h1>
+        <div class="header-actions">
+            <div class="dropdown quick-actions">
+                <button class="btn btn-primary">
+                    🚀 Quick Actions <span class="dropdown-arrow">▼</span>
+                </button>
+                <div class="dropdown-content">
+                    <a href="{{ url_for('admin_users') }}?action=add_new" class="dropdown-item">
+                        <span class="item-icon">➕</span> Add New User
+                    </a>
+                    <a href="#" class="dropdown-item" id="bulkDeleteBtn">
+                        <span class="item-icon">🗑️</span> Bulk Delete
+                    </a>
+                    <a href="#" class="dropdown-item" id="bulkResetExamsBtn">
+                        <span class="item-icon">🔄</span> Reset All Exam Attempts
+                    </a>
+                    <a href="{{ url_for('admin_users') }}?action=export" class="dropdown-item">
+                        <span class="item-icon">📤</span> Export User List
+                    </a>
+                </div>
+            </div>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="content-body">
+        {% if show_add_form %}
+        <div class="add-user-form">
+            <h2>Add New User</h2>
+            <form method="POST" action="{{ url_for('admin_users') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+                <input type="hidden" name="action" value="add_user">
+                <div class="form-group">
+                    <label for="nsi_id">NSI ID<span class="required">*</span></label>
+                    <input type="text" id="nsi_id" name="nsi_id" required>
+                </div>
+                <div class="form-group">
+                    <label for="name">Full Name<span class="required">*</span></label>
+                    <input type="text" id="name" name="name" required>
+                </div>
+                <div class="form-group">
+                    <label for="password">Password<span class="required">*</span></label>
+                    <input type="password" id="password" name="password" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="wing_name">Wing<span class="required">*</span></label>
+                        <select id="wing_name" name="wing_name" required onchange="handleAddUserWingChange()">
+                            <option value="">Select Wing</option>
+                            <option value="Internal">Internal</option>
+                            <option value="Border">Border</option>
+                            <option value="External">External</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="section_name">Section Name<span class="required">*</span></label>
+                        <input type="text" id="section_name" name="section_name" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="division_name">Division Name</label>
+                    <input type="text" id="division_name" name="division_name">
+                </div>
+                <div class="form-group">
+                    <label for="district_name">District Name</label>
+                    <input type="text" id="district_name" name="district_name">
+                </div>
+                <div class="form-group" id="add_country_field" style="display: none;">
+                    <label for="country_name">Country Name<span class="required">*</span></label>
+                    <input type="text" id="country_name" name="country_name">
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Add User</button>
+                    <a href="{{ url_for('admin_users') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+        {% elif users %}
+            <!-- Search and Filter -->
+            <div class="search-filter-section">
+                <div class="search-box">
+                    <input type="text" id="userSearch" placeholder="Search users by NSI ID, name, wing, district, or section..." class="search-input">
+                    <button type="button" class="btn btn-search" id="clearSearch">
+                        <i class="fas fa-times"></i> Clear
+                    </button>
+                </div>
+                <div class="filter-stats">
+                    <span id="userCount">{{ users|length }} users found</span>
+                </div>
+            </div>
+            
+            <form id="bulkActionForm" method="POST">
+                <div class="users-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th><input type="checkbox" id="selectAll" title="Select All"></th>
+                                <th>NSI ID</th>
+                                <th>Name</th>
+                                <th>Wing</th>
+                                <th>District</th>
+                                <th>Section</th>
+                                <th>Registered</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for user in users %}
+                                <tr>
+                                    <td><input type="checkbox" name="selected_users" value="{{ user.id }}" class="user-select"></td>
+                                    <td><strong>{{ user.nsi_id }}</strong></td>
+                                    <td>{{ user.name }}</td>
+                                    <td>{{ user.wing_name or '-' }}</td>
+                                    <td>{{ user.district_name or '-' }}</td>
+                                    <td>{{ user.section_name or '-' }}</td>
+                                    <td>{{ user.created_at }}</td>
+                                    <td class="action-buttons">
+                                        <a href="#" class="btn btn-info btn-small view-user" data-userid="{{ user.id }}" title="View Details">
+                                            <span class="icon">👁️</span>
+                                        </a>
+                                        <a href="{{ url_for('edit_user', nsi_id=user.nsi_id) }}" class="btn btn-secondary btn-small" title="Edit User">
+                                            <span class="icon">✏️</span>
+                                        </a>
+                                        <a href="{{ url_for('admin_users') }}?reset={{ user.id }}" class="btn btn-warning btn-small" title="Reset Exam Attempts" 
+                                           onclick="return confirm('Are you sure you want to reset all exam attempts for this user?')">
+                                            <span class="icon">🔄</span>
+                                        </a>
+                                        <a href="{{ url_for('admin_users') }}?delete={{ user.nsi_id }}" class="btn btn-danger btn-small" title="Delete User"
+                                           onclick="return confirm('Are you sure you want to delete this user? This action cannot be undone.')">
+                                            <span class="icon">🗑️</span>
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </form>
+        {% else %}
+            <div class="no-users">
+                <div class="no-users-icon">👥</div>
+                <h3>No Users Registered</h3>
+                <p>No employees have registered yet. Users will appear here once they register.</p>
+            </div>
+        {% endif %}
+
+        {# Render pagination if there are pages #}
+        {% if pagination and pagination.pages > 1 %}
+            {{ render_pagination(pagination, 'admin_users', query_params=request.args) }}
+        {% endif %}
+    </div>
+</div>
+
+<!-- User Details Modal -->
+<div id="userDetailsModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>User Details</h3>
+            <span class="close" onclick="closeUserModal()">&times;</span>
+        </div>
+        <div class="modal-body" id="userDetails">
+            <!-- User details will be loaded here via AJAX -->
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeUserModal()">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div id="confirmationModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="confirmationTitle">Confirmation</h3>
+            <span class="close" onclick="closeConfirmationModal()">&times;</span>
+        </div>
+        <div class="modal-body" id="confirmationMessage">
+            <!-- Confirmation message goes here -->
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-danger" id="confirmBtn">Confirm</button>
+            <button class="btn btn-secondary" onclick="closeConfirmationModal()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+    // Set up API endpoints for JavaScript use
+    if (!window.bulkDeleteEndpoint) {
+        window.bulkDeleteEndpoint = "{{ url_for('admin_users') }}?action=bulk_delete";
+    }
+    if (!window.bulkResetEndpoint) {
+        window.bulkResetEndpoint = "{{ url_for('admin_users') }}?action=bulk_reset_attempts";
+    }
+    
+    // Wing selection handling for add user form
+    window.handleAddUserWingChange = function() {
+        const wingSelect = document.getElementById('wing_name');
+        const countryField = document.getElementById('add_country_field');
+        const countryInput = document.getElementById('country_name');
+        
+        if (wingSelect.value === 'External') {
+            countryField.style.display = 'block';
+            countryInput.required = true;
+        } else {
+            countryField.style.display = 'none';
+            countryInput.required = false;
+            countryInput.value = '';
+        }
+    };
+</script>
+<script src="{{ url_for('static', filename='js/admin_users.js') }}"></script>
+{% endblock %}
+{% endblock %}

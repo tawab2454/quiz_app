@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Login - Online Examination System{% endblock %}
+
+{% block content %}
+<div class="auth-container admin-portal">
+    <div class="auth-card">
+        <div class="auth-header">
+            <h2>⚡ Admin Terminal</h2>
+            <p>Secure Administrative Control Interface</p>
+        </div>
+
+        <form method="POST" class="form" id="adminLoginForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+            <div class="form-group">
+                <label class="auth-label" for="username">Command ID</label>
+                <input type="text" id="username" name="username" required 
+                       placeholder="Enter admin identifier"
+                       class="auth-input">
+            </div>
+
+            <div class="form-group">
+                <label class="auth-label" for="password">Security Key</label>
+                <input type="password" id="password" name="password" required 
+                       placeholder="Enter admin security key"
+                       class="auth-input">
+                <div class="auth-toggle" onclick="togglePassword('password')">
+                    <span id="passwordToggleText" class="cyber-text">Show</span>
+                </div>
+            </div>
+
+            <button type="submit" class="auth-button">
+                <span class="cyber-icon">⚡</span> Initialize Admin Console
+            </button>
+        </form>
+
+        <div class="auth-footer">
+            <p>
+                <a href="{{ url_for('login') }}" class="auth-link">
+                    <span class="cyber-icon">👥</span> Employee Access Portal
+                </a>
+            </p>
+            <p>
+                <a href="{{ url_for('index') }}" class="auth-link">
+                    <span class="cyber-icon">🏠</span> Return to Base
+                </a>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('adminLoginForm');
+
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        
+        if (!username || !password) {
+            e.preventDefault();
+            alert('Please enter both username and password');
+            return;
+        }
+
+        // Show loading state
+        const submitBtn = form.querySelector('button[type="submit"]');
+        submitBtn.textContent = 'Logging in...';
+        submitBtn.disabled = true;
+    });
+});
+
+function togglePassword(fieldId) {
+    const field = document.getElementById(fieldId);
+    const toggleText = document.getElementById(fieldId + 'ToggleText');
+    
+    if (field.type === 'password') {
+        field.type = 'text';
+        toggleText.textContent = 'Hide';
+    } else {
+        field.type = 'password';
+        toggleText.textContent = 'Show';
+    }
+}
+</script>
+{% endblock %}

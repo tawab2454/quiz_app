@@ -1,0 +1,232 @@
+/* Main Content Cyber Styling */
+.main-content {
+    background: var(--cyber-dark);
+    position: relative;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.main-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: 
+        linear-gradient(90deg, rgba(0, 255, 0, 0.03) 1px, transparent 1px) 0 0,
+        linear-gradient(rgba(0, 255, 0, 0.03) 1px, transparent 1px) 0 0;
+    background-size: 20px 20px;
+    pointer-events: none;
+}
+
+/* Info Section Styling */
+.info-section {
+    padding: 4rem 2rem;
+    position: relative;
+    background: linear-gradient(180deg, var(--cyber-dark) 0%, rgba(10, 25, 47, 0.9) 100%);
+    border-top: 2px solid var(--cyber-primary);
+    margin-top: 2rem;
+}
+
+.info-section h2 {
+    font-family: var(--font-display);
+    color: var(--cyber-primary);
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 3rem;
+    text-transform: uppercase;
+    letter-spacing: 3px;
+    text-shadow: var(--neon-text-shadow);
+    position: relative;
+    display: inline-block;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.info-section h2::before,
+.info-section h2::after {
+    content: '';
+    position: absolute;
+    height: 2px;
+    background: var(--cyber-primary);
+    top: 50%;
+    width: 50px;
+    box-shadow: 0 0 10px var(--cyber-primary);
+}
+
+.info-section h2::before {
+    right: 100%;
+    margin-right: 20px;
+}
+
+.info-section h2::after {
+    left: 100%;
+    margin-left: 20px;
+}
+
+.steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+}
+
+.step {
+    background: rgba(10, 25, 47, 0.7);
+    border: 2px solid var(--cyber-primary);
+    padding: 2rem;
+    border-radius: 8px;
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.step:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+}
+
+.step::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--cyber-primary), transparent);
+}
+
+.step-number {
+    font-family: var(--font-display);
+    font-size: 3rem;
+    color: var(--cyber-primary);
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    opacity: 0.3;
+    text-shadow: 0 0 10px var(--cyber-primary);
+}
+
+.step h3 {
+    font-family: var(--font-display);
+    color: var(--cyber-primary);
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.step p {
+    color: var(--cyber-text);
+    font-family: var(--font-mono);
+    line-height: 1.6;
+}
+
+/* Requirements Section */
+.requirements-section {
+    padding: 4rem 2rem;
+    background: linear-gradient(0deg, var(--cyber-dark) 0%, rgba(10, 25, 47, 0.9) 100%);
+    border-top: 2px solid var(--cyber-primary);
+}
+
+.requirements {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.requirement {
+    background: rgba(10, 25, 47, 0.7);
+    border: 2px solid var(--cyber-primary);
+    padding: 2rem;
+    border-radius: 8px;
+    backdrop-filter: blur(10px);
+}
+
+.requirement h4 {
+    font-family: var(--font-display);
+    color: var(--cyber-primary);
+    margin-bottom: 1rem;
+    font-size: 1.3rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-shadow: 0 0 5px var(--cyber-primary);
+}
+
+.requirement ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-family: var(--font-mono);
+}
+
+.requirement li {
+    color: var(--cyber-text);
+    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.requirement li::before {
+    content: '▶';
+    color: var(--cyber-primary);
+    margin-right: 0.5rem;
+    font-size: 0.8em;
+}
+
+.example {
+    margin-top: 1rem;
+    padding: 1rem;
+    background: rgba(0, 255, 0, 0.1);
+    border-left: 2px solid var(--cyber-primary);
+    font-family: var(--font-mono);
+    color: var(--cyber-accent);
+}
+
+/* Animation for Steps */
+@keyframes pulseGlow {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(0, 255, 0, 0.4);
+    }
+}
+
+.step {
+    animation: pulseGlow 3s infinite;
+}
+
+/* Active Section Indicator */
+.step.active::before {
+    background: var(--cyber-primary);
+    box-shadow: 0 0 10px var(--cyber-primary);
+}
+
+/* Cyber Scanner Effect */
+.info-section::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--cyber-primary);
+    filter: blur(1px);
+    animation: scanline 2s linear infinite;
+}
+
+@keyframes scanline {
+    0% {
+        transform: translateY(-100%);
+    }
+    100% {
+        transform: translateY(100vh);
+    }
+}

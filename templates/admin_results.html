@@ -1,0 +1,872 @@
+{% extends "base.html" %}
+{% from "pagination_component.html" import render_pagination %}
+
+{% block title %}Exam Results - Admin Panel{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_results.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="admin-content">
+    <div class="content-header">
+        <h1>📊 Exam Results</h1>
+        <div class="header-actions">
+            <button onclick="exportResults()" class="btn btn-success">📥 Export CSV v2.0</button>
+            <a href="{{ url_for('admin_dashboard') }}" class="btn btn-secondary">← Back to Dashboard</a>
+        </div>
+    </div>
+
+    <div class="content-body">
+        {% if results %}
+            <!-- Results Statistics -->
+                        <!-- Results Statistics -->
+            <div class="results-stats">
+                <div class="stat-card">
+                    <div class="stat-icon">📝</div>
+                    <div class="stat-content">
+                        <h3>{{ stats.total }}</h3>
+                        <p>Total Submissions</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">✅</div>
+                    <div class="stat-content">
+                        <h3>{{ stats.passed }}</h3>
+                        <p>Passed</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">❌</div>
+                    <div class="stat-content">
+                        <h3>{{ stats.failed }}</h3>
+                        <p>Failed</p>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-content">
+                        <h3>{{ stats.average }}%</h3>
+                        <p>Average Score</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Enhanced Top Performers Section -->
+            {% if rankings %}
+            <div class="rankings-section">
+                <div class="section-header">
+                    <h2><span class="trophy-icon">🏆</span> Top Performers</h2>
+                    <p class="section-description">Overall ranking based on average exam scores</p>
+                </div>
+                
+                <!-- Top 3 Podium -->
+                <div class="podium-section">
+                    {% for user in rankings[:3] %}
+                    <div class="podium-card podium-{{ loop.index }}">
+                        <div class="podium-rank">
+                            {% if loop.index == 1 %}
+                                <div class="medal gold">🥇</div>
+                                <div class="rank-number">#1</div>
+                            {% elif loop.index == 2 %}
+                                <div class="medal silver">🥈</div>
+                                <div class="rank-number">#2</div>
+                            {% else %}
+                                <div class="medal bronze">🥉</div>
+                                <div class="rank-number">#3</div>
+                            {% endif %}
+                        </div>
+                        <div class="podium-info">
+                            <h3 class="user-name">{{ user.name | safe_name }}</h3>
+                            <p class="nsi-id">{{ user.nsi_id | safe_output | upper }}</p>
+                            <p class="wing-name">{{ user.wing_name | safe_output | default('N/A') }}</p>
+                            <div class="score-display">
+                                <span class="score">{{ "%.1f"|format(user.avg_score) }}%</span>
+                                <span class="exams">{{ user.completed_exams }} Exams</span>
+                            </div>
+                            {% if user.avg_duration %}
+                            <div class="duration-display">
+                                <span class="duration-icon">⏱️</span>
+                                <span class="duration-time">
+                                    {% set hours = (user.avg_duration // 60)|int %}
+                                    {% set minutes = (user.avg_duration % 60)|int %}
+                                    {% if hours > 0 %}
+                                        {{ hours }}h {{ minutes }}m
+                                    {% else %}
+                                        {{ minutes }}m
+                                    {% endif %}
+                                    avg
+                                </span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Other Top Performers -->
+                {% if rankings|length > 3 %}
+                <div class="other-performers">
+                    <h3 class="other-header">Other Top Performers</h3>
+                    <div class="performers-grid">
+                        {% for user in rankings[3:10] %}
+                        <div class="performer-card">
+                            <div class="rank-badge rank-{{ loop.index + 3 }}">#{{ loop.index + 3 }}</div>
+                            <div class="performer-info">
+                                <h4>{{ user.name }}</h4>
+                                <p class="performer-nsi">{{ user.nsi_id|upper }}</p>
+                                <p class="performer-score">{{ "%.1f"|format(user.avg_score) }}%</p>
+                                {% if user.avg_duration %}
+                                <p class="performer-duration">
+                                    ⏱️ 
+                                    {% set hours = (user.avg_duration // 60)|int %}
+                                    {% set minutes = (user.avg_duration % 60)|int %}
+                                    {% if hours > 0 %}
+                                        {{ hours }}h {{ minutes }}m
+                                    {% else %}
+                                        {{ minutes }}m
+                                    {% endif %}
+                                    avg
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Compact Filters (Enhanced) -->
+            <div class="compact-filters" aria-label="Filters">
+                <form id="filtersForm" class="compact-filters-form" onsubmit="event.preventDefault(); applyFilters();">
+                    <div class="compact-grid">
+                        <div class="cf-field">
+                            <label for="examFilter" class="cf-label">Exam</label>
+                            <select id="examFilter" name="exam" class="cf-select">
+                                <option value="">All Exams</option>
+                                {% for exam in exams %}
+                                    <option value="{{ exam.title }}" {% if exam.title == filters.exam and filters.exam %}selected{% endif %}>{{ exam.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="cf-field">
+                            <label for="wingFilter" class="cf-label">Wing</label>
+                            <select id="wingFilter" name="wing" class="cf-select">
+                                <option value="">All Wings</option>
+                                {% for wing in wings %}
+                                    <option value="{{ wing.wing_name }}" {% if wing.wing_name == filters.wing and filters.wing %}selected{% endif %}>{{ wing.wing_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="cf-field">
+                            <label for="divisionFilter" class="cf-label">Division</label>
+                            <select id="divisionFilter" name="division" class="cf-select">
+                                <option value="">All Divisions</option>
+                                {% for division in divisions %}
+                                    <option value="{{ division.division_name }}" {% if division.division_name == filters.division and filters.division %}selected{% endif %}>{{ division.division_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="cf-field">
+                            <label for="districtFilter" class="cf-label">District</label>
+                            <select id="districtFilter" name="district" class="cf-select">
+                                <option value="">All Districts</option>
+                                {% for district in districts %}
+                                    <option value="{{ district.district_name }}" {% if district.district_name == filters.district and filters.district %}selected{% endif %}>{{ district.district_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="cf-field">
+                            <label for="sectionFilter" class="cf-label">Section</label>
+                            <select id="sectionFilter" name="section" class="cf-select">
+                                <option value="">All Sections</option>
+                                {% for section in sections %}
+                                    <option value="{{ section.section_name }}" {% if section.section_name == filters.section and filters.section %}selected{% endif %}>{{ section.section_name }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="cf-field cf-status">
+                            <label for="statusFilter" class="cf-label">Status</label>
+                            <select id="statusFilter" name="status" class="cf-select">
+                                <option value="">All</option>
+                                <option value="passed" {% if 'passed' == filters.status and filters.status %}selected{% endif %}>Passed</option>
+                                <option value="failed" {% if filters.status == 'failed' %}selected{% endif %}>Failed</option>
+                            </select>
+                        </div>
+
+                        <div class="cf-field search-field">
+                            <label for="searchFilter" class="cf-label sr-only">Search</label>
+                            <input id="searchFilter" name="search" type="text" class="cf-input" placeholder="Search name or NSI ID..." value="{{ filters.search or '' }}">
+                        </div>
+
+                        <div class="cf-actions">
+                            <button type="submit" class="btn btn-primary">Apply</button>
+                            <button type="button" class="btn btn-outline" id="clearFiltersBtn">Clear</button>
+                            <button type="button" class="btn btn-refresh compact-refresh" id="refreshBtn" title="Refresh stats">
+                                <span class="refresh-icon">🔄</span>
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Active filter chips -->
+                <div class="active-chips" id="activeChips"></div>
+            </div>
+
+            <!-- Results Table -->
+            <div class="results-table-container">
+                <table class="results-table" id="resultsTable">
+                    <thead>
+                        <tr>
+                            <th onclick="sortTable(0)">Rank <span class="sort-indicator">↕️</span></th>
+                            <th onclick="sortTable(1)">NSI ID <span class="sort-indicator">↕️</span></th>
+                            <th onclick="sortTable(2)">Name <span class="sort-indicator">↕️</span></th>
+                            <th onclick="sortTable(3)">Exam <span class="sort-indicator">↕️</span></th>
+                            <th onclick="sortTable(4)">Score <span class="sort-indicator">↕️</span></th>
+                            <th onclick="sortTable(5)">Avg Score <span class="sort-indicator">↕️</span></th>
+                            <th onclick="sortTable(6)">Start Time <span class="sort-indicator">↕️</span></th>
+                            <th onclick="sortTable(7)">End Time <span class="sort-indicator">↕️</span></th>
+                            <th onclick="sortTable(8)">Duration <span class="sort-indicator">↕️</span></th>
+                            <th onclick="sortTable(9)">Status <span class="sort-indicator">↕️</span></th>
+                            <th onclick="sortTable(10)">Wing <span class="sort-indicator">↕️</span></th>
+                            <th onclick="sortTable(11)">Division <span class="sort-indicator">↕️</span></th>
+                            <th onclick="sortTable(12)">District <span class="sort-indicator">↕️</span></th>
+                            <th onclick="sortTable(13)">Completed <span class="sort-indicator">↕️</span></th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for result in results %}
+                            <tr class="result-row" 
+                                data-exam="{{ result.exam_title }}" 
+                                data-wing="{{ result.wing_name or '' }}" 
+                                data-division="{{ result.division_name or '' }}"
+                                data-district="{{ result.district_name or '' }}"
+                                data-section="{{ result.section_name or '' }}"
+                                data-status="{{ 'passed' if result.score >= result.passing_score else 'failed' }}"
+                                data-search="{{ (result.name + ' ' + result.nsi_id)|lower }}">
+                                <td>
+                                    {% if result.user_rank %}
+                                        <div class="rank-display">
+                                            {% if result.user_rank == 1 %}
+                                                <span class="rank-badge gold">🥇 #{{ result.user_rank }}</span>
+                                            {% elif result.user_rank == 2 %}
+                                                <span class="rank-badge silver">🥈 #{{ result.user_rank }}</span>
+                                            {% elif result.user_rank == 3 %}
+                                                <span class="rank-badge bronze">🥉 #{{ result.user_rank }}</span>
+                                            {% elif result.user_rank <= 10 %}
+                                                <span class="rank-badge top10">#{{ result.user_rank }}</span>
+                                            {% else %}
+                                                <span class="rank-badge">#{{ result.user_rank }}</span>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <span class="rank-pending">-</span>
+                                    {% endif %}
+                                </td>
+                                <td><strong>{{ result.nsi_id|upper }}</strong></td>
+                                <td>{{ result.name }}</td>
+                                <td>{{ result.exam_title }}</td>
+                                <td>
+                                    <div class="score-display">
+                                        <span class="score-value {% if result.score >= result.passing_score %}pass-score{% else %}fail-score{% endif %}">
+                                            {{ "%.1f"|format(result.score) }}%
+                                        </span>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if result.user_avg_score %}
+                                        <div class="avg-score-display">
+                                            <span class="avg-score-value">{{ "%.1f"|format(result.user_avg_score) }}%</span>
+                                        </div>
+                                    {% else %}
+                                        <span class="avg-pending">Pending</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if result.start_time %}
+                                        <div class="time-display">
+                                            <span class="time-value">{{ result.start_time.strftime('%H:%M:%S') if result.start_time else '-' }}</span>
+                                            <small class="date-value">{{ result.start_time.strftime('%m/%d') if result.start_time else '-' }}</small>
+                                        </div>
+                                    {% else %}
+                                        <span class="time-pending">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if result.end_time %}
+                                        <div class="time-display">
+                                            <span class="time-value">{{ result.end_time.strftime('%H:%M:%S') if result.end_time else '-' }}</span>
+                                            <small class="date-value">{{ result.end_time.strftime('%m/%d') if result.end_time else '-' }}</small>
+                                        </div>
+                                    {% else %}
+                                        <span class="time-pending">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if result.duration_minutes %}
+                                        <div class="duration-display">
+                                            {% set hours = (result.duration_minutes // 60)|int %}
+                                            {% set minutes = (result.duration_minutes % 60)|int %}
+                                            {% set seconds = ((result.duration_minutes % 1) * 60)|int %}
+                                            
+                                            {% if hours > 0 %}
+                                                <span class="duration-value">{{ hours }}h {{ minutes }}m</span>
+                                            {% elif minutes > 0 %}
+                                                <span class="duration-value">{{ minutes }}m {{ seconds }}s</span>
+                                            {% else %}
+                                                <span class="duration-value">{{ result.duration_minutes|round(1) }}m</span>
+                                            {% endif %}
+                                            
+                                            <div class="duration-bar">
+                                                {% set max_duration = 60 %}  <!-- Assume 60 minutes max for bar calculation -->
+                                                {% set raw_percentage = (result.duration_minutes / max_duration) * 100 %}
+                                                {% set percentage = raw_percentage if raw_percentage <= 100 else 100 %}
+                                                <div class="duration-fill" style="width: {{ percentage }}%"></div>
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <span class="duration-pending">-</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if result.score >= result.passing_score %}
+                                        <span class="status-badge passed">✓ Passed</span>
+                                    {% else %}
+                                        <span class="status-badge failed">✗ Failed</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ result.wing_name or '-' }}</td>
+                                <td>{{ result.division_name or '-' }}</td>
+                                <td>{{ result.district_name or '-' }}</td>
+                                <td>{{ result.end_time }}</td>
+                                <td>
+                                    <button onclick="viewDetails({{ result.id }})" class="btn btn-small btn-info">👁️ Details</button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="no-results">
+                <div class="no-results-icon">📊</div>
+                <h3>No Exam Results</h3>
+                <p>No employees have completed any exams yet. Results will appear here once employees start taking exams.</p>
+            </div>
+        {% endif %}
+
+        {# Render pagination if there are pages #}
+        {% if pagination and pagination.pages > 1 %}
+            {{ render_pagination(pagination, 'admin_results', query_params=request.args) }}
+        {% endif %}
+    </div>
+</div>
+
+<!-- Result Details Modal -->
+<div class="modal" id="detailsModal" style="display: none;">
+    <div class="modal-content large">
+        <div class="modal-header">
+            <h3>📋 Exam Result Details</h3>
+            <button onclick="closeDetailsModal()" class="modal-close">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="resultDetails">
+                <!-- Details will be populated by JavaScript -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button onclick="closeDetailsModal()" class="btn btn-secondary">Close</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let sortDirection = {};
+
+function filterResults() {
+    const examFilter = document.getElementById('examFilter').value.trim();
+    const wingFilter = document.getElementById('wingFilter').value.trim();
+    const divisionFilter = document.getElementById('divisionFilter').value.trim();
+    const districtFilter = document.getElementById('districtFilter').value.trim();
+    const sectionFilter = document.getElementById('sectionFilter').value.trim();
+    const statusFilter = document.getElementById('statusFilter').value.trim();
+    const searchFilter = document.getElementById('searchFilter').value.trim().toLowerCase();
+    
+    console.log('🔍 Active Filters:', { 
+        exam: examFilter || 'All', 
+        wing: wingFilter || 'All', 
+        division: divisionFilter || 'All',
+        district: districtFilter || 'All', 
+        section: sectionFilter || 'All', 
+        status: statusFilter || 'All', 
+        search: searchFilter || 'None' 
+    });
+    
+    const rows = document.querySelectorAll('.result-row');
+    let visibleCount = 0;
+    let hiddenCount = 0;
+    
+    rows.forEach((row, index) => {
+        const exam = (row.dataset.exam || '').trim();
+        const wing = (row.dataset.wing || '').trim();
+        const division = (row.dataset.division || '').trim();
+        const district = (row.dataset.district || '').trim();
+        const section = (row.dataset.section || '').trim();
+        const status = (row.dataset.status || '').trim();
+        const searchText = (row.dataset.search || '').trim();
+        
+        // Debug first 3 rows
+        if (index < 3) {
+            console.log(`Row ${index + 1} data:`, { exam, wing, division, district, section, status });
+        }
+        
+        let show = true;
+        let reason = '';
+        
+        // Exact match for exam (case-insensitive)
+        if (examFilter && examFilter !== '') {
+            if (exam.toLowerCase() !== examFilter.toLowerCase()) {
+                show = false;
+                reason = 'exam mismatch';
+            }
+        }
+        
+        // Exact match for wing (case-insensitive)
+        if (show && wingFilter && wingFilter !== '') {
+            if (wing.toLowerCase() !== wingFilter.toLowerCase()) {
+                show = false;
+                reason = 'wing mismatch';
+            }
+        }
+        
+        // Exact match for division (case-insensitive)
+        if (show && divisionFilter && divisionFilter !== '') {
+            if (division.toLowerCase() !== divisionFilter.toLowerCase()) {
+                show = false;
+                reason = 'division mismatch';
+            }
+        }
+        
+        // Exact match for district (case-insensitive)
+        if (show && districtFilter && districtFilter !== '') {
+            if (district.toLowerCase() !== districtFilter.toLowerCase()) {
+                show = false;
+                reason = 'district mismatch';
+            }
+        }
+        
+        // Exact match for section (case-insensitive)
+        if (show && sectionFilter && sectionFilter !== '') {
+            if (section.toLowerCase() !== sectionFilter.toLowerCase()) {
+                show = false;
+                reason = 'section mismatch';
+            }
+        }
+        
+        // Exact match for status
+        if (show && statusFilter && statusFilter !== '') {
+            if (status !== statusFilter) {
+                show = false;
+                reason = 'status mismatch';
+            }
+        }
+        
+        // Partial match for search (name/NSI ID)
+        if (show && searchFilter && searchFilter !== '') {
+            if (!searchText.includes(searchFilter)) {
+                show = false;
+                reason = 'search mismatch';
+            }
+        }
+        
+        row.style.display = show ? '' : 'none';
+        
+        if (show) {
+            visibleCount++;
+        } else {
+            hiddenCount++;
+            if (index < 5) console.log(`Row ${index + 1} hidden: ${reason}`);
+        }
+    });
+    
+    console.log(`✅ Results: ${visibleCount} visible, ${hiddenCount} hidden (${rows.length} total)`);
+    updateResultsCount();
+}
+
+function getFilterValues() {
+    return {
+        exam: document.getElementById('examFilter').value,
+        wing: document.getElementById('wingFilter').value,
+        district: document.getElementById('districtFilter').value,
+        section: document.getElementById('sectionFilter').value,
+        status: document.getElementById('statusFilter').value,
+        search: document.getElementById('searchFilter').value.toLowerCase()
+    };
+}
+
+// Update active filter chips UI (Enhanced version)
+function updateActiveChips() {
+    const chipsContainer = document.getElementById('activeChips');
+    if (!chipsContainer) return;
+
+    const exam = document.getElementById('examFilter') ? document.getElementById('examFilter').value : '';
+    const wing = document.getElementById('wingFilter') ? document.getElementById('wingFilter').value : '';
+    const division = document.getElementById('divisionFilter') ? document.getElementById('divisionFilter').value : '';
+    const district = document.getElementById('districtFilter') ? document.getElementById('districtFilter').value : '';
+    const section = document.getElementById('sectionFilter') ? document.getElementById('sectionFilter').value : '';
+    const status = document.getElementById('statusFilter') ? document.getElementById('statusFilter').value : '';
+    const search = document.getElementById('searchFilter') ? document.getElementById('searchFilter').value : '';
+
+    const entries = [
+        { field: 'exam', label: 'Exam', value: exam },
+        { field: 'wing', label: 'Wing', value: wing },
+        { field: 'division', label: 'Division', value: division },
+        { field: 'district', label: 'District', value: district },
+        { field: 'section', label: 'Section', value: section },
+        { field: 'status', label: 'Status', value: status },
+        { field: 'search', label: 'Search', value: search }
+    ];
+
+    chipsContainer.innerHTML = '';
+    entries.forEach(e => {
+        if (e.value && e.value !== '') {
+            const span = document.createElement('span');
+            span.className = 'chip';
+            span.innerHTML = `<span class="chip-label">${e.label}: ${e.value}</span> <button class="chip-clear" data-field="${e.field}" title="Clear ${e.label}">×</button>`;
+            chipsContainer.appendChild(span);
+        }
+    });
+
+    // attach handlers
+    chipsContainer.querySelectorAll('.chip-clear').forEach(btn => {
+        btn.addEventListener('click', function(){
+            const field = btn.getAttribute('data-field');
+            const el = document.getElementById(field + 'Filter');
+            if (el) {
+                el.value = '';
+                filterResults();
+                updateActiveChips();
+            }
+        });
+    });
+}
+
+function applyFilters() {
+    filterResults();
+    updateActiveChips();
+}
+
+function updateResultsCount() {
+    const visibleRows = document.querySelectorAll('.result-row[style=""], .result-row:not([style])');
+    const totalRows = document.querySelectorAll('.result-row');
+    
+    // Update header or add a counter if needed
+    console.log(`Showing ${visibleRows.length} of ${totalRows.length} results`);
+}
+
+function sortTable(columnIndex) {
+    const table = document.getElementById('resultsTable');
+    const tbody = table.querySelector('tbody');
+    const rows = Array.from(tbody.querySelectorAll('tr'));
+    
+    const currentDirection = sortDirection[columnIndex] || 'asc';
+    const newDirection = currentDirection === 'asc' ? 'desc' : 'asc';
+    sortDirection[columnIndex] = newDirection;
+    
+    rows.sort((a, b) => {
+        const aValue = a.cells[columnIndex].textContent.trim();
+        const bValue = b.cells[columnIndex].textContent.trim();
+        
+        // Handle numeric values (scores)
+        if (columnIndex === 3) {
+            const aNum = parseFloat(aValue);
+            const bNum = parseFloat(bValue);
+            return newDirection === 'asc' ? aNum - bNum : bNum - aNum;
+        }
+        
+        // Handle text values
+        const comparison = aValue.localeCompare(bValue);
+        return newDirection === 'asc' ? comparison : -comparison;
+    });
+    
+    // Clear and re-append sorted rows
+    tbody.innerHTML = '';
+    rows.forEach(row => tbody.appendChild(row));
+    
+    // Update sort indicators
+    document.querySelectorAll('.sort-indicator').forEach(indicator => {
+        indicator.textContent = '↕️';
+    });
+    
+    const currentIndicator = table.querySelector(`th:nth-child(${columnIndex + 1}) .sort-indicator`);
+    currentIndicator.textContent = newDirection === 'asc' ? '↑' : '↓';
+}
+
+function exportResults() {
+    console.log('🚀 Export Function Version: 2.0 - Fixed CSV Export');
+    
+    const rows = document.querySelectorAll('.result-row');
+    const visibleRows = Array.from(rows).filter(row => row.style.display !== 'none');
+    
+    if (visibleRows.length === 0) {
+        alert('No results to export');
+        return;
+    }
+    
+    // CSV Headers - NEW FORMAT with 16 columns
+    let csv = 'Rank,NSI ID,Name,Exam,Score,Avg Score,Start Date,Start Time,End Date,End Time,Duration,Status,Wing,Division,District,Section\n';
+    console.log('📋 CSV Header:', csv.split('\n')[0]);
+    
+    visibleRows.forEach((row, index) => {
+        const cells = row.querySelectorAll('td');
+        
+        // Extract rank - find the rank badge text and clean it
+        let rankText = '-';
+        const rankBadge = cells[0].querySelector('.rank-badge');
+        if (rankBadge) {
+            // Get text content and remove emojis and # symbol
+            rankText = rankBadge.textContent.replace(/[🥇🥈🥉#\s]/g, '').trim();
+        }
+        if (!rankText || rankText === '') {
+            rankText = '-';
+        }
+        
+        // Debug first row
+        if (index === 0) {
+            console.log('First row data check:', {
+                rank: rankText,
+                cells: cells.length,
+                rawRankText: cells[0].textContent
+            });
+        }
+        
+        // NSI ID and Name
+        const nsiId = cells[1].querySelector('strong') ? cells[1].querySelector('strong').textContent.trim() : cells[1].textContent.trim();
+        const name = cells[2].textContent.trim();
+        
+        // Exam title
+        const exam = cells[3].textContent.trim();
+        
+        // Score - get the score value span
+        const scoreSpan = cells[4].querySelector('.score-value');
+        const score = scoreSpan ? scoreSpan.textContent.replace('%', '').trim() : cells[4].textContent.replace('%', '').trim();
+        
+        // Avg Score
+        const avgScoreSpan = cells[5].querySelector('.avg-score-value');
+        let avgScore = '-';
+        if (avgScoreSpan) {
+            avgScore = avgScoreSpan.textContent.replace('%', '').trim();
+        } else if (cells[5].textContent.includes('Pending')) {
+            avgScore = 'Pending';
+        } else {
+            avgScore = cells[5].textContent.replace('%', '').trim() || '-';
+        }
+        
+        // Start Time and Date
+        const startTimeSpan = cells[6].querySelector('.time-value');
+        const startDateSpan = cells[6].querySelector('.date-value');
+        const startTime = startTimeSpan ? startTimeSpan.textContent.trim() : '-';
+        const startDate = startDateSpan ? startDateSpan.textContent.trim() : '-';
+        
+        // End Time and Date
+        const endTimeSpan = cells[7].querySelector('.time-value');
+        const endDateSpan = cells[7].querySelector('.date-value');
+        const endTime = endTimeSpan ? endTimeSpan.textContent.trim() : '-';
+        const endDate = endDateSpan ? endDateSpan.textContent.trim() : '-';
+        
+        // Duration
+        const durationSpan = cells[8].querySelector('.duration-value');
+        const duration = durationSpan ? durationSpan.textContent.trim() : cells[8].textContent.trim().split('\n')[0].trim() || '-';
+        
+        // Status
+        const statusBadge = cells[9].querySelector('.status-badge');
+        const status = statusBadge ? statusBadge.textContent.replace(/[✓✗]/g, '').trim() : cells[9].textContent.trim();
+        
+        // Wing, Division and District
+        const wing = cells[10].textContent.trim() || '-';
+        const division = cells[11].textContent.trim() || '-';
+        const district = cells[12].textContent.trim() || '-';
+        
+        // Section from data attribute
+        const section = row.dataset.section ? row.dataset.section.trim() : '-';
+        
+        // Build row data array
+        const rowData = [
+            rankText, 
+            nsiId, 
+            name, 
+            exam, 
+            score, 
+            avgScore, 
+            startDate, 
+            startTime, 
+            endDate, 
+            endTime, 
+            duration, 
+            status, 
+            wing, 
+            division,
+            district, 
+            section
+        ];
+        
+        // Clean and escape each field
+        const cleanedData = rowData.map(field => {
+            // Convert to string and remove extra whitespace/newlines
+            let cleaned = String(field).replace(/\s+/g, ' ').trim();
+            // Escape double quotes
+            cleaned = cleaned.replace(/"/g, '""');
+            return `"${cleaned}"`;
+        });
+        
+        csv += cleanedData.join(',') + '\n';
+    });
+    
+    // Create and download file with UTF-8 BOM for Excel compatibility
+    const BOM = '\uFEFF';
+    const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    
+    // Create filename with current date and time
+    const now = new Date();
+    const dateStr = now.toISOString().split('T')[0];
+    const timeStr = now.toTimeString().split(' ')[0].replace(/:/g, '-');
+    a.download = `exam_results_${dateStr}_${timeStr}.csv`;
+    
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    window.URL.revokeObjectURL(url);
+    
+    // Show success message
+    console.log(`✅ Exported ${visibleRows.length} results to CSV`);
+    alert(`✅ Successfully exported ${visibleRows.length} results!`);
+}
+
+function viewDetails(resultId) {
+    // This would typically fetch detailed result data via AJAX
+    // For now, we'll show a placeholder modal
+    const detailsContent = `
+        <div class="result-detail">
+            <h4>Employee Information</h4>
+            <p><strong>Result ID:</strong> ${resultId}</p>
+            <p><em>Detailed result information would be displayed here, including:</em></p>
+            <ul>
+                <li>Individual question responses</li>
+                <li>Time taken per question</li>
+                <li>Exam start and end times</li>
+                <li>Answer analysis</li>
+            </ul>
+        </div>
+    `;
+    
+    document.getElementById('resultDetails').innerHTML = detailsContent;
+    document.getElementById('detailsModal').style.display = 'flex';
+}
+
+function closeDetailsModal() {
+    document.getElementById('detailsModal').style.display = 'none';
+}
+
+// Initialize filters with unique values and button handlers
+document.addEventListener('DOMContentLoaded', function() {
+    // Set initial filter values from URL parameters
+    const params = new URLSearchParams(window.location.search);
+    
+    if (params.get('exam')) document.getElementById('examFilter').value = params.get('exam');
+    if (params.get('wing')) document.getElementById('wingFilter').value = params.get('wing');
+    if (params.get('district')) document.getElementById('districtFilter').value = params.get('district');
+    if (params.get('section')) document.getElementById('sectionFilter').value = params.get('section');
+    if (params.get('status')) document.getElementById('statusFilter').value = params.get('status');
+    if (params.get('search')) document.getElementById('searchFilter').value = params.get('search');
+
+    // Initialize active chips display
+    updateActiveChips();
+    
+    // Add event listeners to all filter elements
+    const filters = ['examFilter', 'wingFilter', 'districtFilter', 'sectionFilter', 'statusFilter'];
+    filters.forEach(filterId => {
+        const element = document.getElementById(filterId);
+        if (element) {
+            element.addEventListener('change', () => {
+                filterResults();
+                updateActiveChips();
+            });
+        }
+    });
+
+    // Add event listener to search with a small delay
+    const searchElement = document.getElementById('searchFilter');
+    if (searchElement) {
+        let timeout = null;
+        searchElement.addEventListener('input', () => {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => {
+                filterResults();
+                updateActiveChips();
+            }, 300);
+        });
+    }
+
+    // Clear button handler
+    const clearBtn = document.getElementById('clearFiltersBtn');
+    if (clearBtn) clearBtn.addEventListener('click', function(){
+        document.getElementById('filtersForm').reset();
+        filterResults();
+        updateActiveChips();
+        // Clear URL parameters
+        window.history.replaceState({}, document.title, window.location.pathname);
+    });
+
+    // Refresh button handler
+    const refreshBtn = document.getElementById('refreshBtn');
+    if (refreshBtn) refreshBtn.addEventListener('click', function(){
+        window.location.reload();
+    });
+    
+    // Populate exam filter with unique values
+    const examFilter = document.getElementById('examFilter');
+    const wingFilter = document.getElementById('wingFilter');
+    
+    const uniqueExams = new Set();
+    const uniqueWings = new Set();
+    
+    document.querySelectorAll('.result-row').forEach(row => {
+        uniqueExams.add(row.dataset.exam);
+        if (row.dataset.wing) {
+            uniqueWings.add(row.dataset.wing);
+        }
+    });
+    
+    // Clear and populate exam filter
+    examFilter.innerHTML = '<option value="">All Exams</option>';
+    uniqueExams.forEach(exam => {
+        const option = document.createElement('option');
+        option.value = exam;
+        option.textContent = exam;
+        examFilter.appendChild(option);
+    });
+    
+    // Clear and populate wing filter
+    wingFilter.innerHTML = '<option value="">All Wings</option>';
+    uniqueWings.forEach(wing => {
+        const option = document.createElement('option');
+        option.value = wing;
+        option.textContent = wing;
+        wingFilter.appendChild(option);
+    });
+});
+</script>
+{% endblock %}
