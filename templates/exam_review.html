@@ -119,15 +119,16 @@
                         <h5>Available Options:</h5>
                         <div class="options-list">
                             {% for option in review.options %}
-                            <div class="option-item 
-                                     {% if option[1] == review.user_answer %}user-selected{% endif %}
-                                     {% if option[1] == review.correct_answer %}correct-option{% endif %}">
+                            {# robust comparisons: user_answer/correct_answer may be stored as letter (A) or full text #}
+                            {% set is_user = (option[1] == review.user_answer) or (option[0] == review.user_answer) %}
+                            {% set is_correct = (option[1] == review.correct_answer) or (option[0] == review.correct_answer) %}
+                            <div class="option-item {% if is_user %}user-selected{% endif %} {% if is_correct %}correct-option{% endif %}">
                                 <span class="option-letter">{{ option[0] }})</span>
                                 <span class="option-text">{{ option[1] }}</span>
-                                {% if option[1] == review.user_answer %}
+                                {% if is_user %}
                                     <span class="option-badge user-choice">Your Choice</span>
                                 {% endif %}
-                                {% if option[1] == review.correct_answer %}
+                                {% if is_correct %}
                                     <span class="option-badge correct-choice">Correct Answer</span>
                                 {% endif %}
                             </div>
@@ -136,13 +137,27 @@
                     </div>
                     {% endif %}
                     
+                    {# derive display-friendly strings for user's answer and correct answer #}
+                    {% set user_display = review.user_answer %}
+                    {% set correct_display = review.correct_answer %}
+                    {% if review.options %}
+                        {% for option in review.options %}
+                            {% if option[0] == review.user_answer or option[1] == review.user_answer %}
+                                {% set user_display = option[1] %}
+                            {% endif %}
+                            {% if option[0] == review.correct_answer or option[1] == review.correct_answer %}
+                                {% set correct_display = option[1] %}
+                            {% endif %}
+                        {% endfor %}
+                    {% endif %}
+
                     <div class="answer-comparison">
                         <div class="answer-section user-answer">
                             <div class="answer-header">
                                 <span class="answer-icon">👤</span>
                                 <span class="answer-label">Your Answer</span>
                             </div>
-                            <div class="answer-value">{{ review.user_answer or "No answer selected" }}</div>
+                            <div class="answer-value">{{ user_display or "No answer selected" }}</div>
                         </div>
                         
                         <div class="answer-section correct-answer">
@@ -150,7 +165,7 @@
                                 <span class="answer-icon">✅</span>
                                 <span class="answer-label">Correct Answer</span>
                             </div>
-                            <div class="answer-value">{{ review.correct_answer or "Not available" }}</div>
+                            <div class="answer-value">{{ correct_display or "Not available" }}</div>
                         </div>
                     </div>
                     

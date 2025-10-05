@@ -2162,13 +2162,27 @@ def submit_exam(session_id):
                 raise ValueError("Invalid 'answers' format")
         else:
             # Handle form data (backward compatibility)
-            answers = {}
+            raw_answers = {}
             for key, value in request.form.items():
                 if key.startswith('question_'):
                     question_id = key.split('_')[1]
-                    answers[question_id] = value
-            
-            print(f"📝 Extracted answers: {answers}")
+                    raw_answers[question_id] = value
+
+            print(f"📝 Extracted raw answers: {raw_answers}")
+
+            # Normalize answers: map numeric indices to letters if necessary
+            map_index_to_letter = {'1': 'A', '2': 'B', '3': 'C', '4': 'D', '5': 'E', '6': 'F'}
+            answers = {}
+            for qid, val in raw_answers.items():
+                v = str(val).strip()
+                # If v looks like a digit (1..6) and we have a mapping, convert to letter
+                if v.isdigit() and v in map_index_to_letter:
+                    answers[qid] = map_index_to_letter[v]
+                else:
+                    # Preserve letters (A/B/...) or full-text answers
+                    answers[qid] = v
+
+            print(f"✅ Normalized answers: {answers}")
             
             # Allow submission even with no answers (all questions left blank)
             # This is valid - user might choose not to answer some questions
@@ -2196,16 +2210,38 @@ def submit_exam(session_id):
     for question in questions:
         q_id = str(question['id'])
         user_answer = answers.get(q_id)
-        correct_option = question['correct_option']
-        
-        is_correct = (user_answer == correct_option)
+        correct_option = question.get('correct_option')
+
+        # Determine correctness: allow comparison by letter OR by exact text
+        is_correct = False
+        if user_answer is not None and correct_option is not None:
+            # If correct_option stored as letter, simple compare
+            if user_answer == correct_option:
+                is_correct = True
+            else:
+                # If user_answer is text and correct_option is a letter, try map letter->text
+                # question may include options as list of tuples [('A','TextA'), ...]
+                opts = question.get('options', [])
+                if isinstance(opts, list) and opts:
+                    # find text for correct option letter
+                    correct_text = None
+                    for opt in opts:
+                        if opt[0] == correct_option:
+                            correct_text = opt[1]
+                            break
+                    # compare user_answer to correct_text if available
+                    if correct_text and user_answer == correct_text:
+                        is_correct = True
+
         if is_correct:
             score += 1
-        
+
+        # Store richer answers_detail for later display
         answers_detail[q_id] = {
-            'user_answer': user_answer,
+            'selected_answer': user_answer,
             'correct_answer': correct_option,
-            'is_correct': is_correct
+            'is_correct': is_correct,
+            'question': question.get('question_text', '')
         }
 
     end_time = datetime.now()
@@ -2408,41 +2444,33 @@ def student_exam_review(session_id):
     
     # Combine answers with full question details
     detailed_review = []
-    for i, answer_detail in enumerate(answers_detail):
-        # Find matching question from stored questions
-        question_data = None
-        if i < len(questions_data):
-            question_data = questions_data[i]
-        
-        # Handle case where answer_detail might be a string or dict
-        if isinstance(answer_detail, dict):
+
+    # Support two shapes for answers_detail: list (by question order) or dict keyed by question id
+    if isinstance(answers_detail, dict):
+        # Build review items in the order of stored questions_data when available
+        for i, question_data in enumerate(questions_data):
+            qid = str(question_data.get('id'))
+            ad = answers_detail.get(qid, {}) if answers_detail else {}
+
+            user_ans = None
+            is_corr = False
+            if isinstance(ad, dict):
+                user_ans = ad.get('selected_answer') or ad.get('user_answer') or None
+                is_corr = bool(ad.get('is_correct'))
+            else:
+                # fallback: ad might be a raw value
+                user_ans = str(ad) if ad is not None else None
+
             review_item = {
                 'question_number': i + 1,
-                'question_text': answer_detail.get('question', 'Question not found'),
-                'user_answer': answer_detail.get('selected_answer', 'No answer selected'),
-                'is_correct': answer_detail.get('is_correct', False),
+                'question_text': question_data.get('question_text', 'Question not found'),
+                'user_answer': user_ans if user_ans is not None else 'No answer selected',
+                'is_correct': is_corr,
                 'correct_answer': '',
-                'explanation': '',
-                'options': []
+                'explanation': question_data.get('explanation', ''),
+                'options': question_data.get('options', [])
             }
-        else:
-            # If answer_detail is a string, create a basic structure
-            review_item = {
-                'question_number': i + 1,
-                'question_text': 'Question not found',
-                'user_answer': str(answer_detail) if answer_detail else 'No answer selected',
-                'is_correct': False,
-                'correct_answer': '',
-                'explanation': '',
-                'options': []
-            }
-        
-        # If we have the full question data, add more details
-        if question_data:
-            review_item['question_text'] = question_data.get('question_text', review_item['question_text'])
-            review_item['explanation'] = question_data.get('explanation', '')
-            review_item['options'] = question_data.get('options', [])
-            
+
             # Find the correct answer text
             correct_option = question_data.get('correct_option', '')
             if correct_option and review_item['options']:
@@ -2450,8 +2478,45 @@ def student_exam_review(session_id):
                     if option[0] == correct_option:
                         review_item['correct_answer'] = option[1]
                         break
-        
-        detailed_review.append(review_item)
+
+            detailed_review.append(review_item)
+
+    else:
+        # answers_detail is expected to be a list (existing behavior)
+        for i, answer_detail in enumerate(answers_detail):
+            # Find matching question from stored questions
+            question_data = None
+            if i < len(questions_data):
+                question_data = questions_data[i]
+
+            # Handle case where answer_detail might be a dict or a raw value
+            if isinstance(answer_detail, dict):
+                user_ans = answer_detail.get('selected_answer') or answer_detail.get('user_answer') or None
+                is_corr = bool(answer_detail.get('is_correct'))
+            else:
+                user_ans = str(answer_detail) if answer_detail else None
+                is_corr = False
+
+            review_item = {
+                'question_number': i + 1,
+                'question_text': question_data.get('question_text', 'Question not found') if question_data else 'Question not found',
+                'user_answer': user_ans if user_ans is not None else 'No answer selected',
+                'is_correct': is_corr,
+                'correct_answer': '',
+                'explanation': question_data.get('explanation', '') if question_data else '',
+                'options': question_data.get('options', []) if question_data else []
+            }
+
+            # Find the correct answer text
+            if question_data:
+                correct_option = question_data.get('correct_option', '')
+                if correct_option and review_item['options']:
+                    for option in review_item['options']:
+                        if option[0] == correct_option:
+                            review_item['correct_answer'] = option[1]
+                            break
+
+            detailed_review.append(review_item)
     
     conn.close()
     
