@@ -138,19 +138,33 @@ class InputValidator:
         return True, value
     
     @staticmethod
-    def detect_sql_injection(value):
-        """Detect potential SQL injection attempts"""
+    def detect_sql_injection(value, strict=True):
+        """Detect potential SQL injection attempts
+        Args:
+            value: The string to check
+            strict: If False, only check for dangerous SQL commands, not keywords
+        """
         if not value:
             return False
         
-        # Common SQL injection patterns
-        sql_patterns = [
-            r"(\s*(;|'|\"|\-\-|\/\*|\*\/|@@|@|char|nchar|varchar|nvarchar|alter|begin|cast|create|cursor|declare|delete|drop|end|exec|execute|fetch|insert|kill|open|select|sys|sysobjects|syscolumns|table|update)\s*)",
-            r"(\s*(union|join|where|order\s+by|group\s+by|having)\s+)",
-            r"(\s*(script|javascript|vbscript|onload|onerror|onclick)\s*)",
-        ]
-        
         value_lower = str(value).lower()
+        
+        if strict:
+            # Strict mode: Check for common SQL injection patterns
+            sql_patterns = [
+                r"(\s*(;|'|\"|\-\-|\/\*|\*\/|@@|@|char|nchar|varchar|nvarchar|alter|begin|cast|create|cursor|declare|delete|drop|end|exec|execute|fetch|insert|kill|open|select|sys|sysobjects|syscolumns|table|update)\s*)",
+                r"(\s*(union|join|where|order\s+by|group\s+by|having)\s+)",
+                r"(\s*(script|javascript|vbscript|onload|onerror|onclick)\s*)",
+            ]
+        else:
+            # Relaxed mode: Only check for dangerous SQL commands with suspicious patterns
+            sql_patterns = [
+                r";\s*(drop|delete|truncate|alter|create|exec|execute)\s+",
+                r"(union\s+select|union\s+all\s+select)",
+                r"(exec\s*\(|execute\s*\()",
+                r"(--|\/\*|\*\/)\s*(drop|delete|insert|update|exec)",
+            ]
+        
         for pattern in sql_patterns:
             if re.search(pattern, value_lower):
                 return True
@@ -158,25 +172,41 @@ class InputValidator:
         return False
     
     @staticmethod
-    def detect_xss(value):
-        """Detect potential XSS attempts"""
+    def detect_xss(value, strict=True):
+        """Detect potential XSS attempts
+        Args:
+            value: The string to check
+            strict: If False, only check for active XSS patterns
+        """
         if not value:
             return False
         
-        # Common XSS patterns
-        xss_patterns = [
-            r'<script[^>]*>',
-            r'javascript:',
-            r'onload\s*=',
-            r'onerror\s*=',
-            r'onclick\s*=',
-            r'onmouseover\s*=',
-            r'<iframe[^>]*>',
-            r'<object[^>]*>',
-            r'<embed[^>]*>',
-        ]
-        
         value_lower = str(value).lower()
+        
+        if strict:
+            # Strict mode: Check for all XSS patterns
+            xss_patterns = [
+                r'<script[^>]*>',
+                r'javascript:',
+                r'onload\s*=',
+                r'onerror\s*=',
+                r'onclick\s*=',
+                r'onmouseover\s*=',
+                r'<iframe[^>]*>',
+                r'<object[^>]*>',
+                r'<embed[^>]*>',
+            ]
+        else:
+            # Relaxed mode: Only check for active script injection
+            xss_patterns = [
+                r'<script[^>]*>.*</script>',
+                r'javascript:\s*[a-z]',
+                r'on\w+\s*=\s*["\']?\s*(javascript|alert)',
+                r'<iframe[^>]*src\s*=',
+                r'<object[^>]*data\s*=',
+                r'<embed[^>]*src\s*=',
+            ]
+        
         for pattern in xss_patterns:
             if re.search(pattern, value_lower):
                 return True
@@ -2050,12 +2080,23 @@ def start_exam(exam_id):
                 # Fetch questions based on category config
                 for category, num_q in category_config.items():
                     if num_q > 0:
-                        cat_questions = conn.execute('''
-                            SELECT * FROM questions 
-                            WHERE category = ? 
-                            ORDER BY RANDOM() 
-                            LIMIT ?
-                        ''', (category, num_q)).fetchall()
+                        # For easy/medium/hard: select by difficulty (includes text, video, and image questions)
+                        # For image/video: select by category specifically
+                        if category in ['easy', 'medium', 'hard', 'unseen']:
+                            cat_questions = conn.execute('''
+                                SELECT * FROM questions 
+                                WHERE difficulty = ? 
+                                ORDER BY RANDOM() 
+                                LIMIT ?
+                            ''', (category, num_q)).fetchall()
+                        else:
+                            # For image/video categories
+                            cat_questions = conn.execute('''
+                                SELECT * FROM questions 
+                                WHERE category = ? 
+                                ORDER BY RANDOM() 
+                                LIMIT ?
+                            ''', (category, num_q)).fetchall()
                         shuffled_questions.extend(cat_questions)
                 
                 # Shuffle the combined list of questions
@@ -2913,10 +2954,15 @@ def edit_question(question_id):
                 # Store using uppercase letter key for frontend
                 option_images[opt.upper()] = f"/{file_path}".replace('\\', '/')
     
+    # Determine category based on question properties
     if question_image or any(option_images.values()):
         difficulty = 'image'
+        category = 'image'
     elif question_youtube:
         difficulty = 'video'
+        category = 'video'
+    else:
+        category = difficulty  # Use difficulty as category for text questions
     
     conn = get_db_connection()
     try:
@@ -2926,13 +2972,13 @@ def edit_question(question_id):
                 option_e = ?, option_f = ?, correct_option = ?, difficulty = ?, subject = ?,
                 question_image = ?, question_youtube = ?,
                 option_a_image = ?, option_b_image = ?, option_c_image = ?, 
-                option_d_image = ?, option_e_image = ?, option_f_image = ?
+                option_d_image = ?, option_e_image = ?, option_f_image = ?, category = ?
             WHERE id = ?
         ''', (question_text, option_a, option_b, option_c, option_d, option_e, option_f, 
               correct_option, difficulty, subject, question_image, question_youtube,
               option_images.get('1'), option_images.get('2'), option_images.get('3'),
               option_images.get('4'), option_images.get('5'), option_images.get('6'), 
-              question_id))
+              category, question_id))
         conn.commit()
         return jsonify({'success': True})
     except Exception as e:
@@ -2992,15 +3038,18 @@ def add_question():
         question_youtube = request.form.get('question_youtube', '').strip()
         
         # Security checks for malicious content
+        # Use relaxed mode for admin question content (allow SQL keywords in questions)
         all_inputs = [question_text, option_a, option_b, option_c, option_d, 
                      option_e, option_f, subject, question_youtube]
         
         for input_value in all_inputs:
-            if InputValidator.detect_sql_injection(input_value):
+            # Use strict=False to allow SQL-related words in question content
+            if InputValidator.detect_sql_injection(input_value, strict=False):
                 flash('Potential security threat detected. Request blocked.', 'error')
                 return render_template('add_question.html')
             
-            if InputValidator.detect_xss(input_value):
+            # Use strict=False to allow HTML-related words in question content
+            if InputValidator.detect_xss(input_value, strict=False):
                 flash('Potential security threat detected. Request blocked.', 'error')
                 return render_template('add_question.html')
         
@@ -3064,10 +3113,15 @@ def add_question():
                     file.save(file_path)
                     option_images[opt] = f"/{file_path}"
     
+        # Determine category based on question properties
         if question_image or any(option_images.values()):
             difficulty = 'image'
+            category = 'image'
         elif question_youtube:
             difficulty = 'video'
+            category = 'video'
+        else:
+            category = difficulty  # Use difficulty as category for text questions
         
         conn = get_db_connection()
         try:
@@ -3076,12 +3130,12 @@ def add_question():
                 (question_text, option_a, option_b, option_c, option_d, option_e, option_f, 
                  correct_option, difficulty, subject, question_image, question_youtube,
                  option_a_image, option_b_image, option_c_image, option_d_image, 
-                 option_e_image, option_f_image) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                 option_e_image, option_f_image, category) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ''', (question_text, option_a, option_b, option_c, option_d, option_e, option_f, 
                   correct_option, difficulty, subject, question_image, question_youtube,
                   option_images.get('1'), option_images.get('2'), option_images.get('3'),
-                  option_images.get('4'), option_images.get('5'), option_images.get('6')))
+                  option_images.get('4'), option_images.get('5'), option_images.get('6'), category))
             conn.commit()
             flash('Question added successfully!', 'success')
             return redirect(url_for('admin_questions'))
@@ -3116,8 +3170,13 @@ def add_exam():
     conn = get_db_connection()
     
     category_counts = {}
+    # For easy/medium/hard: count by difficulty (includes all question types)
+    # For image/video: count by category specifically
     for category in ['easy', 'medium', 'hard', 'image', 'video']:
-        count = conn.execute('SELECT COUNT(*) FROM questions WHERE category = ?', (category,)).fetchone()[0]
+        if category in ['easy', 'medium', 'hard']:
+            count = conn.execute('SELECT COUNT(*) FROM questions WHERE difficulty = ?', (category,)).fetchone()[0]
+        else:
+            count = conn.execute('SELECT COUNT(*) FROM questions WHERE category = ?', (category,)).fetchone()[0]
         category_counts[category] = count
     
     if request.method == 'POST':

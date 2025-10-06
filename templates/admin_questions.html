@@ -97,27 +97,27 @@
                     <span class="stat-label">Total Questions</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-value">{{ questions|selectattr('category', 'equalto', 'easy')|list|length }}</span>
+                    <span class="stat-value">{{ questions|selectattr('difficulty', 'equalto', 'easy')|list|length }}</span>
                     <span class="stat-label">Easy</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-value">{{ questions|selectattr('category', 'equalto', 'medium')|list|length }}</span>
+                    <span class="stat-value">{{ questions|selectattr('difficulty', 'equalto', 'medium')|list|length }}</span>
                     <span class="stat-label">Medium</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-value">{{ questions|selectattr('category', 'equalto', 'hard')|list|length }}</span>
+                    <span class="stat-value">{{ questions|selectattr('difficulty', 'equalto', 'hard')|list|length }}</span>
                     <span class="stat-label">Hard</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-value">{{ questions|selectattr('category', 'equalto', 'unseen')|list|length }}</span>
+                    <span class="stat-value">{{ questions|selectattr('difficulty', 'equalto', 'unseen')|list|length }}</span>
                     <span class="stat-label">Unseen</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-value">{{ questions|selectattr('difficulty', 'equalto', 'image')|list|length }}</span>
+                    <span class="stat-value">{{ questions|selectattr('category', 'equalto', 'image')|list|length }}</span>
                     <span class="stat-label">Image</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-value">{{ questions|selectattr('difficulty', 'equalto', 'video')|list|length }}</span>
+                    <span class="stat-value">{{ questions|selectattr('category', 'equalto', 'video')|list|length }}</span>
                     <span class="stat-label">Video</span>
                 </div>
             </div>
