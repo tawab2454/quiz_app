@@ -28,7 +28,7 @@
            <ul style="text-align:left;">
                 <li>Learn safe online practices through engaging quizzes and workshops</li>
                 <li>Participate in real-time cyber challenges with instant feedback</li>
-                <li>Earn certificates and showcase your cyber awareness skills</li>
+                
             </ul>
         </div>
         <div class="feature">
@@ -53,8 +53,8 @@
         </div>
     </div>
     <div class="hero-actions">
-    <a href="{{ url_for('register') }}" class="btn btn-primary btn-large">Register as Employee</a>
-    <a href="{{ url_for('login') }}" class="btn btn-primary btn-large">Employee Login</a>
+    <a href="{{ url_for('register') }}" class="btn btn-primary btn-large">Register</a>
+    <a href="{{ url_for('login') }}" class="btn btn-primary btn-large">Login</a>
         <a href="{{ url_for('admin_login') }}" class="btn btn-admin btn-large">Admin Login</a>
     </div>
 </section>
@@ -77,11 +77,11 @@
             <h3>Participate</h3>
             <p>Attend events, take quizzes, and join cyber drills</p>
         </div>
-        <div class="step">
+        <!-- <div class="step">
             <div class="step-number">4</div>
             <h3>View Results</h3>
             <p>Instantly check scores, receive certificates, and track progress</p>
-        </div>
+        </div> -->
     </div>
 </section>
 
@@ -98,8 +98,8 @@
             <ul>
                 <li>NSI ID (required)</li>
                 <li>Full Name (required)</li>
-                <li>Wing Name (optional)</li>
-                <li>District Name (optional)</li>
+                <li>Wing Name (required)</li>
+                <li>District Name (required)</li>
                 <li>Section Name (optional)</li>
                 <li>Password (minimum 6 characters)</li>
             </ul>

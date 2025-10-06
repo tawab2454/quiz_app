@@ -25,40 +25,46 @@
                     </div>
                     <div class="exam-details">
                         <p><strong>Description:</strong> {{ active_exam.description | safe_text | default('No description available') }}</p>
-                        <div class="exam-info">
-                            <div class="info-item">
-                                <span class="info-label">Duration:</span>
-                                <span class="info-value">{{ active_exam.duration_minutes }} minutes</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Questions:</span>
-                                <span class="info-value">{{ active_exam.num_questions }}</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Passing Score:</span>
-                                <span class="info-value">{{ active_exam.passing_score }}%</span>
-                            </div>
-                            <div class="info-item">
-                                <span class="info-label">Max Attempts:</span>
-                                <span class="info-value">{{ active_exam.max_attempts }}</span>
-                            </div>
-                            {% if active_exam.scheduled_start %}
+                        <div class="exam-info-grid">
+                            <div class="exam-info">
                                 <div class="info-item">
-                                    <span class="info-label">🕐 Participation Opens:</span>
-                                    <span class="info-value">{{ active_exam.scheduled_start.strftime('%Y-%m-%d at %H:%M') if active_exam.scheduled_start else active_exam.scheduled_start }}</span>
+                                    <span class="info-label">Duration:</span>
+                                    <span class="info-value">{{ active_exam.duration_minutes }} minutes</span>
                                 </div>
-                            {% endif %}
-                            {% if active_exam.scheduled_end %}
                                 <div class="info-item">
-                                    <span class="info-label">⏰ Participation Closes:</span>
-                                    <span class="info-value exam-end-time">{{ active_exam.scheduled_end.strftime('%Y-%m-%d at %H:%M') if active_exam.scheduled_end else active_exam.scheduled_end }}</span>
+                                    <span class="info-label">Questions:</span>
+                                    <span class="info-value">{{ active_exam.num_questions }}</span>
                                 </div>
-                                <div class="participation-window-info">
-                                    <small style="color: #6c757d; font-style: italic;">
-                                        💡 You can start this exam anytime between the opening and closing times above.
-                                    </small>
+                                <div class="info-item">
+                                    <span class="info-label">Passing Score:</span>
+                                    <span class="info-value">{{ active_exam.passing_score }}%</span>
                                 </div>
-                            {% endif %}
+                                <div class="info-item">
+                                    <span class="info-label">Max Attempts:</span>
+                                    <span class="info-value">{{ active_exam.max_attempts }}</span>
+                                </div>
+                                {% if active_exam.scheduled_start %}
+                                    <div class="info-item">
+                                        <span class="info-label">🕐 Participation Opens:</span>
+                                        <span class="info-value">{{ active_exam.scheduled_start.strftime('%Y-%m-%d at %H:%M') if active_exam.scheduled_start else active_exam.scheduled_start }}</span>
+                                    </div>
+                                {% endif %}
+                                {% if active_exam.scheduled_end %}
+                                    <div class="info-item participation-item">
+                                        <div class="participation-meta">
+                                            <span class="info-label">⏰ Participation Closes:</span>
+                                            <span class="info-value exam-end-time">{{ active_exam.scheduled_end.strftime('%Y-%m-%d at %H:%M') if active_exam.scheduled_end else active_exam.scheduled_end }}</span>
+                                        </div>
+                                   
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="info-item info-tip">
+                                <span class="info-label">💡 Participation Tip</span>
+                                <span class="info-note">
+                                    You can start this exam anytime while it is active and before the closing time above. Make sure to submit before the deadline!
+                                </span>
+                            </div>
                         </div>
                     </div>
                     <div class="exam-actions">
@@ -123,14 +129,18 @@
                                     <span class="info-value">{{ next_exam.scheduled_start.strftime('%Y-%m-%d at %H:%M') if next_exam.scheduled_start else next_exam.scheduled_start }}</span>
                                 </div>
                                 {% if next_exam.scheduled_end %}
-                                    <div class="info-item">
-                                        <span class="info-label">⏰ Participation Closes:</span>
-                                        <span class="info-value exam-end-time">{{ next_exam.scheduled_end.strftime('%Y-%m-%d at %H:%M') if next_exam.scheduled_end else next_exam.scheduled_end }}</span>
+                                    <div class="info-item participation-item">
+                                        <div class="participation-meta">
+                                            <span class="info-label">⏰ Participation Closes:</span>
+                                            <span class="info-value exam-end-time">{{ next_exam.scheduled_end.strftime('%Y-%m-%d at %H:%M') if next_exam.scheduled_end else next_exam.scheduled_end }}</span>
+                                        </div>
+                                        <div class="participation-countdown" id="upcomingParticipationCountdown"></div>
                                     </div>
-                                    <div class="participation-window-info">
-                                        <small style="color: #6c757d; font-style: italic;">
-                                            💡 You can start this exam anytime between the opening and closing times above.
-                                        </small>
+                                    <div class="info-item info-tip">
+                                        <span class="info-label">💡 Participation Window</span>
+                                        <span class="info-note">
+                                            You can start this exam anytime between the opening and closing times above.
+                                        </span>
                                     </div>
                                 {% endif %}
                             </div>
@@ -587,18 +597,132 @@
     background: #2ecc71;
     color: #fff;
 }
-.exam-info {
+.dashboard-container .exam-info {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 10px;
-    margin-top: 10px;
+    grid-template-columns: repeat(auto-fit, minmax(248px, 1fr));
+    gap: 1.4rem;
+    margin-top: 1.75rem;
+    align-items: stretch;
 }
-.info-item {
+
+.dashboard-container .exam-info .info-item {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 1.35rem 1.4rem;
+    border-radius: 16px;
+    background: radial-gradient(circle at top, rgba(24, 61, 97, 0.9), rgba(14, 34, 58, 0.92));
+    border: 1px solid rgba(106, 214, 255, 0.28);
+    box-shadow: 0 14px 28px rgba(0, 20, 45, 0.35);
+    min-height: 158px;
+    transition: transform 0.2s ease, box-shadow 0.25s ease;
 }
-.info-label {
-    font-weight: bold;
+
+.dashboard-container .exam-info .info-item.info-tip {
+    background: linear-gradient(160deg, rgba(46, 108, 162, 0.95), rgba(28, 72, 118, 0.92));
+    border: 1px solid rgba(126, 226, 255, 0.32);
+    box-shadow: 0 12px 28px rgba(5, 28, 58, 0.32);
+    gap: 0.75rem;
+    min-height: 160px;
+}
+
+.dashboard-container .exam-info .info-item:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 18px 38px rgba(0, 26, 58, 0.4);
+}
+
+.dashboard-container .exam-info .info-label {
+    font-size: 0.82rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: rgba(205, 230, 255, 0.78);
+    font-weight: 600;
+}
+
+.dashboard-container .exam-info .info-item.info-tip .info-label {
+    letter-spacing: 0.12em;
+    color: rgba(233, 247, 255, 0.85);
+}
+
+.dashboard-container .exam-info .info-item .info-note {
+    font-size: clamp(0.95rem, 0.4vw + 0.8rem, 1.05rem);
+    color: rgba(219, 239, 255, 0.88);
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+.dashboard-container .exam-info .info-value,
+.dashboard-container .exam-info .exam-end-time {
+    font-size: clamp(1.24rem, 0.5vw + 1rem, 1.55rem);
+    font-weight: 700;
+    color: #f7fbff;
+}
+
+.dashboard-container .exam-info .participation-item {
+    gap: 0.85rem;
+    min-height: 178px;
+}
+
+.dashboard-container .exam-info .participation-meta {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.dashboard-container .exam-info .participation-countdown {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.55rem;
+    padding: 0.8rem 1rem;
+    border-radius: 12px;
+    background: rgba(255, 210, 90, 0.14);
+    border: 1px solid rgba(255, 198, 76, 0.4);
+    color: #ffd769;
+    font-size: 0.94rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+}
+
+.dashboard-container .participation-window-info {
+    margin-top: 0.7rem;
+    padding: 0.8rem 1rem;
+    border-left: 3px solid rgba(96, 214, 255, 0.45);
+    border-radius: 12px;
+    background: rgba(12, 42, 70, 0.4);
+}
+
+.dashboard-container .participation-window-info small {
+    color: rgba(210, 235, 255, 0.82);
+    font-style: italic;
+    letter-spacing: 0.025em;
+}
+
+@media (max-width: 1024px) {
+    .dashboard-container .exam-info {
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    }
+}
+
+@media (max-width: 680px) {
+    .dashboard-container .exam-info {
+        grid-template-columns: 1fr;
+    }
+
+    .dashboard-container .exam-info .info-item {
+        min-height: 140px;
+        padding: 1.2rem 1.25rem;
+    }
+
+    .dashboard-container .exam-info .participation-countdown {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.4rem;
+    }
 }
 .exam-actions {
     margin-top: 20px;

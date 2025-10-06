@@ -1,3 +1,46 @@
+/* Grid layout for Active Exam info and tip */
+.exam-info-grid {
+    display: grid;
+    grid-template-columns: 2.5fr 1.2fr;
+    gap: 1.2rem 2.2rem;
+    align-items: flex-start;
+    margin-top: 0.7rem;
+    margin-bottom: 0.7rem;
+}
+
+@media (max-width: 900px) {
+    .exam-info-grid {
+        grid-template-columns: 1fr;
+        gap: 1.2rem 0;
+    }
+}
+
+.info-item.info-tip {
+    background: linear-gradient(100deg, #1a2a3a 60%, #22334a 100%, #2e4666 120%);
+    border: 1.5px solid #50d8ff;
+    border-radius: 12px;
+    padding: 1.1rem 1.2rem;
+    color: #eaf6ff;
+    box-shadow: 0 2px 12px 0 rgba(80,216,255,0.10);
+    font-size: 1.01rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    min-width: 0;
+}
+.info-item.info-tip .info-label {
+    font-weight: 700;
+    color: #58d7ff;
+    font-size: 1.08rem;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.2rem;
+}
+.info-item.info-tip .info-note {
+    color: #eaf6ff;
+    font-size: 0.98rem;
+    opacity: 0.92;
+    line-height: 1.5;
+}
 /* General table enhancements */
 .table-responsive {
     width: 100%;
@@ -204,18 +247,19 @@
 
 .rankings-section .section-header::after {
     content: "";
-    display: block;
-    width: clamp(160px, 24vw, 220px);
-    height: 2px;
-    margin: 0.85rem auto 0;
-    background: linear-gradient(90deg, transparent, rgba(80, 216, 255, 0.85), transparent);
-    border-radius: 999px;
-    opacity: 0.7;
-}
-
-.rankings-section .rankings-performance-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 1.2rem 1.25rem;
+    border-radius: 12px;
+    background: linear-gradient(160deg, rgba(24, 61, 97, 0.98), rgba(14, 34, 58, 0.98));
+    border: 1px solid rgba(106, 214, 255, 0.18);
+    box-shadow: 0 4px 12px rgba(0, 20, 45, 0.12);
+    min-height: 120px;
+    max-width: 100%;
+    transition: transform 0.2s ease, box-shadow 0.25s ease;
     gap: clamp(1.25rem, 3vw, 2.75rem);
     align-items: stretch;
     position: relative;
@@ -673,3 +717,67 @@
     border: 1px solid rgba(80, 216, 255, 0.35) !important;
     box-shadow: 0 4px 15px rgba(0, 174, 255, 0.15) !important;
 }
+
+/* Force NSI ID to uppercase in dashboard */
+.dashboard-header p {
+    text-transform: uppercase !important;
+}
+
+.dashboard-container .exam-info .info-value, .dashboard-container .exam-info .exam-end-time {
+    font-size: clamp(1.18rem, 0.5vw + 0.95rem, 1.35rem);
+    font-weight: 700;
+    color: #fff !important;
+}
+
+
+.exam-header {
+    background: linear-gradient(100deg, #1a2a3a 60%, #22334a 100%, #2e4666 120%);
+    border-radius: 14px 14px 0 0;
+    padding: 1.25rem 1.5rem 0.85rem 1.5rem;
+    margin-bottom: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 6px 24px 0 rgba(0, 80, 180, 0.13), 0 1.5px 8px 0 rgba(0, 80, 180, 0.09);
+    position: relative;
+    overflow: hidden;
+}
+
+.exam-header::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at 80% 20%, rgba(80,216,255,0.13) 0%, transparent 70%),
+                radial-gradient(circle at 10% 90%, rgba(46,246,255,0.09) 0%, transparent 70%);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.exam-header h3 {
+    color: #eaf6ff !important;
+    margin: 0;
+    font-size: 1.32rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-shadow: 0 0 12px rgba(80,216,255,0.22), 0 2px 8px rgba(0,0,0,0.13);
+    z-index: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.13em;
+}
+
+.exam-status.active {
+    background: linear-gradient(90deg, #2ecc71 60%, #27e6a6 100%);
+    color: #fff;
+    font-weight: 900;
+    border-radius: 8px;
+    padding: 0.45rem 1.15rem;
+    font-size: 1.08rem;
+    box-shadow: 0 0 12px 2px rgba(46, 204, 113, 0.25), 0 2px 8px rgba(0,0,0,0.10);
+    text-shadow: 0 0 8px #2ecc71, 0 2px 8px rgba(0,0,0,0.13);
+    letter-spacing: 0.12em;
+    z-index: 1;
+    border: 1.5px solid #27e6a6;
+    text-transform: uppercase;
+    transition: box-shadow 0.2s, background 0.2s;
+}
+

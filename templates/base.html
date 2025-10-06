@@ -98,6 +98,16 @@
                 font-size: 16px !important; /* Prevent iOS zoom */
             }
         }
+        
+        /* Global: Force NSI ID to display in uppercase everywhere */
+        .user-info-value,
+        [class*="nsi"],
+        [class*="user-id"],
+        .student-info p:first-child,
+        .dashboard-header p,
+        .profile-id {
+            text-transform: uppercase !important;
+        }
     </style>
 
 </head>
@@ -120,14 +130,14 @@
                         <a href="{{ url_for('admin_exams') }}" class="nav-link"><span class="cyber-icon">🎯</span>Operations</a>
                         <a href="{{ url_for('admin_results') }}" class="nav-link"><span class="cyber-icon">📊</span>Analytics</a>
                     {% else %}
-                        <a href="{{ url_for('student_dashboard') }}" class="nav-link"><span class="cyber-icon">🛡️</span>Security Portal</a>
+                        <a href="{{ url_for('student_dashboard') }}" class="nav-link"><span class="cyber-icon">🛡️</span>Dashboard</a>
                     {% endif %}
                     <span class="nav-user"><span class="cyber-icon">👤</span>{{ session.name }}</span>
                     <a href="{{ url_for('logout') }}" class="nav-link logout"><span class="cyber-icon">🔓</span>Disconnect</a>
                 {% else %}
-                    <a href="{{ url_for('index') }}" class="nav-link"><span class="cyber-icon">🏠</span>Base</a>
+                    <a href="{{ url_for('index') }}" class="nav-link"><span class="cyber-icon">🏠</span>HOME</a>
                     <a href="{{ url_for('login') }}" class="nav-link"><span class="cyber-icon">🔑</span>LOGIN</a>
-                    <a href="{{ url_for('admin_login') }}" class="nav-link"><span class="cyber-icon">⚡</span>Admin Terminal</a>
+                    <a href="{{ url_for('admin_login') }}" class="nav-link"><span class="cyber-icon">⚡</span>Admin </a>
                     <a href="{{ url_for('register') }}" class="nav-link"><span class="cyber-icon">📡</span>New Registration</a>
                 {% endif %}
             </div>
@@ -236,9 +246,9 @@
                     <ul>
                         <li class="required">NSI_ID: [FORMAT STRICT]</li>
                         <li class="required">AGENT_NAME: [FULL]</li>
-                        <li class="optional">WING_ID: [OPTIONAL]</li>
-                        <li class="optional">DISTRICT_CODE: [OPTIONAL]</li>
-                        <li class="optional">SECTION_ID: [OPTIONAL]</li>
+                        <li class="required">WING_ID: [FULL]</li>
+                        <li class="required">DISTRICT_CODE: [FULL]</li>
+                        <li class="required">SECTION_ID: [FULL]</li>
                         <li class="required">ACCESS_KEY: [MIN_LENGTH: 6]</li>
                     </ul>
                 </div>
