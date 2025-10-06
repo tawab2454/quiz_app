@@ -1476,21 +1476,6 @@ img, video, svg, canvas {
     color: #666;
 }
 
-.password-toggle {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    color: #666;
-    font-size: 0.875rem;
-    transition: color 0.3s ease;
-}
-
-.password-toggle:hover {
-    color: #4a90e2;
-}
-
 /* Dashboard Styles - Cyber Theme Enhanced */
 .dashboard-container {
     max-width: 1200px;

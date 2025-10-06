@@ -6,14 +6,14 @@
 <div class="auth-container">
     <div class="auth-card">
         <div class="auth-header">
-            <h2>👨‍💼 Access Portal</h2>
-            <p>Initialize Security Training Interface</p>
+            <h2>👨‍💼 LOGIN PORTAL</h2>
+            <!-- <p>Initialize Security Training Interface</p> -->
         </div>
 
         <form method="POST" class="form" id="loginForm">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             <div class="form-group">
-                <label class="auth-label" for="nsi_id">NSI ID</label>
+                <label class="auth-label" for="nsi_id">FULL ID</label>
                 <input type="text" id="nsi_id" name="nsi_id" required 
                        placeholder="e.g., A-0561" maxlength="6" pattern="[A-D]-[0-9]{4}"
                        class="auth-input" autocomplete="off">
@@ -23,7 +23,7 @@
             </div>
 
             <div class="form-group">
-                <label for="password">Access Key</label>
+                <label for="password">PASSWORD</label>
                 <input type="password" id="password" name="password" required 
                        placeholder="Enter your security key"
                        class="cyber-input">
@@ -33,7 +33,7 @@
             </div>
 
             <button type="submit" class="cyber-button btn-full">
-                <span class="cyber-icon">🔐</span> Initialize Access
+                <span class="cyber-icon">🔐</span> LOGIN 
             </button>
         </form>
 
@@ -41,7 +41,7 @@
             <div class="cyber-links">
                 <p>
                     <span class="cyber-icon">📝</span>
-                    <a href="{{ url_for('register') }}" class="cyber-link">New Operative Registration</a>
+                    <a href="{{ url_for('register') }}" class="cyber-link">New Registration</a>
                 </p>
                 <p>
                     <span class="cyber-icon">⚡</span>
@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (!nsiId) {
             e.preventDefault();
-            alert('Please enter your NSI ID');
+            alert('Please enter your FULL ID');
             nsiIdInput.focus();
             return;
         }
@@ -104,7 +104,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const nsiIdPattern = /^[A-D]-[0-9]{4}$/;
         if (!nsiIdPattern.test(nsiId)) {
             e.preventDefault();
-            alert('Invalid NSI ID format. Please use format: A-1234 (letter A-D, dash, 4 digits)');
+            alert('Invalid ID format. Please use format: A-1234 (letter A-D, dash, 4 digits)');
             nsiIdInput.focus();
             return;
         }

@@ -23,23 +23,6 @@
     color: rgba(164, 230, 176, 0.7);
 }
 
-/* Password toggle button enhancement */
-.password-toggle {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    background: transparent;
-    border: none;
-    color: var(--cyber-primary);
-    cursor: pointer;
-    font-family: var(--font-mono);
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 5px;
-}
-
 .cyber-toggle {
     cursor: pointer;
     color: var(--cyber-primary);

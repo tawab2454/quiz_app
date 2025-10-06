@@ -25,6 +25,16 @@ body {
     max-width: 900px;
     margin: 2rem auto;
     padding: 2rem;
+    width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.profile-completion-container > * {
+    width: 100%;
+    max-width: 900px;
 }
 
 /* Profile Header with Progress */
@@ -318,36 +328,18 @@ body {
     background: rgba(10, 14, 39, 0.9);
 }
 
-/* Remove white background from select options - Force dark theme */
+/* Remove white background from select options */
 .form-select option {
-    background: #0a0e27 !important;
-    background-color: #0a0e27 !important;
-    color: #e0e7ff !important;
+    background: rgba(10, 14, 39, 0.95);
+    color: var(--cyber-text);
     padding: 0.5rem;
 }
 
 .form-select option:hover,
 .form-select option:checked,
-.form-select option:focus,
-.form-select option:active {
-    background: rgba(0, 191, 255, 0.3) !important;
-    background-color: rgba(0, 191, 255, 0.3) !important;
-    color: #00ffff !important;
-}
-
-/* Additional select styling */
-.form-select {
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2300bfff' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 1rem center;
-    padding-right: 2.5rem;
-}
-
-.form-select::-ms-expand {
-    display: none;
+.form-select option:focus {
+    background: rgba(0, 191, 255, 0.2);
+    color: var(--cyber-accent);
 }
 
 .form-input::placeholder {
@@ -453,7 +445,7 @@ body {
     </div>
 
     <!-- Instructions Section -->
-    <div class="instructions-section">
+    <!-- <div class="instructions-section">
         <h2 class="instructions-title">📋 Important Instructions</h2>
         <div class="instruction-grid">
             <div class="instruction-item">
@@ -485,56 +477,104 @@ body {
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <!-- Profile Completion Form -->
     <div class="profile-form-card">
         <h2 class="form-section-title">🔐 Complete Your Profile</h2>
         
+        <!-- Validation Notice -->
+        <div style="background: rgba(0, 191, 255, 0.1); border: 1px solid var(--cyber-primary); border-radius: 8px; padding: 12px; margin-bottom: 20px;">
+            <p style="margin: 0; color: var(--cyber-primary); font-size: 14px;">
+                <strong>⚠️ Important:</strong> All fields marked with <span style="color: #ff4444;">*</span> are required. 
+                Wing-specific fields will appear based on your selection.
+            </p>
+        </div>
+        
         <form method="POST" action="{{ url_for('complete_profile') }}" id="profileForm">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             
-            <!-- Wing Name -->
+            <!-- Wing Name - REQUIRED (First field) -->
             <div class="form-group">
                 <label class="form-label" for="wing_name">Wing Name *</label>
                 <select id="wing_name" name="wing_name" required class="form-select">
                     <option value="">Select Wing</option>
+                    <!-- Technical Intelligence Wing first -->
                     <option value="Technical Intelligence Wing">Technical Intelligence Wing</option>
+                    <!-- All wings with 'Wing' in name (alphabetically) -->
                     <option value="Admin Wing">Admin Wing</option>
-                    <option value="External Affairs & Liasons Wing">External Affairs & Liasons Wing</option>
-                    <option value="Political Wing">Political Wing</option>
-                    <option value="Research Wing">Research Wing</option>
-                    <option value="Special Affairs Wing">Special Affairs Wing</option>
-                    <option value="DG Secretariat">DG Secretariat</option>
-                    <option value="DG Coordination">DG Coordination</option>
-                    <option value="Economic Security Wing">Economic Security Wing</option>
-                    <option value="Internal Wing">Internal Wing</option>
+                    <option value="Army Wing">Army Wing</option>
                     <option value="Border Wing">Border Wing</option>
                     <option value="Counter Terrorism Wing">Counter Terrorism Wing</option>
                     <option value="Dhaka Wing">Dhaka Wing</option>
+                    <option value="Economic Security Wing">Economic Security Wing</option>
+                    <option value="External Affairs & Liasons Wing">External Affairs & Liasons Wing</option>
+                    <option value="Internal Wing">Internal Wing</option>
                     <option value="Media Wing">Media Wing</option>
+                    <option value="Political Wing">Political Wing</option>
+                    <option value="Research Wing">Research Wing</option>
+                    <option value="Security Wing">Security Wing</option>
+                    <option value="Special Affairs Wing">Special Affairs Wing</option>
                     <option value="Training Institute Wing">Training Institute Wing</option>
-                    <option value="CTcell">CTcell</option>
+                    <!-- Other names (alphabetically) -->
+                    <option value="CT Cell">CT Cell</option>
+                    <option value="DG Cell">DG Cell</option>
+                    <option value="DG Coordination">DG Coordination</option>
+                    <option value="DG Escort">DG Escort</option>
+                    <option value="DG Secretariat">DG Secretariat</option>
+                    <option value="Strategic Analysis Section">Strategic Analysis Section</option>
                 </select>
+                <p class="form-help">
+                    <span style="color: var(--cyber-primary);">ℹ️</span>
+                    Required field - Select your wing designation
+                </p>
             </div>
 
-            <!-- Internal Wing Type (conditional) -->
+            <!-- Internal Wing - HQ/Others Selection (conditional) -->
             <div class="form-group" id="internal_type_group" style="display: none;">
-                <label class="form-label" for="internal_type">Internal Wing Type *</label>
+                <label class="form-label" for="internal_type">Select Location *</label>
                 <select id="internal_type" name="internal_type" class="form-select">
-                    <option value="">Select Type</option>
+                    <option value="">Select Location</option>
                     <option value="HQ">HQ</option>
                     <option value="Others">Others</option>
                 </select>
             </div>
 
-            <!-- Border Wing Type (conditional) -->
+            <!-- Border Wing - HQ/Others Selection (conditional) -->
             <div class="form-group" id="border_type_group" style="display: none;">
-                <label class="form-label" for="border_type">Border Wing Type *</label>
+                <label class="form-label" for="border_type">Select Location *</label>
                 <select id="border_type" name="border_type" class="form-select">
-                    <option value="">Select Type</option>
+                    <option value="">Select Location</option>
                     <option value="HQ">HQ</option>
                     <option value="Others">Others</option>
+                </select>
+            </div>
+
+            <!-- Division Name (conditional - for Internal Wing Others and Border Wing Others) -->
+            <div class="form-group" id="division_group" style="display: none;">
+                <label class="form-label" for="division_name">Division Name *</label>
+                <select id="division_name" name="division_name" class="form-select">
+                    <option value="">Select Division</option>
+                    <!-- For Internal Wing Others -->
+                    <option value="Dhaka" data-wing="internal">Dhaka</option>
+                    <option value="Chattogram" data-wing="internal">Chattogram</option>
+                    <option value="Rajshahi" data-wing="internal">Rajshahi</option>
+                    <option value="Barishal" data-wing="internal">Barishal</option>
+                    <option value="Khulna" data-wing="internal">Khulna</option>
+                    <option value="Sylhet" data-wing="internal">Sylhet</option>
+                    <option value="Mymensingh" data-wing="internal">Mymensingh</option>
+                    <option value="Rangpur" data-wing="internal">Rangpur</option>
+                    <option value="Faridpur" data-wing="internal">Faridpur</option>
+                    <!-- For Border Wing Others (only CHT) -->
+                    <option value="Chittagong Hill Tracts (Parbatya Chattogram)" data-wing="border">Chittagong Hill Tracts (Parbatya Chattogram)</option>
+                </select>
+            </div>
+
+            <!-- District Name (conditional) -->
+            <div class="form-group" id="district_group" style="display: none;">
+                <label class="form-label" for="district_name">District Name *</label>
+                <select id="district_name" name="district_name" class="form-select">
+                    <option value="">Select District</option>
                 </select>
             </div>
 
@@ -548,55 +588,33 @@ body {
                 </select>
             </div>
 
-            <!-- Country Field (conditional) -->
+            <!-- Country Field (conditional - for External Affairs Outside BD) -->
             <div class="form-group" id="country_group" style="display: none;">
                 <label class="form-label" for="country_name">Country *</label>
                 <select id="country_name" name="country_name" class="form-select">
                     <option value="">Select Country</option>
                     <option value="India">India</option>
-                    <option value="UAE">UAE</option>
+                    <option value="Pakistan">Pakistan</option>
+                    <option value="Myanmar">Myanmar</option>
+                    <option value="Nepal">Nepal</option>
                     <option value="UK">UK</option>
                     <option value="USA">USA</option>
-                    <option value="Pakistan">Pakistan</option>
-                    <option value="Nepal">Nepal</option>
                     <option value="Malaysia">Malaysia</option>
                     <option value="KSA">KSA</option>
-                    <option value="Myanmar">Myanmar</option>
+                    <option value="UAE">UAE</option>
                 </select>
             </div>
 
-            <!-- Section Name -->
-            <div class="form-group" id="section_group">
-                <label class="form-label" for="section_name">Section Name</label>
+            <!-- Section Name - Conditional based on wing selection -->
+            <div class="form-group" id="section_group" style="display: none;">
+                <label class="form-label" for="section_name">Section Name *</label>
                 <input type="text" id="section_name" name="section_name" 
-                       placeholder="Enter your section name" maxlength="30"
-                       class="form-input">
-            </div>
-
-            <!-- Division Name (conditional) -->
-            <div class="form-group" id="division_group" style="display: none;">
-                <label class="form-label" for="division_name">Division Name *</label>
-                <select id="division_name" name="division_name" class="form-select">
-                    <option value="">Select Division</option>
-                    <option value="Dhaka">Dhaka</option>
-                    <option value="Chattogram">Chattogram</option>
-                    <option value="Rajshahi">Rajshahi</option>
-                    <option value="Khulna">Khulna</option>
-                    <option value="Barishal">Barishal</option>
-                    <option value="Mymensingh">Mymensingh</option>
-                    <option value="Rangpur">Rangpur</option>
-                    <option value="Sylhet">Sylhet</option>
-                    <option value="Faridpur">Faridpur (proposed)</option>
-                    <option value="Chittagong Hill Tracts (Parbatya Chattagram)">Chittagong Hill Tracts (Parbatya Chattagram)</option>
-                </select>
-            </div>
-
-            <!-- District Name (conditional) -->
-            <div class="form-group" id="district_group" style="display: none;">
-                <label class="form-label" for="district_name">District Name *</label>
-                <select id="district_name" name="district_name" class="form-select">
-                    <option value="">Select District</option>
-                </select>
+                       placeholder="Enter your section name" maxlength="100"
+                       required class="form-input">
+                <p class="form-help">
+                    <span style="color: var(--cyber-primary);">📝</span>
+                    Required field - Enter your section name
+                </p>
             </div>
 
             <button type="submit" class="submit-button">
@@ -610,7 +628,6 @@ body {
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Same wing/division/district logic from register page
     const wingSelect = document.getElementById('wing_name');
     const internalTypeSelect = document.getElementById('internal_type');
     const borderTypeSelect = document.getElementById('border_type');
@@ -618,6 +635,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const divisionSelect = document.getElementById('division_name');
     const districtSelect = document.getElementById('district_name');
     const countrySelect = document.getElementById('country_name');
+    const sectionInput = document.getElementById('section_name');
     const internalTypeGroup = document.getElementById('internal_type_group');
     const borderTypeGroup = document.getElementById('border_type_group');
     const externalTypeGroup = document.getElementById('external_type_group');
@@ -625,8 +643,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const divisionGroup = document.getElementById('division_group');
     const districtGroup = document.getElementById('district_group');
     const countryGroup = document.getElementById('country_group');
-
-    // Division -> District mapping (same as registration)
+    
+    // Progress bar elements
+    const progressBar = document.querySelector('.progress-bar');
+    const progressPercentage = document.querySelector('.progress-percentage');
+    const progressMessage = document.querySelector('.progress-message');
+    
+    // Division -> District mapping
     const allDivisionDistricts = {
         'Rajshahi': ['Rajshahi', 'Naogaon', 'Natore', 'Chapai Nawabganj', 'Pabna', 'Bogura', 'Sirajganj', 'Joypurhat'],
         'Dhaka': ['Dhaka', 'Tangail', 'Narsingdi', 'Gazipur', 'Munshiganj', 'Narayanganj', 'Manikganj', 'Kishoreganj'],
@@ -637,22 +660,10 @@ document.addEventListener('DOMContentLoaded', function() {
         'Mymensingh': ['Mymensingh', 'Jamalpur', 'Sherpur', 'Netrokona'],
         'Sylhet': ['Sylhet', 'Sunamganj', 'Moulvibazar', 'Habiganj'],
         'Faridpur': ['Faridpur', 'Rajbari', 'Shariatpur', 'Gopalganj', 'Madaripur'],
-        'Chittagong Hill Tracts (Parbatya Chattagram)': ['Rangamati', 'Bandarban', 'Khagrachhari', 'Cox\'s Bazar']
+        'Chittagong Hill Tracts (Parbatya Chattogram)': ['Rangamati', 'Bandarban', 'Khagrachhari', 'Cox\'s Bazar']
     };
 
-    const internalDivisions = ['Dhaka', 'Chattogram', 'Rajshahi', 'Khulna', 'Barishal', 'Mymensingh', 'Rangpur', 'Sylhet', 'Faridpur'];
-    const borderDivisions = ['Chittagong Hill Tracts (Parbatya Chattagram)'];
-
-    function populateDivisions(divisions) {
-        divisionSelect.innerHTML = '<option value="">Select Division</option>';
-        divisions.forEach(division => {
-            const opt = document.createElement('option');
-            opt.value = division;
-            opt.textContent = division;
-            divisionSelect.appendChild(opt);
-        });
-    }
-
+    // Populate districts when division is selected
     function populateDistricts(division) {
         districtSelect.innerHTML = '<option value="">Select District</option>';
         if (division && allDivisionDistricts[division]) {
@@ -663,182 +674,294 @@ document.addEventListener('DOMContentLoaded', function() {
                 districtSelect.appendChild(opt);
             });
         }
+        updateProgress();
+    }
+    
+    // Helper function to check if wing name contains "Wing"
+    function hasWingInName(wingName) {
+        return wingName && wingName.toLowerCase().includes('wing');
+    }
+    
+    // Helper function to check if it's a non-wing designation that should not show section
+    function shouldNotShowSection(wingName) {
+        const noSectionItems = ['CT Cell', 'DG Cell', 'DG Coordination', 'DG Escort', 'DG Secretariat'];
+        return noSectionItems.includes(wingName);
     }
 
+    // Main wing change handler
     function handleWingChange() {
-        const wing = wingSelect.value;
+        const selectedWing = wingSelect.value;
         
-        // Hide all conditional fields first
+        // Reset all fields
         internalTypeGroup.style.display = 'none';
         borderTypeGroup.style.display = 'none';
         externalTypeGroup.style.display = 'none';
         divisionGroup.style.display = 'none';
         districtGroup.style.display = 'none';
         countryGroup.style.display = 'none';
-        sectionGroup.style.display = 'block';
+        sectionGroup.style.display = 'none';
         
-        // Remove required attributes
+        // Clear all values
+        internalTypeSelect.value = '';
+        borderTypeSelect.value = '';
+        externalTypeSelect.value = '';
+        divisionSelect.value = '';
+        districtSelect.innerHTML = '<option value="">Select District</option>';
+        countrySelect.value = '';
+        sectionInput.value = '';
+        
+        // Remove all required attributes
         internalTypeSelect.removeAttribute('required');
         borderTypeSelect.removeAttribute('required');
         externalTypeSelect.removeAttribute('required');
         divisionSelect.removeAttribute('required');
         districtSelect.removeAttribute('required');
         countrySelect.removeAttribute('required');
+        sectionInput.removeAttribute('required');
         
-        // Clear values
-        internalTypeSelect.value = '';
-        borderTypeSelect.value = '';
-        externalTypeSelect.value = '';
-        divisionSelect.value = '';
-        districtSelect.value = '';
-        countrySelect.value = '';
+        if (!selectedWing) {
+            updateProgress();
+            return;
+        }
         
-        if (wing === 'Internal Wing') {
+        // Logic for Internal Wing
+        if (selectedWing === 'Internal Wing') {
             internalTypeGroup.style.display = 'block';
             internalTypeSelect.setAttribute('required', 'required');
-        } else if (wing === 'Border Wing') {
+        }
+        // Logic for Border Wing
+        else if (selectedWing === 'Border Wing') {
             borderTypeGroup.style.display = 'block';
             borderTypeSelect.setAttribute('required', 'required');
-        } else if (wing === 'External Affairs & Liasons Wing') {
+        }
+        // Logic for External Affairs & Liasons Wing
+        else if (selectedWing === 'External Affairs & Liasons Wing') {
             externalTypeGroup.style.display = 'block';
             externalTypeSelect.setAttribute('required', 'required');
         }
+        // Logic for wings with "Wing" in name (except the three above)
+        else if (hasWingInName(selectedWing)) {
+            sectionGroup.style.display = 'block';
+            sectionInput.setAttribute('required', 'required');
+        }
+        // Logic for non-wing items that should not show section (CT Cell, DG items, Strategic Analysis Section)
+        else if (shouldNotShowSection(selectedWing) || selectedWing === 'Strategic Analysis Section') {
+            // Don't show section for these items
+        }
+        // Any other wing/item
+        else {
+            sectionGroup.style.display = 'block';
+            sectionInput.setAttribute('required', 'required');
+        }
+        
+        updateProgress();
     }
-
+    
+    // Internal Wing Type handler (HQ or Others)
     function handleInternalTypeChange() {
-        const type = internalTypeSelect.value;
+        const selectedType = internalTypeSelect.value;
         
-        if (type === 'Others') {
-            populateDivisions(internalDivisions);
+        divisionGroup.style.display = 'none';
+        districtGroup.style.display = 'none';
+        sectionGroup.style.display = 'none';
+        
+        divisionSelect.value = '';
+        districtSelect.innerHTML = '<option value="">Select District</option>';
+        sectionInput.value = '';
+        
+        divisionSelect.removeAttribute('required');
+        districtSelect.removeAttribute('required');
+        sectionInput.removeAttribute('required');
+        
+        if (selectedType === 'HQ') {
+            // Show Section Name
+            sectionGroup.style.display = 'block';
+            sectionInput.setAttribute('required', 'required');
+        } else if (selectedType === 'Others') {
+            // Show Division (filter for Internal Wing divisions only)
+            filterDivisionOptions('internal');
             divisionGroup.style.display = 'block';
-            districtGroup.style.display = 'block';
-            sectionGroup.style.display = 'block';
             divisionSelect.setAttribute('required', 'required');
-            districtSelect.setAttribute('required', 'required');
-        } else if (type === 'HQ') {
-            divisionGroup.style.display = 'none';
-            districtGroup.style.display = 'none';
-            sectionGroup.style.display = 'block';
-            divisionSelect.removeAttribute('required');
-            districtSelect.removeAttribute('required');
-            divisionSelect.value = '';
-            districtSelect.innerHTML = '<option value="">Select District</option>';
-        } else {
-            divisionGroup.style.display = 'none';
-            districtGroup.style.display = 'none';
-            sectionGroup.style.display = 'block';
-            divisionSelect.removeAttribute('required');
-            districtSelect.removeAttribute('required');
-            divisionSelect.value = '';
-            districtSelect.innerHTML = '<option value="">Select District</option>';
         }
+        
+        updateProgress();
     }
-
+    
+    // Border Wing Type handler (HQ or Others)
     function handleBorderTypeChange() {
-        const type = borderTypeSelect.value;
+        const selectedType = borderTypeSelect.value;
         
-        if (type === 'Others') {
-            populateDivisions(borderDivisions);
+        divisionGroup.style.display = 'none';
+        districtGroup.style.display = 'none';
+        sectionGroup.style.display = 'none';
+        
+        divisionSelect.value = '';
+        districtSelect.innerHTML = '<option value="">Select District</option>';
+        sectionInput.value = '';
+        
+        divisionSelect.removeAttribute('required');
+        districtSelect.removeAttribute('required');
+        sectionInput.removeAttribute('required');
+        
+        if (selectedType === 'HQ') {
+            // Show Section Name
+            sectionGroup.style.display = 'block';
+            sectionInput.setAttribute('required', 'required');
+        } else if (selectedType === 'Others') {
+            // Show Division (only CHT for Border Wing)
+            filterDivisionOptions('border');
             divisionGroup.style.display = 'block';
-            districtGroup.style.display = 'block';
-            sectionGroup.style.display = 'block';
             divisionSelect.setAttribute('required', 'required');
-            districtSelect.setAttribute('required', 'required');
-        } else if (type === 'HQ') {
-            divisionGroup.style.display = 'none';
-            districtGroup.style.display = 'none';
-            sectionGroup.style.display = 'block';
-            divisionSelect.removeAttribute('required');
-            districtSelect.removeAttribute('required');
-            divisionSelect.value = '';
-            districtSelect.innerHTML = '<option value="">Select District</option>';
-        } else {
-            divisionGroup.style.display = 'none';
-            districtGroup.style.display = 'none';
-            sectionGroup.style.display = 'block';
-            divisionSelect.removeAttribute('required');
-            districtSelect.removeAttribute('required');
-            divisionSelect.value = '';
-            districtSelect.innerHTML = '<option value="">Select District</option>';
         }
-    }
-
-    function handleExternalTypeChange() {
-        const type = externalTypeSelect.value;
         
-        if (type === 'Inside BD') {
+        updateProgress();
+    }
+    
+    // External Affairs Wing Type handler (Inside BD or Outside BD)
+    function handleExternalTypeChange() {
+        const selectedType = externalTypeSelect.value;
+        
+        sectionGroup.style.display = 'none';
+        countryGroup.style.display = 'none';
+        
+        sectionInput.value = '';
+        countrySelect.value = '';
+        
+        sectionInput.removeAttribute('required');
+        countrySelect.removeAttribute('required');
+        
+        if (selectedType === 'Inside BD') {
+            // Show Section Name
             sectionGroup.style.display = 'block';
-            countryGroup.style.display = 'none';
-            divisionGroup.style.display = 'none';
-            districtGroup.style.display = 'none';
-            countrySelect.removeAttribute('required');
-            divisionSelect.removeAttribute('required');
-            districtSelect.removeAttribute('required');
-            countrySelect.value = '';
-            divisionSelect.value = '';
-            districtSelect.innerHTML = '<option value="">Select District</option>';
-        } else if (type === 'Outside BD') {
-            sectionGroup.style.display = 'none';
+            sectionInput.setAttribute('required', 'required');
+        } else if (selectedType === 'Outside BD') {
+            // Show Country dropdown
             countryGroup.style.display = 'block';
-            divisionGroup.style.display = 'none';
-            districtGroup.style.display = 'none';
             countrySelect.setAttribute('required', 'required');
-            divisionSelect.removeAttribute('required');
-            districtSelect.removeAttribute('required');
-            divisionSelect.value = '';
-            districtSelect.innerHTML = '<option value="">Select District</option>';
+        }
+        
+        updateProgress();
+    }
+    
+    // Division change handler
+    function handleDivisionChange() {
+        const selectedDivision = divisionSelect.value;
+        
+        if (selectedDivision) {
+            populateDistricts(selectedDivision);
+            districtGroup.style.display = 'block';
+            districtSelect.setAttribute('required', 'required');
         } else {
-            sectionGroup.style.display = 'none';
-            countryGroup.style.display = 'none';
-            divisionGroup.style.display = 'none';
             districtGroup.style.display = 'none';
-            countrySelect.removeAttribute('required');
-            divisionSelect.removeAttribute('required');
-            districtSelect.removeAttribute('required');
-            countrySelect.value = '';
-            divisionSelect.value = '';
             districtSelect.innerHTML = '<option value="">Select District</option>';
+            districtSelect.removeAttribute('required');
+        }
+        
+        updateProgress();
+    }
+    
+    // Filter division options based on wing type
+    function filterDivisionOptions(wingType) {
+        const options = divisionSelect.querySelectorAll('option');
+        options.forEach(option => {
+            if (option.value === '') {
+                option.style.display = 'block'; // Always show the default option
+            } else {
+                const optionWing = option.getAttribute('data-wing');
+                if (wingType === 'internal' && optionWing === 'internal') {
+                    option.style.display = 'block';
+                } else if (wingType === 'border' && optionWing === 'border') {
+                    option.style.display = 'block';
+                } else {
+                    option.style.display = 'none';
+                }
+            }
+        });
+    }
+    
+    // Calculate and update progress
+    function updateProgress() {
+        const requiredFields = [];
+        let filledFields = 0;
+        
+        // Wing is always required
+        requiredFields.push({ element: wingSelect, name: 'Wing' });
+        
+        const selectedWing = wingSelect.value;
+        
+        // Add wing-specific required fields
+        if (selectedWing === 'Internal Wing') {
+            requiredFields.push({ element: internalTypeSelect, name: 'Location' });
+            if (internalTypeSelect.value === 'HQ') {
+                requiredFields.push({ element: sectionInput, name: 'Section' });
+            } else if (internalTypeSelect.value === 'Others') {
+                requiredFields.push({ element: divisionSelect, name: 'Division' });
+                if (divisionSelect.value) {
+                    requiredFields.push({ element: districtSelect, name: 'District' });
+                }
+            }
+        } else if (selectedWing === 'Border Wing') {
+            requiredFields.push({ element: borderTypeSelect, name: 'Location' });
+            if (borderTypeSelect.value === 'HQ') {
+                requiredFields.push({ element: sectionInput, name: 'Section' });
+            } else if (borderTypeSelect.value === 'Others') {
+                requiredFields.push({ element: divisionSelect, name: 'Division' });
+                if (divisionSelect.value) {
+                    requiredFields.push({ element: districtSelect, name: 'District' });
+                }
+            }
+        } else if (selectedWing === 'External Affairs & Liasons Wing') {
+            requiredFields.push({ element: externalTypeSelect, name: 'Location' });
+            if (externalTypeSelect.value === 'Inside BD') {
+                requiredFields.push({ element: sectionInput, name: 'Section' });
+            } else if (externalTypeSelect.value === 'Outside BD') {
+                requiredFields.push({ element: countrySelect, name: 'Country' });
+            }
+        } else if (selectedWing && hasWingInName(selectedWing)) {
+            requiredFields.push({ element: sectionInput, name: 'Section' });
+        } else if (selectedWing && !shouldNotShowSection(selectedWing) && selectedWing !== 'Strategic Analysis Section') {
+            requiredFields.push({ element: sectionInput, name: 'Section' });
+        }
+        
+        // Count filled fields
+        requiredFields.forEach(field => {
+            if (field.element && field.element.value && field.element.value.trim() !== '') {
+                filledFields++;
+            }
+        });
+        
+        // Calculate percentage
+        const totalFields = requiredFields.length;
+        const percentage = totalFields > 0 ? Math.round((filledFields / totalFields) * 100) : 0;
+        
+        // Update UI
+        progressBar.style.width = percentage + '%';
+        progressPercentage.textContent = percentage + '%';
+        
+        // Update message based on progress
+        if (percentage === 0) {
+            progressMessage.innerHTML = '🎯 Complete your profile to unlock full access to exam system';
+        } else if (percentage < 50) {
+            progressMessage.innerHTML = '📝 Keep going! Fill in all required fields';
+        } else if (percentage < 100) {
+            progressMessage.innerHTML = '💪 Almost there! Just a few more fields';
+        } else {
+            progressMessage.innerHTML = '✅ Perfect! You can now submit your profile';
         }
     }
 
     // Event listeners
-    if (wingSelect) {
-        wingSelect.addEventListener('change', handleWingChange);
-        handleWingChange();
-    }
-
-    if (internalTypeSelect) {
-        internalTypeSelect.addEventListener('change', handleInternalTypeChange);
-        handleInternalTypeChange();
-    }
-
-    if (borderTypeSelect) {
-        borderTypeSelect.addEventListener('change', handleBorderTypeChange);
-        handleBorderTypeChange();
-    }
-
-    if (externalTypeSelect) {
-        externalTypeSelect.addEventListener('change', handleExternalTypeChange);
-        handleExternalTypeChange();
-    }
-
-    if (divisionSelect && districtSelect) {
-        divisionSelect.addEventListener('change', function() {
-            populateDistricts(this.value);
-        });
-        
-        if (divisionSelect.value) {
-            populateDistricts(divisionSelect.value);
-        }
-    }
-
-    // Form submission
-    const profileForm = document.getElementById('profileForm');
-    profileForm.addEventListener('submit', function(e) {
-        const submitBtn = this.querySelector('button[type="submit"]');
-        submitBtn.textContent = '🔄 Saving Profile...';
-        submitBtn.disabled = true;
-    });
+    wingSelect.addEventListener('change', handleWingChange);
+    internalTypeSelect.addEventListener('change', handleInternalTypeChange);
+    borderTypeSelect.addEventListener('change', handleBorderTypeChange);
+    externalTypeSelect.addEventListener('change', handleExternalTypeChange);
+    divisionSelect.addEventListener('change', handleDivisionChange);
+    districtSelect.addEventListener('change', updateProgress);
+    countrySelect.addEventListener('change', updateProgress);
+    sectionInput.addEventListener('input', updateProgress);
+    
+    // Initial state
+    handleWingChange();
 });
 </script>
 {% endblock %}

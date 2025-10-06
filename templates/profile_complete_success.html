@@ -1,0 +1,344 @@
+{% extends "base.html" %}
+
+{% block title %}Profile Completed - Online Examination System{% endblock %}
+
+{% block extra_css %}
+<style>
+:root {
+    --cyber-primary: #00bfff;
+    --cyber-secondary: #0080ff;
+    --cyber-accent: #00ffff;
+    --cyber-dark: #0a0e27;
+    --cyber-dark-alt: #1a1f3a;
+    --cyber-text: #e0e7ff;
+    --cyber-text-dim: #94a3b8;
+    --cyber-success: #00ff88;
+}
+
+body {
+    background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 50%, #0a0e27 100%) !important;
+    min-height: 100vh;
+    color: var(--cyber-text);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.success-container {
+    max-width: 600px;
+    width: 100%;
+    margin: 4rem auto;
+    padding: 2rem;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.success-card {
+    background: linear-gradient(135deg, rgba(26, 31, 58, 0.95) 0%, rgba(10, 14, 39, 0.98) 100%);
+    border: 2px solid rgba(0, 191, 255, 0.3);
+    border-radius: 20px;
+    padding: 3rem 2rem;
+    box-shadow: 
+        0 0 40px rgba(0, 191, 255, 0.2),
+        0 0 80px rgba(0, 191, 255, 0.1),
+        inset 0 0 30px rgba(0, 191, 255, 0.05);
+    position: relative;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+.success-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(0, 191, 255, 0.03) 50%,
+        transparent 70%
+    );
+    animation: shimmer 3s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+.success-icon-wrapper {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto 2rem;
+    position: relative;
+    background: linear-gradient(135deg, var(--cyber-success), var(--cyber-accent));
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 
+        0 0 40px rgba(0, 255, 136, 0.6),
+        0 0 80px rgba(0, 255, 136, 0.4),
+        inset 0 0 30px rgba(255, 255, 255, 0.2);
+    animation: successPulse 2s ease-in-out infinite;
+}
+
+@keyframes successPulse {
+    0%, 100% { 
+        transform: scale(1); 
+        box-shadow: 0 0 40px rgba(0, 255, 136, 0.6), 0 0 80px rgba(0, 255, 136, 0.4);
+    }
+    50% { 
+        transform: scale(1.05); 
+        box-shadow: 0 0 60px rgba(0, 255, 136, 0.8), 0 0 120px rgba(0, 255, 136, 0.5);
+    }
+}
+
+.success-icon {
+    font-size: 4rem;
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.5));
+}
+
+.success-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    background: linear-gradient(90deg, var(--cyber-success), var(--cyber-accent));
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+    position: relative;
+}
+
+.success-subtitle {
+    font-size: 1.2rem;
+    color: var(--cyber-text-dim);
+    margin-bottom: 2rem;
+    line-height: 1.6;
+}
+
+.user-info-box {
+    background: rgba(0, 191, 255, 0.1);
+    border: 1px solid rgba(0, 191, 255, 0.3);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    position: relative;
+}
+
+.user-info-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+    font-size: 1.1rem;
+}
+
+.user-info-label {
+    color: var(--cyber-primary);
+    font-weight: 600;
+}
+
+.user-info-value {
+    color: var(--cyber-text);
+}
+
+.dashboard-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1.25rem 2.5rem;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--cyber-dark);
+    background: linear-gradient(135deg, var(--cyber-primary), var(--cyber-accent));
+    border: none;
+    border-radius: 12px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 
+        0 0 20px rgba(0, 191, 255, 0.5),
+        0 4px 15px rgba(0, 0, 0, 0.3);
+    position: relative;
+    overflow: hidden;
+    margin-top: 1rem;
+}
+
+.dashboard-button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.dashboard-button:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+.dashboard-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 
+        0 0 40px rgba(0, 191, 255, 0.8),
+        0 8px 25px rgba(0, 0, 0, 0.4);
+}
+
+.dashboard-button span {
+    position: relative;
+    z-index: 1;
+}
+
+.features-list {
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0;
+    text-align: left;
+}
+
+.feature-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    margin: 0.75rem 0;
+    background: rgba(0, 191, 255, 0.05);
+    border: 1px solid rgba(0, 191, 255, 0.2);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.feature-item:hover {
+    background: rgba(0, 191, 255, 0.1);
+    border-color: rgba(0, 191, 255, 0.4);
+    transform: translateX(5px);
+}
+
+.feature-icon {
+    font-size: 1.5rem;
+    min-width: 2rem;
+    text-align: center;
+}
+
+.feature-text {
+    color: var(--cyber-text);
+    font-size: 1rem;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.success-card > * {
+    animation: fadeInUp 0.6s ease-out backwards;
+}
+
+.success-icon-wrapper { animation-delay: 0.1s; }
+.success-title { animation-delay: 0.2s; }
+.success-subtitle { animation-delay: 0.3s; }
+.user-info-box { animation-delay: 0.4s; }
+.features-list { animation-delay: 0.5s; }
+.dashboard-button { animation-delay: 0.6s; }
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .success-card {
+        padding: 2rem 1.5rem;
+    }
+    
+    .success-title {
+        font-size: 2rem;
+    }
+    
+    .success-subtitle {
+        font-size: 1rem;
+    }
+    
+    .dashboard-button {
+        padding: 1rem 2rem;
+        font-size: 1.1rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="success-container">
+    <div class="success-card">
+        <div class="success-icon-wrapper">
+            <div class="success-icon">✅</div>
+        </div>
+        
+        <h1 class="success-title">Profile Completed Successfully!</h1>
+        
+        <p class="success-subtitle">
+            Congratulations! Your profile has been verified and activated. 
+            You now have full access to the examination system.
+        </p>
+        
+        <div class="user-info-box">
+            <div class="user-info-item">
+                <span class="user-info-label">🆔 User ID:</span>
+                <span class="user-info-value">{{ user.nsi_id }}</span>
+            </div>
+            <div class="user-info-item">
+                <span class="user-info-label">👤 Name:</span>
+                <span class="user-info-value">{{ user.name }}</span>
+            </div>
+            <div class="user-info-item">
+                <span class="user-info-label">🏢 Wing:</span>
+                <span class="user-info-value">{{ user.wing_name }}</span>
+            </div>
+        </div>
+        
+        <ul class="features-list">
+            <li class="feature-item">
+                <span class="feature-icon">📝</span>
+                <span class="feature-text">Access all available exams and quizzes</span>
+            </li>
+            <li class="feature-item">
+                <span class="feature-icon">📊</span>
+                <span class="feature-text">View your results and performance analytics</span>
+            </li>
+            <li class="feature-item">
+                <span class="feature-icon">🏆</span>
+                <span class="feature-text">Track your ranking and achievements</span>
+            </li>
+            <li class="feature-item">
+                <span class="feature-icon">🔄</span>
+                <span class="feature-text">Update your profile anytime</span>
+            </li>
+        </ul>
+        
+        <a href="{{ url_for('student_dashboard') }}" class="dashboard-button">
+            <span>🚀</span>
+            <span>Go to Dashboard</span>
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Optional: Auto-redirect after 10 seconds
+setTimeout(function() {
+    // Uncomment if you want auto-redirect
+    // window.location.href = "{{ url_for('student_dashboard') }}";
+}, 10000);
+</script>
+{% endblock %}

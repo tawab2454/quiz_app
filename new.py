@@ -1285,7 +1285,7 @@ def complete_profile():
         district_name = request.form.get('district_name', '').strip()
         section_name = request.form.get('section_name', '').strip()
         
-        # Basic validation
+        # Basic validation - Wing is ALWAYS required
         if not wing_name:
             flash('Wing name is required', 'error')
             conn.close()
@@ -1299,44 +1299,66 @@ def complete_profile():
         country_name = InputValidator.sanitize_string(country_name, max_length=100) if country_name else None
         division_name = InputValidator.sanitize_string(division_name, max_length=100) if division_name else None
         district_name = InputValidator.sanitize_string(district_name, max_length=100) if district_name else None
-        section_name = InputValidator.sanitize_string(section_name, max_length=30) if section_name else None
+        section_name = InputValidator.sanitize_string(section_name, max_length=100) if section_name else None
         
-        # Wing-specific validation
+        # Wing-specific validation based on new logic
+        validation_errors = []
+        
         if wing_name == 'Internal Wing':
             if not internal_type:
-                flash('Internal Wing Type is required', 'error')
-                conn.close()
-                return render_template('complete_profile.html', user=user)
-            
-            if internal_type == 'Others':
-                if not division_name or not district_name:
-                    flash('Division and District are required for Internal Wing (Others)', 'error')
-                    conn.close()
-                    return render_template('complete_profile.html', user=user)
+                validation_errors.append('Location (HQ/Others) is required for Internal Wing')
+            elif internal_type == 'HQ':
+                if not section_name:
+                    validation_errors.append('Section Name is required when Location is HQ')
+            elif internal_type == 'Others':
+                if not division_name:
+                    validation_errors.append('Division is required when Location is Others')
+                if not district_name:
+                    validation_errors.append('District is required when Location is Others')
         
         elif wing_name == 'Border Wing':
             if not border_type:
-                flash('Border Wing Type is required', 'error')
-                conn.close()
-                return render_template('complete_profile.html', user=user)
-            
-            if border_type == 'Others':
-                if not division_name or not district_name:
-                    flash('Division and District are required for Border Wing (Others)', 'error')
-                    conn.close()
-                    return render_template('complete_profile.html', user=user)
+                validation_errors.append('Location (HQ/Others) is required for Border Wing')
+            elif border_type == 'HQ':
+                if not section_name:
+                    validation_errors.append('Section Name is required when Location is HQ')
+            elif border_type == 'Others':
+                if not division_name:
+                    validation_errors.append('Division is required when Location is Others')
+                if not district_name:
+                    validation_errors.append('District is required when Location is Others')
         
         elif wing_name == 'External Affairs & Liasons Wing':
             if not external_type:
-                flash('Office Location is required', 'error')
-                conn.close()
-                return render_template('complete_profile.html', user=user)
-            
-            if external_type == 'Outside BD':
+                validation_errors.append('Office Location (Inside BD / Outside BD) is required')
+            elif external_type == 'Inside BD':
+                if not section_name:
+                    validation_errors.append('Section Name is required when Office Location is Inside BD')
+            elif external_type == 'Outside BD':
                 if not country_name:
-                    flash('Country is required for External Affairs (Outside BD)', 'error')
-                    conn.close()
-                    return render_template('complete_profile.html', user=user)
+                    validation_errors.append('Country is required when Office Location is Outside BD')
+        
+        # For wings with "Wing" in name (except the three above)
+        elif 'Wing' in wing_name:
+            if not section_name:
+                validation_errors.append('Section Name is required for this wing')
+        
+        # For non-wing items that should NOT require section (CT Cell, DG items, Strategic Analysis Section)
+        elif wing_name in ['CT Cell', 'DG Cell', 'DG Coordination', 'DG Escort', 'DG Secretariat', 'Strategic Analysis Section']:
+            # No section required for these items
+            pass
+        
+        # Any other wing/item should require section
+        else:
+            if not section_name:
+                validation_errors.append('Section Name is required')
+        
+        # If there are validation errors, show them all at once
+        if validation_errors:
+            error_message = 'Please complete all required fields: ' + ', '.join(validation_errors)
+            flash(error_message, 'error')
+            conn.close()
+            return render_template('complete_profile.html', user=user)
         
         # Update user profile in database
         try:
@@ -1357,8 +1379,8 @@ def complete_profile():
             conn.commit()
             conn.close()
             
-            flash('Profile completed successfully! Welcome to the exam system.', 'success')
-            return redirect(url_for('student_dashboard'))
+            # Redirect to success page instead of dashboard
+            return redirect(url_for('profile_complete_success'))
         
         except Exception as e:
             conn.close()
@@ -1368,6 +1390,31 @@ def complete_profile():
     
     conn.close()
     return render_template('complete_profile.html', user=user)
+
+
+@app.route('/profile-complete-success')
+def profile_complete_success():
+    """Show success page after profile completion"""
+    if not session.get('user_logged_in'):
+        flash('Please login first', 'error')
+        return redirect(url_for('login'))
+    
+    user_id = session.get('user_id')
+    
+    # Get current user data
+    conn = get_db_connection()
+    user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+    conn.close()
+    
+    if not user:
+        flash('User not found', 'error')
+        return redirect(url_for('logout'))
+    
+    # If profile not completed, redirect back to complete profile
+    if user['profile_completed'] != 1:
+        return redirect(url_for('complete_profile'))
+    
+    return render_template('profile_complete_success.html', user=user)
 
 
 @app.route('/student/dashboard')

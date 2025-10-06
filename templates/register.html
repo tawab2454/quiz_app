@@ -7,11 +7,11 @@
     <div class="auth-card">
         <div class="auth-header">
             <h2>📡 New Registration</h2>
-            <p>Initialize Security Clearance Protocol</p>
-            <div class="auth-notice">
-                <span class="notice-icon">🔒</span>
-                <span class="notice-text">Additional information will be collected securely after login</span>
-            </div>
+            <!-- <p>Initialize Security Clearance Protocol</p> -->
+            <!-- <div class="auth-notice">
+                 <span class="notice-icon">🔒</span> 
+                 <span class="notice-text">Additional information will be collected securely after login</span> 
+            </div> --> 
         </div>
 
         {% if registration_open is defined and not registration_open %}
@@ -25,21 +25,21 @@
         <form method="POST" class="form" id="registerForm" action="{{ url_for('register') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
             
-            <!-- NSI ID Field -->
+            <!-- ID Field -->
             <div class="form-group">
-                <label class="auth-label" for="nsi_id">NSI ID *</label>
+                <label class="auth-label" for="nsi_id">FULL ID *</label>
                 <input type="text" id="nsi_id" name="nsi_id" required 
                        placeholder="e.g., A-0561" maxlength="6"
                        class="auth-input" autocomplete="username">
                 <div class="auth-help">
-                    <span class="cyber-icon">ℹ️</span> Protocol: [A-D]-[0-9]{4}<br>
+                    <!-- <span class="cyber-icon">ℹ️</span> Protocol: [A-D]-[0-9]{4}<br> -->
                     <span class="cyber-icon">🔍</span> Example Input: A-0561
                 </div>
             </div>
 
             <!-- Name Field -->
             <div class="form-group">
-                <label class="auth-label" for="name">Operative Name *</label>
+                <label class="auth-label" for="name">NAME *</label>
                 <input type="text" id="name" name="name" required 
                        placeholder="Enter your full name" maxlength="100"
                        class="auth-input" autocomplete="name">
